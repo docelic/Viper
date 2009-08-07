@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - Making server available to clients<br>
+</h1>
+
+As soon as Viper server is on a network, it's accessible to the clients.
+<br><br>
+However, in default configuration, the client is expected to use the server as gateway, so it means the server should have an IP at the same subnet as the client, and should support IP forwarding.
+<br><br>
+Here's an example that'll work with one of the default clients, c1.com,
+with network 10.0.1.0:
+
+<pre>
+apt-get install ipmasq
+
+ifconfig eth1:1 inet 10.0.1.1
+invoke-rc.d ipmasq restart
+</pre>
+
+</body>
+</html>
