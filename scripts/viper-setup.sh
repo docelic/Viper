@@ -41,7 +41,7 @@ LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 # Adjust local server name in dhcp.ldif:
 # Replace "s1" in ldifs/dhcp.ldif with the name of local server:
 cd /etc/ldap/viper/ldifs
-perl -pi -e 'BEGIN{ $h= `hostname`; chomp $h}; s/s1/$h/g' dhcp.ldif
+perl -pi -e 'BEGIN{ $h= `hostname`; chomp $h}; s/s1/$h/g' 1-dhcp.ldif
 
 # Load LDIF data into LDAP (NOTE: 'make' deletes all Viper data from LDAP
 # and then loads all *ldif files, so if you want to use this approach, do not
