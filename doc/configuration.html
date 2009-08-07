@@ -24,7 +24,7 @@ information about the host. Information about the host is produced
 as follows:<br>
 <ol>
   <li>Puppet collects Facter facts (as usual)</li>
-  <li>Puppet runs external_nodes script, <a href="scripts/node_data"><span
+  <li>Puppet runs external_nodes script, <a href="../scripts/node_data"><span
  style="font-style: italic;">scripts/node_data</span></a>, to come up
 with the list of classes a host belongs to. In the same step, it also
 produces a list of parameters, basically variables that will be
@@ -34,7 +34,7 @@ ERB templates.</li>
 </ol>
 Then Puppet proceeds to do its thing, independent of Viper.<br>
 <br>
-What we're interested in here is the <a href="scripts/node_data"><span
+What we're interested in here is the <a href="../scripts/node_data"><span
  style="font-style: italic;">scripts/node_data</span></a> script. It
 produces all data based on information returned from LDAP queries.
 Initially, we were using Puppet's support for ldap nodes directly, but

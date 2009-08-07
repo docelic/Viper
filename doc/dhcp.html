@@ -8,7 +8,7 @@ and Monitoring</title>
 <body>
 <h1>Viper - install, step 2/6 - dhcp notes</h1>
 <br>
-<h2>DHCP server configuration, /etc/dhcp3/dhcpd.conf</h2>
+<h2>DHCP server configuration, <a href="../configs/dhcpd.conf">/etc/dhcp3/dhcpd.conf</a></h2>
 <span style="font-weight: bold;"></span>DHCP server should support LDAP
 backend. In Debian, this exists as a package <span
  style="font-style: italic;">dhcp3-server-ldap</span>.<br>
@@ -88,7 +88,7 @@ dhcpd: Sending the following options: 'fixed-address
 nis-domain "c1.com";#012option domain-name "c1.com";#012option
 subnet-mask 255.255.255.0;#012option broadcast-address 10.0.1.255;#012'<br>
 <h2>LDAP server configuration, suffix ou=dhcp, in <a
- href="configs/slapd.conf">/etc/ldap/slapd.conf</a></h2>
+ href="../configs/slapd.conf">/etc/ldap/slapd.conf</a></h2>
 As mentioned earlier, <span style="font-style: italic;">ou=dhcp </span>needs
 to be a suffix configured in <span style="font-style: italic;">slapd.conf
 </span>and containing rules for query rewriting etc. Without further

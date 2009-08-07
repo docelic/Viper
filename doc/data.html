@@ -32,8 +32,8 @@ suffix intended to be used only by the ISC DHCP LDAP-enabled server. It
 contains appropriate configuration which rewrites incoming queries
 (sent by DHCP) to the appropriate form, so that the appropriate data is
 found and returned back to DHCP.<br>
-LDIF data for this suffix is in <a href="../ldifs/dhcp.ldif"><span
- style="font-style: italic;">ldifs/dhcp.ldif<br>
+LDIF data for this suffix is in <a href="../ldifs/1-dhcp.ldif"><span
+ style="font-style: italic;">ldifs/1-dhcp.ldif<br>
     </span></a><br>
   </li>
   <li><span style="font-weight: bold;">ou=defaults</span>: suffix that
@@ -70,10 +70,10 @@ we have "regular_root" and "regular_home" recipes.<br>
       </li>
     </ul>
 LDIF data for <span style="font-style: italic;">ou=defaults</span>
-suffix and all in it is in <a href="../ldifs/defaults.ldif">ldifs/defaults.ldif</a>,
+suffix and all in it is in <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a>,
 so you can read it to verify what we've just said.<br>
     <br>
-You'll note that some of the values in ldifs/defaults.ldif, especially
+You'll note that some of the values in ldifs/0-defaults.ldif, especially
 extendedDescription, are often base64-encoded. This is required to
 preserve exact value of the key within LDIF file format, and should not
 bother you (extendedDescription is not important anyway). However, to
@@ -82,7 +82,7 @@ really see what's in there, you can run <span
 base64-encoded value in there, and press Enter, Ctrl+D. Decoded value
 will be printed.<br>
     <br>
-Also, reading ldifs/defaults.ldif is useful to give you a feeling of
+Also, reading ldifs/0-defaults.ldif is useful to give you a feeling of
 how we achieve dynamic attribute values. The top and the bottom of the
 file contain many interesting and mostly self-explanatory rules that
 implement some serious magic.<br>
