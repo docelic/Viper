@@ -21,6 +21,8 @@ apt-get install ipmasq
 
 ifconfig eth1:1 inet 10.0.1.1 netmask 255.255.255.0
 invoke-rc.d ipmasq restart
+
+invoke-rc.d dhcp3-server restart # (if needed)
 </pre>
 
 </body>
