@@ -19,7 +19,7 @@ with network 10.0.1.0:
 <pre>
 apt-get install ipmasq
 
-ifconfig eth1:1 inet 10.0.1.1
+ifconfig eth1:1 inet 10.0.1.1 netmask 255.255.255.0
 invoke-rc.d ipmasq restart
 </pre>
 
