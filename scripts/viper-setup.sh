@@ -2,6 +2,7 @@
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl
 
 # Install slapd.conf as symlink to Viper's version
+cd /etc/ldap
 mv slapd.conf slapd.conf.orig
 cp -s viper/configs/slapd.conf .
 
@@ -50,3 +51,6 @@ cd /etc/dhcp3
 mv dhcpd.conf dhcpd.conf.orig
 cp -s ../ldap/viper/configs/dhcpd.conf .
 invoke-rc.d dhcp3-server restart
+
+echo "Viper setup successful."
+
