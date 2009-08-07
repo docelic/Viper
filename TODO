@@ -1,0 +1,141 @@
+* IDEAS FOR COMPLETING THE THING:
+
+* echo >> line in late_command to use expansion & perl munging to produce IP of server, or to have IP of server registered somewhere (also through defaults)
+
+* Test if server side prompter works after changes
+
+* Make 5o cache possible, and make cacheOpen understand cache specs
+
+* Check if one can trigger endless loop with dynamic options, and make max loop depth configurable
+
+* See if we can get rid of $entry->clone()s... Enormous time waster (3x)
+
+* Apt sources to not include local cdrom
+
+* origdn support for run_appender just like for run_overlays?
+
+* optimization-- skip component splitting if none of the components
+ matches the overlay that would run
+
+* preseed filename via filename: DHCP opt
+
+* multiple networks per client?
+
+* 'store' overlay that saves computed value for real into the entry
+
+* doc note how to kill dbus on debconf hang if server cl+ced or exits
+
+* specify pw checking, see krb auth
+
+* Support num_ops counting thru check-state in every function and make cache 10o a possible setting
+
+* see if ->check_state is needed on modify? maybe not really
+
+* If overlay fails, hide that attribute from displaying since data in there
+ is most probably incomplete
+
+* configure local bind9 so it resolves according to dhcp leases
+
+* putting value together after overlay work would break if evaluation result matches
+ name of some overlay?
+
+* automatic schema update -> create special suffix which is used just
+ to trigger some behavior via specifications in filter or search base.
+ One of the commands would refresh schema, and other suffixes would notice
+ mtime change on schema file and reload.
+
+* Debug prompter (question missing on question nr. > 1)
+
+* don't tie host extra info to puppetClient, tie to extraInfo, configInfo,
+ configData or so
+
+* store $ .... $ spec to store value (i.e. random pw)
+
+* Use proper OIDs for own attrs
+
+- some trigger, that could run arbitrary things, like ipcalc to conver .255 -> /32 etc.
+
+- See why ->must( $oc) wasn't working in Viper.pm test, and document that if you want
+  to entryAppend, the original entry must be of the desired objectclasses
+
+- output rewriting (i.e. removing ou=static at entry, add ou=static on exit)
+
+- config for DHCP to not accept unknown clients in the pool, so that if someone makes
+a mistake in HW addr of a system, the IP it gets assigned is from a 'known bad' pool,
+so that they can easily spot the mistake
+
+* unallowed attrs are not checked for on ADD, and also they show in retrieval from
+server (if they were in ldif) even if they're not allowed
+
+* Allow search fallback only if the final component is missing, but the rest is
+ there? Currently we don't check for that so what happens is whatever crap you
+ search, it responds with ou=hosts, ou=defaults which is the final fallback that
+ doesn't depend on input params
+
+- different views of same data thru different suffix, virtual part of suffix
+ gets removed on request entry and added on all results coming out. (Requires
+ that Viper munges the DN to be would-be DN instead of whatever location on
+ the disk is)
+
+- check if modifyCopyOnWrite actually works (the case where whole entry comes
+ from fallback, and then someone tries to modify it)
+
+- See if after appending from seeAlsoAttr, that attr should be removed from
+ the entry or it can stay in there
+
+- when debconf key changed, trigger reload of service owning the key
+
+* Change searchFallback so that it's similar to searchSubst/entryAppend, i.e.
+  should allow to specify conditions, and then rewrite a person wants. Infact,
+  it should allow for generating new search bases placed on stack.
+ - rewrite code a bit so that search base in sub search() is an array, then
+   search all bases in array and append to the result set. (Reason: be able to
+   rewrite search with an entry that returns a collection, i.e.
+   cn=dhcp,cli1,...
+   cn=dhcp,cli2,...
+
+  How to do it? Well make directive with same behavior as searchSubst, but with
+  the intention of adding new bases and corresponding options. Also with option
+  to specify whether to add base always, or if no results from orig query.
+  Actually that option ca be awk-like like NR>0 or something.
+
+  Actually, in this case not only can this add new base but it can also run
+  triggers, for example search in ou=dhcp and some ethernet addr can trigger
+  creation of an entry with some IP, and then return that IP as if it was
+  there.
+
+* perl's init() to pass on suffix
+
+* resolve file XXXs
+
+* ldapsearch -x, why returns limit 500 results even on -z0 -l0
+
+* Syntax for load:   load   TMPFILE    s/x/y/g....
+
+* Make Viper its own package, with slap* version of tools -> vipercat, viperadd etc.
+
+NOTES:
+- pass on info about expansion etc. through operational attrs
+- if someone wants a static tree, they should either modify text
+  files or load up another ldap instance with overlay and dynamic turned
+  off
+
+# List of extra todos:
+# - ldap server on every client host, delegate part of the tree to it
+#   as a referral, for retrieving system data. I.e. 
+#   ldapsearch cn=uptime,cn=hostname,ou=hosts,dc=,dc=
+#   and the entry defining file $ /proc/uptime (which is symlink from
+#   datadir to real /proc/uptime).
+# - Optimize number of accesses to key from LDAP.pm (sub exists())
+# - Implement delete in debconf's LDAP.pm?
+# - See if krb auth can work
+# - add support for setuid() or ticket/token obtain based on binding DN
+# - anything to do with referral chasing?
+# - cfg file option to enable/disable perm denied msgs on reading etc.
+# - automatic creation of host entries when new host tries to read its config
+#   (can do, but can it know the host's ethernet addr?)
+
+#
+# TODO!!!
+# - consolidate Debconf patches
+# - operational attrs?

@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - install, step 2/6 - dhcp notes</h1>
+<br>
+<h2>DHCP server configuration, /etc/dhcp3/dhcpd.conf</h2>
+<span style="font-weight: bold;"></span>DHCP server should support LDAP
+backend. In Debian, this exists as a package <span
+ style="font-style: italic;">dhcp3-server-ldap</span>.<br>
+<br>
+Then, the dhcp server should be configured simply like this in
+/etc/dhcp3/dhcpd.conf:<br>
+<pre>ldap-username "cn=dhcpd,ou=dhcp";<br>ldap-password "blah"<br>ldap-port 389;<br>ldap-base-dn "ou=dhcp";<br>ldap-method dynamic;<br>ldap-debug-file "/var/log/dhcp-ldap-startup.log";<br>ldap-ssl off;<br><br># Standard dhcp options<br>default-lease-time 36000;<br>max-lease-time 95000;<br>authoritative;</pre>
+<h2>Restarting dhcp server</h2>
+LDAP-enabled DHCP server works by getting configuration pieces from
+LDAP, forming
+valid configuration blocks, and sending them to DHCP's standard config
+parser functions. Therefore, configuration coming from LDAP passes all
+the same configuration checks as verbatim dhcpd.conf configuration.<br>
+<br>
+So keep an eye on syslog (<span style="font-style: italic;">sudo tail
+-f
+/var/log/syslog</span>) and you'll spot all errors there. If basic
+parsing succeeds and there's no syntactical error in the configuration,
+DHCP will try to start. <span style="font-style: italic;">/var/log/dhcp-ldap-startup.log</span>
+will contain the startup configuration in text form, and you can look
+it up to spot any other errors.<br>
+<br>
+<h2>DHCP operation</h2>
+Thanks to option <span style="font-style: italic;">ldap-method dynamic;</span>
+in dhcpd.conf, DHCP will query LDAP for every request on the fly. In
+debug level 256, slapd would report the following about the request:<br>
+<br>
+conn=14 op=35 SRCH base="ou=dhcp" scope=2 deref=0
+filter="(&amp;(objectClass=dhcpHost)(dhcpHWAddress=ethernet
+00:11:6c:34:ae:8a))"<br>
+conn=14 op=35 SEARCH RESULT tag=101 err=0 nentries=1 text=<br>
+conn=14 op=36 SRCH base="o=c1.com,ou=clients" scope=2 deref=0
+filter="(&amp;(cn=hosts)(objectClass=dhcpGroup))"<br>
+conn=14 op=36 SEARCH RESULT tag=101 err=0 nentries=0 text=<br>
+<br>
+From the output, you can see that DHCP asked for subtree (scope=2)
+search in base ou=dhcp, looking for anything that matches the specified
+filter "(&amp;(objectClass=dhcpHost)(dhcpHWAddress=ethernet
+00:11:6c:34:ae:8a))".<br>
+<br>
+DHCP server issues specific queries and expects to find DHCP data in a
+specific format (according to logic in the dhcp/ldap patch and visible
+in <span style="font-style: italic;">dhcp.schema</span> file). But we
+do not want to keep data in that format, as it is basically a
+duplication of data that we already keep for a host (MAC address, IP
+address, network params etc.). We also don't want to keep data ONLY in
+DHCP format as that makes them unusable for other purposes, and we
+surely don't want to modify the C code for LDAP support in DHCP.<br>
+<br>
+So, we let DHCP perform LDAP queries as it usually would, under LDAP
+tree <span style="font-style: italic;">ou=dhcp</span>. <span
+ style="font-style: italic;">ou=dhcp</span> is a suffix configured in
+slapd.conf, intended specifically to receive requests from the ISC DHCP
+server. This suffix in our LDAP configuration uses rewrite rules and
+other magic to transform
+incoming requests to appropriate form. Another set of rules then
+operates on the entries found to produce the complete record that will
+be returned to DHCP. (All of this possible thanks to our Viper backend
+for slapd).<br>
+<br>
+The appropriate configuration for <span style="font-style: italic;">ou=dhcp</span>
+in slapd.conf can be found below.<br>
+<br>
+Anyway, there should be only one entry found and returned from the
+dhcp's HWAddress search, just as seen in the SEARCH RESULT line&nbsp;
+above (nentries/number of
+entries=1). The other query for dhcpGroup is irrelevant and can return
+no results
+(nentries=0).<br>
+<br>
+DHCP will receive the data, find it in the format expected, parse it
+and send to the client, leaving a note about it in syslog:<br>
+<br>
+dhcpd: Sending the following options: 'fixed-address
+10.0.1.6;#012option host-name "h6";#012option routers
+10.0.1.1;#012option domain-name-servers 192.168.1.254;#012option
+nis-domain "c1.com";#012option domain-name "c1.com";#012option
+subnet-mask 255.255.255.0;#012option broadcast-address 10.0.1.255;#012'<br>
+<h2>LDAP server configuration, suffix ou=dhcp, in <a
+ href="configs/slapd.conf">/etc/ldap/slapd.conf</a></h2>
+As mentioned earlier, <span style="font-style: italic;">ou=dhcp </span>needs
+to be a suffix configured in <span style="font-style: italic;">slapd.conf
+</span>and containing rules for query rewriting etc. Without further
+ado, here's the configuration with inline comments.
+<p><b>(The configuration shown here is just explanatory example, it
+requires data from a suffix configured before ou=dhcp (which is not
+shown), and is not guaranteed to be up to date. For a working <a
+ href="configs/slapd.conf">slapd.conf</a> and all instructions, see <a
+ href="ldap.html">ldap.html</a>.)</b>
+<br>
+</p>
+<pre>########################################################################<br>#<br># DHCP&nbsp;&nbsp;&nbsp;&nbsp; - configure ou=dhcp tree which is intended to be used by<br>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the ISC DHCP3 server with LDAP support. The real data is<br>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; kept under ou=clients, not here, so to produce the correct<br>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; information expected by DHCP, this suffix sports some dynamic<br>#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rewriting, substitution and append magic.<br>#<br>########################################################################<br><br>database&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; perl<br>suffix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "ou=dhcp"<br>perlModulePath&nbsp;&nbsp;&nbsp;&nbsp; "/root/debconf-backend"<br>perlModule&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "Viper"<br>directory&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "/var/lib/ldap/viper/"<br>treesuffix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "ou=dhcp"<br><br>load&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default_opts<br><br>reset<br># Must-match/Must-not-match regexes that must match and not-match a DN<br># respectively to have expandVal overlay run on the entry's attributes.<br># This value is a match-all setting, and it is included here because any<br># overlay with no config lines is essentially disabled.<br>expandVal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .&nbsp;&nbsp; ^$<br><br># Must-match/Must-not-match regexes that must match and not-match a DN<br># respectively to have fileVal overlay run on the entry's attributes.<br>fileVal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .&nbsp;&nbsp; ^$<br><br># Must-match/Must-not-match regexes that must match and not-match a DN<br># respectively to have findVal overlay run on the entry's attributes.<br>findVal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .&nbsp;&nbsp; ^$<br><br>save&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dynamic_opts<br>reset<br><br># Overlays can accept options, specified directly in overlay calls, or<br># here, where both global and per-overlay defaults can be set.<br>#<br># Here we specify default overlay cache time. Caching is used to speed up<br># costly overlay evaluations which may happen a significant number of times<br># during even a single operation.<br># Cache expiry specification is the same as explained in cacheOpen, and<br># 1o is again overall best setting.<br># While cacheOpen gives noticeable (but small) speedup, caching overlay<br># results here gives enormous performance boost.<br>overlayConfig&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default&nbsp;&nbsp; cache 1o<br>#overlayConfig&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exp&nbsp;&nbsp; cache 5m<br><br>save&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cache_opts<br><br># searchSubst matches a series of input search parameters. If all listed<br># parameters match, a rewrite of any search params can be made. The list<br># of conditions and the list of rewrites to be made are separated by '-&gt;'.<br># Note: the following example completely substitutes the search base, it<br># moves search from ou=dhcp to ou=clients on the same level, which would<br># not be accessible without a rewrite (it's technically a different suffix).<br># Also, note that THIS suffix' settings apply to the search, even if the<br># search is rewritten to a tree that belongs to another suffix.<br># (This property also allows having different views of the same data by<br># simply configuring different suffixes with different options, under the<br># same base directory).<br>#<br># Solve lack of flexibility in ISC DHCP3 LDAP patch by plainly specifying<br># ldap-base-dn "ou=dhcp" in DHCP's config, and then here, rewriting DHCP<br># ethernet address lookup to the ou=clients tree under which all clients<br># are defined.<br>searchSubst&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; base&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "^ou=dhcp$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "^\\(&amp;\\(objectClass=dhcpHost\\)\\(dhcpHWAddress=ethernet [\\dabcdef:]+\\)\\)$" \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; base&nbsp;&nbsp; .+&nbsp;&nbsp; ou=clients<br><br># Solve lack of flexibility in ISC DHCP3 LDAP patch by rewriting a search<br># in any shared network, tree ou=dhcp, to a proper location,<br>searchSubst&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; base&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "^ou=\\w+,ou=dhcp$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; scope&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "^1$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "^\\(objectClass=\\*\\)$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; base&nbsp;&nbsp; .+&nbsp;&nbsp; "ou=clients"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filter .+&nbsp;&nbsp; "(&amp;(objectClass=dhcpSubnet)(!(cn=default)))" \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; scope&nbsp; .+&nbsp;&nbsp; 2<br><br>reset<br><br># entryAppend appends entries with attributes from other entries.<br># Match can be made on any attribute/value pair of the original entry<br># (in our examples, we match on objectClass and dn).<br># Append source can be specified in place (first two examples), or indirectly<br># through an attribute in the existing entry (third example).<br>entryAppend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; objectClass "^dhcpHost$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; append .+ cn=dhcpHost,ou=objectClasses,ou=defaults<br><br>entryAppend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; objectClass "^dhcpSubnet$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; append .+ cn=dhcpSubnet,ou=objectClasses,ou=defaults<br><br>entryAppend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dn&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "^cn=default,ou=networks"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; objectClass "^ipNetwork$"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; attr seeAlso<br><pre><br>save&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dhcp_opts</pre><br><br><br><br></pre>
+</body>
+</html>

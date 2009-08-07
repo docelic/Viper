@@ -1,0 +1,4 @@
+for p in ${1:-*.ldif}; do
+	ldapadd  -x -D cn=admin,dc=c1,dc=com,ou=clients \
+		-w aps -f $p
+done

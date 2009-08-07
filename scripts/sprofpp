@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+#
+# sprofpp, simple script, akin to the standard dprofpp, sorts
+# and displays Devel::SmallProf output on total time used field
+# (or any other numeric field).
+#
+# Usage: perl -d:SmallProf scripts/standalone.pl  (to generate smallprof.out)
+#        perl scripts/sprofpp [FILE] [SORT FIELD] (to print out statistics)
+#
+# By default, FILE is smallprof.out, FIELD is 2 (wallclock time).
+#
+#
+# SPINLOCK - Advanced GNU/Linux networks in commercial and education sectors
+#
+# Copyright 2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/
+#                Davor Ocelic, docelic@spinlocksolutions.com
+#
+# http://www.spinlocksolutions.com/
+# http://techpubs.spinlocksolutions.com/
+#
+# Released under GPL v3 or later.
+#
+
+use strict;
+use Fatal qw/open/;
+
+open my $prof, $ARGV[0]|| 'smallprof.out';
+my $field= $ARGV[1]|| 2;
+
+my @sorted = sort {
+	my @a= split /\s+/, $b;
+	my @b= split /\s+/, $a;
+
+	$a[$field] <=> $b[$field]
+
+} <$prof>;
+
+close $prof;
+
+print join '', @sorted;
+

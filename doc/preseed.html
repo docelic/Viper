@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - install, step 3/6 - preseed notes</h1>
+After obtaining IP and related options thru
+DHCP in step 2, the host will request the preseed file, at <span
+ style="font-style: italic;">url=http://server/d-i/DIST_NAME/preseed.cfg</span>.<br>
+<br>
+In our setup, that file is a CGI script, <span
+ style="font-style: italic;">scripts/preseed</span>, which performs a
+query to LDAP
+to produce the preseed file. LDAP is able to find the host for which
+the configuration should be generated based on the requestor's IP so no
+parameters have to be specified, but this and other options can be
+specified in the request URL via GET parameters.<br>
+<br>
+Before you start the installation on the host, you would usually
+provide this on the command line:<br>
+<br>
+<span style="font-style: italic;">url=http://IP.AD.DR.ESS</span><br>
+<br>
+and that would ask for the said path <span style="font-style: italic;">/d-i/DIST_NAME/preseed.cfg</span>
+on server IP.AD.DR.ESS.<br>
+<h2>Apache2 configuration<br>
+</h2>
+For the preseed CGI to be found at the default location, you would only
+need to symlink the script into /usr/lib/cgi-bin/ and add minimal
+Apache configuration:<br>
+<br>
+1) ln -sf /path/to/scripts/preseed /usr/lib/cgi-bin/preseed.cfg<br>
+<br>
+2) Before the end in /etc/apache2/sites-available/default, add:<br>
+<pre>    ScriptAlias /d-i/squeeze/ /usr/lib/cgi-bin/<br>    ScriptAlias /d-i/lenny/ /usr/lib/cgi-bin/<br></pre>
+<pre>3) /etc/init.d/apache2 reload<br></pre>
+<br>
+The <span style="font-style: italic;">url=</span> option of the debian
+installer also allows specifying full path, so if you've got the script
+at some other place, you can always specifically do <span
+ style="font-style: italic;">url=http://ip.ad.dr.ess/path/to/preseed.cgi</span>.<br>
+<h2>Notes from the preseed script<br>
+</h2>
+<b>(This is the top of file with comments, if you want the whole source
+file, see <a href="scripts/preseed">scripts/preseed</a>).</b><br>
+<br>
+<pre>#!/usr/bin/perl<br>#<br># SPINLOCK - Advanced GNU/Linux networks for commercial and education sectors.<br>#<br># Copyright 2008-2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/<br>#                     Davor Ocelic, docelic@spinlocksolutions.com<br>#<br># License: GPL v3 or later.<br>#<br># The script runs as cgi, and:<br>#<br># 1) takes any of the following optional CGI args in GET query string:<br>#<br>#  OPTION:          EXAMPLE:<br>#<br>#  ip=IP            ip=10.0.1.8<br>#  host=HOSTNAME    host=h2<br>#  client=CLI_NAME  client=c1.com (corresponds to o=c1.com,ou=clients in LDAP)<br>#  debug=0/1        debug=1<br>#  flag=FLAG        flag=preseed<br>#<br># 2) finds LDAP entry for the specified host (based on IP or host+client)<br>#<br># 3) prints out its preseed file<br>#<br>#<br># NOTES ON CGI ARGUMENTS:<br>#<br># If no arguments are specified, host/domain is autodiscovered based on<br># requestor IP, which is how this CGI should be used in regular operation.<br># This implies that the host entry must already exist in LDAP and have<br># the appropriate dhcpHWAddress and ipHostNumber.<br>#<br># It is intended that every client has its own non-overlapping private subnet,<br># and that a search for an IP in the directory returns a single result.<br># But if you have multiple clients with same subnet &amp; IPs so that IP-based<br># search would return multiple results, manually specify client when<br># specifying preseed file, i.e. url=http://srv/preseed.cfg?client=CLIENTNAME<br>#<br># NOTES ON SCRIPT BEHAVIOR:<br>#<br># First, the script expects that it will be searching for entries in<br># subtrees that conforms to Debconf LDAP structure (entries with objectClass<br># debconfDbEntry).<br>#<br># Second, the script looks for config and template data in three places each<br># (in order: host-specific level, site-default level, global-default level). <br>#<br># Third, it is considered good practice not to preseed with all keys, but only<br># those relevant for installation. So of all keys found, only those with the<br># preseed flag set will be included in preseed file output. (see flag= above).<br>#<br># Fourth, keys on the host-specific level are retrieved in one go (a search<br># is made at the top of the tree and returns all first-level keys at once).<br># Keys on other levels are also retrieved in one go (per level), but are not<br># immediately added to the data set. Instead, only their names are recorded,<br># and then those keys are individually retrieved by performing a specific<br># lookup on cn=KEY_NAME,... *under the host-specific tree*. This of course<br># requires that the LDAP server is configured to look in exactly the same<br># place for defaults as is expected by this script, and ensures that even if<br># a value comes from a default entry, it is subject to all parsing, expanding<br># etc. as defined by client-specific tree (ou=clients or o=CLI.com,ou=clients,<br># and not ou=defaults).<br>#<br># OTHER NOTES:<br>#<br># The script includes consistency checks -- at the end of preseed file<br># output, it prints the list of keys which have a config value but no template<br># (or vice versa).<br># That output is prefixed with "BAD:" and, if it occurs, will break the<br># preseed file format. Under normal circumstances this should never happen, so<br># you shouldn't worry. But if it does happen, then those BAD: lines<br># are printed unconditionally to draw your attention (even with debug=0).<br>#<br># Under debug=1, it also prints an informational list, prefixed "INFO:", <br># with the list of keys that existed, but didn't match the flag.<br>#<br></pre>
+<h2>Debugging</h2>
+<ol>
+  <li>Monitor <span style="font-style: italic;">tail -f
+/var/log/apache2/*log</span> to see there are not Apache-related errors<br>
+  </li>
+  <li>Use wget or graphical web browser to retrieve the preseed file,
+make sure you see at least something (not File not found)</li>
+  <li>Specify IP and debug mode manually in the call to the preseed
+script, i.e. http://server/cgi-bin/preseed?debug=1&amp;ip=10.0.1.8</li>
+  <li>Monitor slapd log (in debug level -d 256), look at searches
+requested and their return values</li>
+  <li>Repeat searches reported by slapd manually using <span
+ style="font-style: italic;">ldapsearch</span> and equivalent search
+params, see if data from LDAP comes out as you expect<br>
+  </li>
+</ol>
+<br>
+</body>
+</html>

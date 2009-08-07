@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - How data in the LDAP server is organized<br>
+</h1>
+One of the important elements of the whole system is data organization
+within LDAP. Until you get a hold of the whole system, do not start
+introducing any changes to this structure, as both names of the entries
+and their position are relevant.<br>
+<br>
+(Viper itself does not care about the tree structure. It's the set of
+dynamic behavior rules in <a href="../configs/slapd.conf">slapd.conf</a>
+that are configured operate in this structure).<br>
+<br>
+Here's the tree:<br>
+<br>
+On the top level, we have three suffixes defined in slapd.conf:
+ou=dhcp, ou=defaults, and ou=clients.<br>
+<br>
+(You'll notice that these do not look like the very common and
+prevalent LDAP DNs that end in something like "dc=example,dc=com". This
+is perfectly alright from the LDAP standpoint, offers us certain
+advantages, and should not be changed).<br>
+<ul>
+  <li><span style="font-weight: bold;">ou=dhcp</span>: specialized
+suffix intended to be used only by the ISC DHCP LDAP-enabled server. It
+contains appropriate configuration which rewrites incoming queries
+(sent by DHCP) to the appropriate form, so that the appropriate data is
+found and returned back to DHCP.<br>
+LDIF data for this suffix is in <a href="../ldifs/dhcp.ldif"><span
+ style="font-style: italic;">ldifs/dhcp.ldif<br>
+    </span></a><br>
+  </li>
+  <li><span style="font-weight: bold;">ou=defaults</span>: suffix that
+is also generally not intended to be used for direct access. It
+contains various global-level default values, default entries and
+default attributes. Specifically, it defines the following subentries:<br>
+    <br>
+    <ul>
+      <li><span style="font-weight: bold;">ou=hosts,ou=defaults</span>:
+add global-default Debconf values here, such as <span
+ style="font-style: italic;">cn=partman-auto/method,ou=hosts,ou=defaults<br>
+        <br>
+        </span></li>
+      <li><span style="font-weight: bold;">ou=templates,ou=defaults</span>:
+same as ou=hosts, but it contains the template part of Debconf question<br>
+        <br>
+      </li>
+      <li><span style="font-weight: bold;">ou=objectClasses,ou=defaults</span>:
+it is often useful to append an entry belonging to a certain
+objectClass with some default attribute values, and this is organized
+under this tree. If you want entries of class dhcpHost to get appended
+some default values, add entry <span style="font-style: italic;">cn=dhcpHost,ou=objectClasses,ou=defaults</span>,
+and list attributes there (this, of course, also requires an
+appropriate <span style="font-style: italic;">searchAppend</span> rule
+in slapd.conf to actually trigger the append).<br>
+        <br>
+      </li>
+      <li><span style="font-weight: bold;">ou=partitioning,ou=defaults</span>:
+this should contain various disk partitioning recipes used by Partman.
+By default, a couple recipes are created, corresponding to examples
+shown in Debian preseed files and Partman documentation. For example,
+we have "regular_root" and "regular_home" recipes.<br>
+        <br>
+      </li>
+    </ul>
+LDIF data for <span style="font-style: italic;">ou=defaults</span>
+suffix and all in it is in <a href="../ldifs/defaults.ldif">ldifs/defaults.ldif</a>,
+so you can read it to verify what we've just said.<br>
+    <br>
+You'll note that some of the values in ldifs/defaults.ldif, especially
+extendedDescription, are often base64-encoded. This is required to
+preserve exact value of the key within LDIF file format, and should not
+bother you (extendedDescription is not important anyway). However, to
+really see what's in there, you can run <span
+ style="font-weight: bold;">base64 -d</span> on the command line, paste
+base64-encoded value in there, and press Enter, Ctrl+D. Decoded value
+will be printed.<br>
+    <br>
+Also, reading ldifs/defaults.ldif is useful to give you a feeling of
+how we achieve dynamic attribute values. The top and the bottom of the
+file contain many interesting and mostly self-explanatory rules that
+implement some serious magic.<br>
+    <br>
+  </li>
+  <li><span style="font-weight: bold;">ou=clients</span>: This is the
+primary suffix intended for direct access by all components or scripts
+that use LDAP (except DHCP, as explained above).<br>
+    <br>
+The tree supports multiple clients (domains), and is organized like
+this (example of host "c1.com":<br>
+    <br>
+    <ul>
+      <li><span style="font-weight: bold;">o=c1.com,ou=clients</span>:
+toplevel entry for a client. (Value of o= must be the chosen domain
+name of the client, not arbitrary string, to allow mapping of host's
+FQDN to a specific host under a specific client, and the client's
+starting point must be in <span style="font-style: italic;">o=DOM.AIN,ou=clients</span>)<br>
+        <br>
+        <ul>
+          <li><span style="font-weight: bold;">ou=defaults,o=c1.com,ou=clients:</span>
+per-site defaults, must have subentries the same as global-level
+ou=defaults tree, so that mapping between site and global level is
+possible just by removing or adding last two components
+(o=c1.com,ou=clients).<br>
+            <br>
+            <ul>
+              <li style="font-weight: bold;">ou=objectClasses<span
+ style="font-weight: normal;"></span></li>
+              <li style="font-weight: bold;">ou=hosts<span
+ style="font-weight: normal;"></span></li>
+              <li><span style="font-weight: bold;">ou=templates</span><br>
+                <br>
+              </li>
+            </ul>
+          </li>
+          <li><span style="font-weight: bold;">ou=networks,o=c1.com,ou=clients:</span>
+list of subnets and their parameters used by a client. (Currently only
+one network per client is supported. To have multiple
+networks, your best bet is to create them as multiple clients.)<br>
+            <br>
+            <ul>
+              <li><span style="font-weight: bold;">cn=default</span>:
+pointer to the actual subnet (cn=10.0.1.0 in this case)<br>
+                <br>
+              </li>
+              <li><span style="font-weight: bold;">cn=10.0.1.0</span><br>
+                <br>
+              </li>
+            </ul>
+          </li>
+          <li><span style="font-weight: bold;">ou=hosts,o=c1.com,ou=clients</span>:
+all host definitions<br>
+            <br>
+            <ul>
+              <li><span style="font-weight: bold;">cn=h2</span>:
+specific host, h2.c1.com. Host-specific configuration<br>
+                <br>
+                <ul>
+                  <li><span style="font-weight: bold;">cn=key/name</span>:
+all Debconf keys for a host, host-specific level<br>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <span style="font-weight: bold;"><br>
+            </span></li>
+          <li><span style="font-weight: bold;">ou=templates,o=c1.com,ou=clients:<br>
+            <br>
+            </span>
+            <ul>
+              <li><span style="font-weight: bold;"></span><span
+ style="font-weight: bold;">cn=h2</span><br>
+                <br>
+                <ul>
+                  <li><span style="font-weight: bold;">cn=key/name</span></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <br>
+LDIF data for client c1.com is in <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>.</li>
+</ul>
+<br>
+</body>
+</html>

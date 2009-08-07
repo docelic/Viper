@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - steps in the host install process</h1>
+<br>
+<div style="text-align: center;"><span
+ style="text-decoration: underline;"><img
+ style="width: 1280px; height: 410px;" alt="Viper components scheme"
+ src="scheme.png"></span>
+<span style="text-decoration: underline;"></span></div>
+<h2>Description</h2>
+For an overview, just read the page. Links are provided for more
+detailed information on individual steps.<br>
+<br>
+<ol>
+  <li><a href="boot.html"><span style="font-weight: bold;">Boot from
+standard install media</span></a> - use any standard Debian install
+media, no need for customizations. To boot from CD-Rom, use ready-made
+Debian CD/DVD images. To boot from USB stick, the easiest way is to
+install GUI program "unetbootin" and use it to create a bootable stick.<br>
+    <br>
+  </li>
+  <li><a href="dhcp.html"><span style="font-weight: bold;">Configure
+via DHCP</span></a> - in this step, <span style="font-style: italic;">dhclient</span>
+on the workstation will send a DHCP request. DHCP server will see the
+request and perform a query to LDAP, in an attempt to find the specific
+host (not just a random IP from the DHCP pool). When the request
+reaches LDAP, it will be rewritten and redirected as necessary (using
+features of the Viper slapd backend) to find the host entry. It is
+sufficient for the entry to only contain macAddress and ipHostNumber
+defined, Viper will construct all other options on the fly.<br>
+    <br>
+  </li>
+  <li><a href="preseed.html"><span style="font-weight: bold;">Obtain
+preseed file</span></a> - after obtaining IP and related options thru
+DHCP, the host will request the preseed file, at <span
+ style="font-style: italic;">url=http://server/d-i/DIST_NAME/preseed.cfg</span>.
+In our setup, that file is a CGI script which performs a query to LDAP
+to produce the preseed file. LDAP is able to find the host for which
+the configuration should be generated based on the requestor's IP.<br>
+    <br>
+  </li>
+  <li><a href="install.html"><span style="font-weight: bold;">Install
+(automatically) according to preseed</span> </a>- the installation
+proceeds. When everything has been preseeded correctly, no questions
+will be asked interactively. Only the minimal Debian system will be
+installed, plus Puppet and, optionally, some minimal .debs that will do
+the necessary preparations. Those optional debs, if installed, do
+things like add LDAP support for Debconf and configure Debconf to use
+LDAP etc.<br>
+    <br>
+  </li>
+  <li><span style="font-weight: bold;">Reboot<br
+ style="font-weight: bold;">
+    <br>
+    </span></li>
+  <li><a href="configuration.html"><span style="font-weight: bold;">Puppet
+starts, configures everything</span> </a>- puppet will start and
+contact puppetmasterd. Master server will produce configuration based
+on site manifests, modules etc., and "externalnodes" information (list
+of classes a host belongs to, and definitions of parameters
+(variables)). The external nodes script contacts LDAP to produce the
+information, but we do not use Puppet's LDAP node terminus directly,
+because we want to do some very useful and necessary extra processing
+to produce classes and variables.</li>
+</ol>
+<span style="text-decoration: underline;"></span><br>
+</body>
+</html>

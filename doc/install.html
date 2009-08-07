@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - install, step 4/6 - install notes</h1>
+The install procedure will just go on as usual, and there's not much to
+say about it.<br>
+<br>
+Here are a couple notes that come to mind though:<br>
+<br>
+<h3>Troubleshooting list</h3>
+<ol>
+  <li><span style="font-weight: bold;">Preseed file not found</span> -
+see <a href="preseed.html">preseed.html</a></li>
+  <li><span style="font-weight: bold;">Preseed file contains errors</span>
+- see Debugging in <a href="preseed.html">preseed.html</a></li>
+  <li><span style="font-weight: bold;">Install asks a question
+interatively</span> - you did not preseed everything, or you preseeded
+a wrong key (coming back to "you did not preseed everything").</li>
+  <li><span style="font-weight: bold;">Install complains about not
+being able to find root partition</span> - you did not configure the
+disk properly in question <span style="font-style: italic;">partman-auto/disk</span>,
+should place /dev/hda, /dev/sda or similar in there<br>
+  </li>
+</ol>
+</body>
+</html>

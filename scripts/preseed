@@ -1,0 +1,332 @@
+#!/usr/bin/perl
+#
+# SPINLOCK - Advanced GNU/Linux networks for commercial and education sectors.
+#
+# Copyright 2008-2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/
+#                     Davor Ocelic, docelic@spinlocksolutions.com
+#
+# License: GPL v3 or later.
+#
+# The script runs as cgi, and:
+#
+# 1) takes any of the following optional CGI args in GET query string:
+#
+#  OPTION:          EXAMPLE:
+#
+#  ip=IP            ip=10.0.1.8
+#  host=HOSTNAME    host=h2
+#  client=CLI_NAME  client=c1.com (corresponds to o=c1.com,ou=clients in LDAP)
+#  debug=0/1        debug=1
+#  flag=FLAG        flag=preseed
+#
+# 2) finds LDAP entry for the specified host (based on IP or host+client)
+#
+# 3) prints out its preseed file
+#
+#
+# NOTES ON CGI ARGUMENTS:
+#
+# If no arguments are specified, host/domain is autodiscovered based on
+# requestor IP, which is how this CGI should be used in regular operation.
+# This implies that the host entry must already exist in LDAP and have
+# the appropriate dhcpHWAddress and ipHostNumber.
+#
+# It is intended that every client has its own non-overlapping private subnet,
+# and that a search for an IP in the directory returns a single result.
+# But if you have multiple clients with same subnet & IPs so that IP-based
+# search would return multiple results, manually specify client when
+# specifying preseed file, i.e. url=http://srv/preseed.cfg?client=CLIENT.NAME
+#
+# NOTES ON SCRIPT BEHAVIOR:
+#
+# First, the script expects that it will be searching for entries in
+# subtrees that conforms to Debconf LDAP structure (entries with objectClass
+# debconfDbEntry).
+#
+# Second, the script looks for config and template data in three places each
+# (in order: host-specific level, site-default level, global-default level). 
+#
+# Third, it is considered good practice not to preseed with all keys, but only
+# those relevant for installation. So of all keys found, only those with the
+# preseed flag set will be included in preseed file output. (see flag= above).
+#
+# Fourth, keys on the host-specific level are retrieved in one go (a search
+# is made at the top of the tree and returns all first-level keys at once).
+# Keys on other levels are also retrieved in one go (per level), but are not
+# immediately added to the data set. Instead, only their names are recorded,
+# and then those keys are individually retrieved by performing a specific
+# lookup on cn=KEY_NAME,... *under the host-specific tree*. This of course
+# requires that the LDAP server is configured to look in exactly the same
+# place for defaults as is expected by this script, and ensures that even if
+# a value comes from a default entry, it is subject to all parsing, expanding
+# etc. as defined by client-specific tree (ou=clients or o=CLI.com,ou=clients,
+# and not ou=defaults).
+#
+# OTHER NOTES:
+#
+# The script includes consistency checks -- at the end of preseed file
+# output, it prints the list of keys which have a config value but no template
+# (or vice versa).
+# That output is prefixed with "BAD:" and, if it occurs, will break the
+# preseed file format. Under normal circumstances this should never happen, so
+# you shouldn't worry. But if it does happen, then those BAD: lines
+# are printed unconditionally to draw your attention (even with debug=0).
+#
+# Under debug=1, it also prints an informational list, prefixed "INFO:", 
+# with the list of keys that existed, but didn't match the flag.
+#
+
+use warnings;
+use strict;
+
+use Net::LDAP;
+
+my %parm_valid= qw/ip 1 flag 1 debug 1 host 1 client 1/; # Valid GET args
+my %query;       # Final query after processing of input parms
+my %hash;        # Hash with output data
+my %check_exist; # Consistency checker
+my %check_flag;  # Flag info (shown if debug=1)
+
+print "Content-type: text/plain\n\n";
+
+my $query= $ENV{QUERY_STRING};
+my @query= split /\&/, $query;
+
+$query{server}= 'localhost'; # Not modifiable from CGI args
+
+$query{ip}= $ENV{REMOTE_ADDR};
+$query{flag}= 'preseed';
+
+# Transform input @query into %query hash, possibly overriding
+# default values
+for( @query){
+	next unless /^(\w+)=([\w\.]+)$/;
+	next unless $parm_valid{$1};
+
+	my( $key, $val)= ( $1, $2);
+
+	# DISABLED, since we currently use o=clientname identifiers, not dc=,dc=
+	## If we're on a client= setting and no "=" appears in value (which is a
+	## good indicator domain is NOT in dc=example,dc=com format but is simply
+	## example.com), turn example.com into dc=example,dc=com.
+	#if( $key eq 'domain' and $val!~ /=/) {
+	#	my @vals= split /\./, $val;
+	#	$_= "dc=$_" for @vals;
+	#	$val= join q{,}, @vals;
+	#}
+
+	$query{$key}= $val;
+}
+
+
+my $l= Net::LDAP->new( $query{server}) or die "$@\n";
+
+# If we're doing IP-based lookup, connect to LDAP and retrieve
+# hostname/client corresponding to the IP. If host= and client=
+# were provided, then just connect, no further lookup needed.
+my $m;
+if( not $query{host} or not $query{client}) {
+	$m= $l->bind; # ( 'cn=root,ou=clients', password => 'a');
+
+	my $filter= '(ipHostNumber='. $query{ip}. ')';
+	if( my $cli= $query{client}) {
+		$filter= "(& $filter (clientName=$cli) )";
+	}
+
+	$m= $l->search(
+		base => 'ou=clients',
+		filter => $filter,
+		scope => 'sub',
+	);
+	if( $m->code and $m->code!= 32) {
+		print "Searched for base ou=clients\n";
+		print $m->error;
+		die $m->error
+	}
+	for( $m->entries) {
+		$query{host}= $_->dn;
+		$query{host}=~ s/,.*//;
+		$query{host}=~ s/^cn=//;
+
+		unless( $query{domain}) {
+			my $dom= $_->dn;
+			$dom=~ s/^.+?,//;
+			$dom=~ s/^.+?,//;
+			$query{domain}= $dom;
+		}
+	}
+
+} else {
+	$m= $l->bind; #( 'cn=root,'.$query{client}, password => 'a');
+}
+
+# Make sure after lookup (in which ever way it happens) we know
+# the host/client name.
+for( qw/host domain/){
+	if( not exists $query{$_}){
+		print "Missing $_= option\n";
+		exit 0;
+	}
+}
+
+if( $query{debug}) {
+	print 'DEBUG: ', join(' ', %query), "\n";
+}
+
+# Locations of config keys (in order of descending specificity)
+my @clocs= (
+	'cn='.$query{host}.',ou=hosts,'.$query{domain},
+	'ou=hosts,ou=defaults,'.$query{domain},
+	'ou=hosts,ou=defaults',
+);
+
+# Locations of template keys (in order of descending specificity)
+my @tlocs= (
+	'cn='.$query{host}.',ou=templates,'.$query{domain},
+	'ou=templates,ou=defaults,'.$query{domain},
+	'ou=templates,ou=defaults',
+);
+
+my $locnr; # Keep track of loop index in @cloc/@tloc
+my( $locfirst, $loclast);
+
+# For each configured location, retrieve keys, stuff into %hash
+# (First entry wins, subsequent entries do not override first value).
+$locnr= -1;
+$loclast= scalar @clocs;
+while( @clocs){
+	$locnr++;
+	$_= shift @clocs;
+
+	# Remember what was the first, host-specific search tree
+	if( $locnr== 0) {
+		$locfirst= $_;
+	}
+
+	$m= $l->search(
+		base => $_,
+		filter => '(objectClass=debconfDbEntry)',
+		scope => 'sub',
+	);
+	if( $m->code and $m->code!= 32) {
+		print "Searched (1) for base $_\n";
+		print $m->error;
+		die $m->error
+	}
+	
+	for( $m->entries){
+		my $cn= $_->get_value( 'cn');
+		$cn= $$cn[0] if ref $cn; # I don't know, just in case.
+
+		my $flags= $_->get_value( 'flags');
+		$flags= $$flags[0] if ref $flags; # I don't know, just in case.
+		if( $query{flag} and( !$flags or $flags!~ /\b$query{flag}\b/)) {
+			$hash{$cn}= undef;
+			next;
+		}
+
+		# If value is already there - bien!
+		if( exists $hash{$cn}) {
+			next;
+		# If not, and it's one of the default/fallback trees, do not
+		# process it but just register cn= of the entry to retrieve it
+		# in next pass through the ou=clients tree, not ou=defaults or similar.
+		# (Done that way so that ou=clients or o=CLI,ou=clients LDAP options
+		# would apply).
+		} elsif( $locnr> 0 and $locnr< $loclast) {
+			unshift @clocs, "cn=$cn,$locfirst";
+			next;
+		}
+
+		# Register that *at this point* this key has config-key only (no template).
+		# (If a template is found in the template pass, the key is deleted from
+		# this list not to raise false warnings).
+		$check_exist{$cn}= 'config-only';
+
+		for my $attr( qw/owners value/){
+			my $v= $_->get_value( $attr);
+			$v= $$v[0] if ref $v; # Again, just in case.
+			$hash{$cn}{$attr}= defined $v ? $v : '';
+		}
+	}
+}
+$locnr= -1;
+$loclast= scalar @tlocs;
+while( @tlocs){
+	$locnr++;
+	$_= shift @tlocs;
+
+	# Remember what was the first, host-specific search tree
+	if( $locnr== 0) {
+		$locfirst= $_;
+	}
+
+	$m= $l->search(
+		base => $_,
+		filter => '(objectClass=debconfDbEntry)',
+		scope => 'sub',
+	);
+	if( $m->code and $m->code!= 32) {
+		print "Searched (2) for base $_\n";
+		print $m->error;
+		die $m->error
+	}
+	
+	for( $m->entries){
+		my $cn= $_->get_value( 'cn');
+		$cn= $$cn[0] if ref $cn; # I don't know, just in case.
+
+		# If value is already there - bien!
+		if( exists $hash{$cn} and $hash{$cn}) {
+			delete $check_exist{$cn};
+
+		# Entry there but flag doesn't match so we drop it
+		} elsif( exists $hash{$cn} and !defined $hash{$cn}) {
+			$check_flag{$cn}= 'no-flag';
+			delete $hash{$cn};
+			next;
+
+		# If not, and it's one of the default/fallback trees, do not
+		# process it but just register cn= of the entry to retrieve it
+		# in next pass through the ou=clients tree, not ou=defaults or similar.
+		# (Done that way so that ou=clients or o=CLI,ou=clients LDAP options
+		# would apply).
+		} elsif( $locnr> 0 and $locnr< $loclast) {
+			unshift @tlocs, "cn=$cn,$locfirst";
+			next;
+
+		} else {
+			$check_exist{$cn}= 'template-only';
+		}
+
+		for my $attr( qw/type/){
+			my $v= $_->get_value( $attr);
+			$v= $$v[0] if ref $v; # Again, just in case.
+			$hash{$cn}{$attr}= $v;
+		}
+	}
+}
+
+# Print the whole thing.
+while( my($k,$v)= each %hash){
+	print $v->{owners}. "\t";
+	print $k. "\t";
+	print $v->{type}. "\t";
+	print $v->{value}. "\n";
+}
+
+# If any keys are in %check_exist, it's the list of items that miss either
+# the value or template. Print them out so a person can catch them.
+for( keys %check_exist){
+	print "BAD: $_: $check_exist{$_}\n";
+}
+# Under debug, print info on keys that were considered, but did not
+# have the right flag.
+if( $query{debug}) {
+	for( keys %check_flag){
+		print "INFO: $_: $check_flag{$_}\n";
+	}
+}
+
+$m= $l->unbind;
+

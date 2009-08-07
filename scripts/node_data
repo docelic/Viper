@@ -1,0 +1,152 @@
+#!/usr/bin/perl
+#
+# Retrieve node configuration from LDAP and dump in YAML format.
+# Node configuration consists of classes and parameters list.
+#
+# Classes list is a collection of puppetClass: values for the host,
+# and parameters are host's all base attributes + Debconf keys marked
+# for inclusion with attribute 'flags: puppet').
+#
+# Usage: per scripts/node_data FQDN
+#
+# NOTES:
+#
+# - FQDN must be in style HOST.DOM.AIN, which can be transformed into
+# LDAP DN of cn=HOST,o=DOM.AIN,ou=clients.
+#
+# - Scripts basically does the same pattern of access to LDAP as
+# another script, scripts/preseed, so look there for detailed explanation
+# how the keys are retrieved from LDAP.
+#
+#
+# SPINLOCK - Advanced GNU/Linux networks in commercial and education sectors
+#
+# Copyright      2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/
+#                     Davor Ocelic, docelic@spinlocksolutions.com
+#
+# http://www.spinlocksolutions.com/
+# http://techpubs.spinlocksolutions.com/
+#
+# Released under GPL v3 or later.
+#
+
+use strict;
+use warnings;
+
+use Net::LDAP qw//;
+use YAML      qw/Dump/;
+
+my ( %parameters, %classes);
+
+my $name = $ARGV[0];
+$name or die "No FQDN passed as 1st argument\n";
+
+my( $host, $domain)= ( $name=~ /^(.+?)\.(.+)/);
+
+my %query;
+@query{ qw/server flag host domain debug/}=
+	( qw/localhost puppet/, $host, "o=$domain,ou=clients", 0);
+
+
+my $l= Net::LDAP->new( $query{server}) or die "$@\n";
+my $m;
+
+if( $query{debug}) {
+	print 'DEBUG: ', join(' ', %query), "\n";
+}
+
+
+# Locations of config keys (in order of descending specificity)
+my @clocs= (
+	'cn='.$query{host}.',ou=hosts,'.$query{domain},
+	'ou=hosts,ou=defaults,'.$query{domain},
+	'ou=hosts,ou=defaults',
+);
+
+my $locnr; # Keep track of loop index in @cloc/@tloc
+my( $locfirst, $loclast);
+
+# For each configured location, retrieve keys, stuff into %parameters
+# (First entry wins, subsequent entries do not override first value).
+$locnr= -1;
+$loclast= scalar @clocs;
+while( @clocs){
+	$locnr++;
+	$_= shift @clocs;
+
+	# Remember what was the first, host-specific search tree
+	if( $locnr== 0) {
+		$locfirst= $_;
+
+		# If we're at the host-specific entry, parse it to 
+		# retrieve parameters (all attributes listed under host).
+		$m= $l->search(
+			base => $_,
+			filter => "(objectClass=puppetClient)",
+			scope => 'base',
+		);
+		if( $m->code and $m->code!= 32) {
+			print "Searched (1) for base $_\n";
+			print $m->error;
+			die $m->error
+		}
+		
+		for my $e( $m->entries){
+			for my $a( $e->attributes) {
+				my @vals= $e->get_value( $a);
+
+				if( $a eq 'puppetclass') {
+					%classes= ( %classes, map{ $_ => 1} @vals);
+				}
+
+				$parameters{$a}= [ @vals];
+			}
+		}
+	}
+
+	# Perform regular search for debconf entries
+	$m= $l->search(
+		base => $_,
+		filter => "(&(objectClass=debconfDbEntry)(flags=$query{flag}))",
+		scope => 'sub',
+	);
+	if( $m->code and $m->code!= 32) {
+		print "Searched (1) for base $_\n";
+		print $m->error;
+		die $m->error
+	}
+	
+	for( $m->entries){
+		my $cn= $_->get_value( 'cn');
+		$cn= $$cn[0] if ref $cn; # I don't know, just in case.
+
+		# If value is already there - bien!
+		if( exists $parameters{$cn}) {
+			next;
+		# If not, and it's one of the default/fallback trees, do not
+		# process it but just register cn= of the entry to retrieve it
+		# in next pass through the ou=clients tree, not ou=defaults or similar.
+		# (Done that way so that ou=clients or o=CLI,ou=clients LDAP options
+		# would apply).
+		} elsif( $locnr> 0 and $locnr< $loclast) {
+			unshift @clocs, "cn=$cn,$locfirst";
+			next;
+		}
+
+		my @v= $_->get_value( 'value');
+
+		# Save value to a key that has all non-word chars
+		# turned to _.
+		(my $key= $cn)=~ s/\W+/_/g;
+		$parameters{$key}= [ @v];
+	}
+}
+
+$m= $l->unbind;
+
+my @classes = keys %classes;
+
+print Dump( {
+  classes     => \@classes,
+  parameters  => \%parameters,
+} );

@@ -1,0 +1,8 @@
+#
+# Base
+#
+
+dn: ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: clients

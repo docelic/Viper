@@ -1,0 +1,995 @@
+#
+# Base
+#
+
+dn: ou=defaults
+objectClass: top
+objectClass: organizationalUnit
+ou: defaults
+
+# Level 2
+
+dn: ou=hosts,ou=defaults
+objectClass: top
+objectClass: organizationalUnit
+ou: config
+
+dn: ou=templates,ou=defaults
+objectClass: top
+objectClass: organizationalUnit
+ou: templates
+
+dn: ou=objectClasses,ou=defaults
+objectClass: top
+objectClass: organizationalUnit
+ou: objectClasses
+
+dn: ou=partitioning,ou=defaults
+objectClass: top
+objectClass: organizationalUnit
+ou: partitioning
+
+#
+# objectClass eppends
+#
+
+dn: cn=dhcpHost,ou=objectClasses,ou=Defaults
+objectClass: top
+objectClass: dhcpHost
+objectClass: dhcpOptions
+cn: dhcpHost
+dhcpOption: host-name "$ exp $ cn $"
+dhcpHWAddress: ethernet $ exp $ macAddress
+dhcpStatements: fixed-address $ exp $ ipHostNumber
+dhcpOption: routers $ exp $ cn=default,ou=networks.. router ,
+dhcpOption: domain-name-servers $ exp $ cn=default,ou=networks.. nameServer ,
+#dhcpOption: ntp-servers $ find if puppetClass ^ntp::client $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber , ,
+dhcpOption: nis-domain "$ exp $ .. domainName $"
+dhcpOption: domain-name "$ exp $ .. domainName $"
+dhcpOption: subnet-mask $ exp $ cn=default,ou=networks.. ipNetmaskNumber
+dhcpOption: broadcast-address $ exp $ cn=default,ou=networks.. ipBroadcastNumber
+#dhcpOption: filename "http://...."
+dhcpNetMask: 24
+
+dn: cn=dhcpSubnet,ou=objectClasses,ou=Defaults
+objectClass: top
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+dhcpOption: routers $ exp $ router
+dhcpOption: domain-name-servers $ exp $ nameServer
+dhcpOption: nis-domain "$ exp $ .. domainName $"
+dhcpOption: domain-name "$ exp $ .. domainName $"
+dhcpOption: subnet-mask $ exp $ ipNetmaskNumber
+dhcpOption: broadcast-address $ exp $ ipBroadcastNumber
+dhcpNetMask: 24
+
+# Append puppet clients with extra information that's useful in
+# context of configuration management and templates.
+# Since Puppet converts ALL attributes into variables, this allows you
+# to retrieve i.e. host's domain name simply by doing <%= domainName %> in
+# Puppet ERB template files.
+# NOTE: Puppet, through Facter library, already provides hostname and
+# domain name as variables 'hostname' and 'domain'. However, these will
+# only work after DHCP sends network information to the client (Well, that
+# should generally always happen before Puppet is ran, but still it's worth
+# noting).
+# Also, note that variables are case sensitive, so LDAP's 'hostName' does not
+# interfere with Facter's 'hostname'.
+# 
+dn: cn=puppetClient,ou=objectClasses,ou=Defaults
+objectClass: top
+objectClass: puppetClient
+cn: puppetClient
+hostName: exp $ cn
+domainName: exp $ .. domainName
+clientName: exp $ .. o
+ipNetmaskNumber: exp $ cn=default,ou=networks.. ipNetmaskNumber
+ipBroadcastNumber: exp $ cn=default,ou=networks.. ipBroadcastNumber
+ipNetworkNumber: exp $ cn=default,ou=networks.. ipNetworkNumber
+
+#
+# Preseed common keys
+#
+
+dn: cn=partman-auto/method,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-auto/method
+description: for internal use; can be preseeded
+extendedDescription: Method to use for partitioning
+type: string
+
+dn: cn=netcfg/get_hostname,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/get_hostname
+default: debian
+description: Hostname:
+extendedDescription:: UGxlYXNlIGVudGVyIHRoZSBob3N0bmFtZSBmb3IgdGhpcyBzeXN0ZW0u
+ CgpUaGUgaG9zdG5hbWUgaXMgYSBzaW5nbGUgd29yZCB0aGF0IGlkZW50aWZpZXMgeW91ciBzeXN0Z
+ W0gdG8gdGhlIG5ldHdvcmsuIElmIHlvdSBkb24ndCBrbm93IHdoYXQgeW91ciBob3N0bmFtZSBzaG
+ 91bGQgYmUsIGNvbnN1bHQgeW91ciBuZXR3b3JrIGFkbWluaXN0cmF0b3IuIElmIHlvdSBhcmUgc2V
+ 0dGluZyB1cCB5b3VyIG93biBob21lIG5ldHdvcmssIHlvdSBjYW4gbWFrZSBzb21ldGhpbmcgdXAg
+ aGVyZS4=
+type: string
+
+dn: cn=partman-lvm/device_remove_lvm,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-lvm/device_remove_lvm
+default: false
+description: Remove existing logical volume data?
+extendedDescription:: VGhlIHNlbGVjdGVkIGRldmljZSBhbHJlYWR5IGNvbnRhaW5zIHRoZSBm
+ b2xsb3dpbmcgTFZNIGxvZ2ljYWwgdm9sdW1lcywgdm9sdW1lIGdyb3VwcyBhbmQgcGh5c2ljYWwgd
+ m9sdW1lcyB3aGljaCBhcmUgYWJvdXQgdG8gYmUgcmVtb3ZlZDoKCkxvZ2ljYWwgdm9sdW1lKHMpIH
+ RvIGJlIHJlbW92ZWQ6ICR7TFZUQVJHRVRTfQoKVm9sdW1lIGdyb3VwKHMpIHRvIGJlIHJlbW92ZWQ
+ 6ICR7VkdUQVJHRVRTfQoKUGh5c2ljYWwgdm9sdW1lKHMpIHRvIGJlIHJlbW92ZWQ6ICR7UFZUQVJH
+ RVRTfQoKTm90ZSB0aGF0IHRoaXMgd2lsbCBhbHNvIHBlcm1hbmVudGx5IGVyYXNlIGFueSBkYXRhI
+ GN1cnJlbnRseSBvbiB0aGUgbG9naWNhbCB2b2x1bWVzLg==
+type: boolean
+
+dn: cn=mirror/http/hostname,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/http/hostname
+description: Debian archive mirror hostname:
+extendedDescription:: UGxlYXNlIGVudGVyIHRoZSBob3N0bmFtZSBvZiB0aGUgbWlycm9yIGZy
+ b20gd2hpY2ggRGViaWFuIHdpbGwgYmUgZG93bmxvYWRlZC4KCkFuIGFsdGVybmF0ZSBwb3J0IGNhb
+ iBiZSBzcGVjaWZpZWQgdXNpbmcgdGhlIHN0YW5kYXJkIFtob3N0bmFtZV06W3BvcnRdIGZvcm1hdC
+ 4=
+type: string
+
+dn: cn=passwd/root-password,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: passwd/root-password
+description: Root password:
+extendedDescription:: WW91IG5lZWQgdG8gc2V0IGEgcGFzc3dvcmQgZm9yICdyb290JywgdGhl
+ IHN5c3RlbSBhZG1pbmlzdHJhdGl2ZSBhY2NvdW50LiBBIG1hbGljaW91cyBvciB1bnF1YWxpZmllZ
+ CB1c2VyIHdpdGggcm9vdCBhY2Nlc3MgY2FuIGhhdmUgZGlzYXN0cm91cyByZXN1bHRzLCBzbyB5b3
+ Ugc2hvdWxkIHRha2UgY2FyZSB0byBjaG9vc2UgYSByb290IHBhc3N3b3JkIHRoYXQgaXMgbm90IGV
+ hc3kgdG8gZ3Vlc3MuIEl0IHNob3VsZCBub3QgYmUgYSB3b3JkIGZvdW5kIGluIGRpY3Rpb25hcmll
+ cywgb3IgYSB3b3JkIHRoYXQgY291bGQgYmUgZWFzaWx5IGFzc29jaWF0ZWQgd2l0aCB5b3UuCgpBI
+ Gdvb2QgcGFzc3dvcmQgd2lsbCBjb250YWluIGEgbWl4dHVyZSBvZiBsZXR0ZXJzLCBudW1iZXJzIG
+ FuZCBwdW5jdHVhdGlvbiBhbmQgc2hvdWxkIGJlIGNoYW5nZWQgYXQgcmVndWxhciBpbnRlcnZhbHM
+ uCgpOb3RlIHRoYXQgeW91IHdpbGwgbm90IGJlIGFibGUgdG8gc2VlIHRoZSBwYXNzd29yZCBhcyB5
+ b3UgdHlwZSBpdC4=
+type: password
+
+dn: cn=debian-installer/locale,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: debian-installer/locale
+choices: ${LOCALELIST}
+description: Choose a locale:
+extendedDescription: Based on your language and country choices, the following
+  locale parameters are supported.
+type: string
+
+dn: cn=apt-setup/non-free,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/non-free
+default: false
+description: Use non-free software?
+extendedDescription:: U29tZSBub24tZnJlZSBzb2Z0d2FyZSBoYXMgYmVlbiBtYWRlIHRvIHdv
+ cmsgd2l0aCBEZWJpYW4uIFRob3VnaCB0aGlzIHNvZnR3YXJlIGlzIG5vdCBhdCBhbGwgYSBwYXJ0I
+ G9mIERlYmlhbiwgc3RhbmRhcmQgRGViaWFuIHRvb2xzIGNhbiBiZSB1c2VkIHRvIGluc3RhbGwgaX
+ QuIFRoaXMgc29mdHdhcmUgaGFzIHZhcnlpbmcgbGljZW5zZXMgd2hpY2ggbWF5IHByZXZlbnQgeW9
+ 1IGZyb20gdXNpbmcsIG1vZGlmeWluZywgb3Igc2hhcmluZyBpdC4KClBsZWFzZSBjaG9vc2Ugd2hl
+ dGhlciB5b3Ugd2FudCB0byBoYXZlIGl0IGF2YWlsYWJsZSBhbnl3YXku
+type: boolean
+
+dn: cn=netcfg/get_domain,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/get_domain
+description: Domain name:
+extendedDescription: The domain name is the part of your Internet address to t
+ he right of your host name.  It is often something that ends in .com, .net, .
+ edu, or .org.  If you are setting up a home network, you can make something u
+ p, but make sure you use the same domain name on all your computers.
+type: string
+
+dn: cn=time/zone,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: time/zone
+description: for internal use; can be preseeded
+extendedDescription: Time zone code
+type: string
+
+dn: cn=mirror/country,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/country
+description: country code or "manual" (for internal use)
+type: string
+
+dn: cn=grub-installer/only_debian,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: grub-installer/only_debian
+default: true
+description: Install the GRUB boot loader to the master boot record?
+extendedDescription:: SXQgc2VlbXMgdGhhdCB0aGlzIG5ldyBpbnN0YWxsYXRpb24gaXMgdGhl
+ IG9ubHkgb3BlcmF0aW5nIHN5c3RlbSBvbiB0aGlzIGNvbXB1dGVyLiBJZiBzbywgaXQgc2hvdWxkI
+ GJlIHNhZmUgdG8gaW5zdGFsbCB0aGUgR1JVQiBib290IGxvYWRlciB0byB0aGUgbWFzdGVyIGJvb3
+ QgcmVjb3JkIG9mIHlvdXIgZmlyc3QgaGFyZCBkcml2ZS4KCldhcm5pbmc6IElmIHRoZSBpbnN0YWx
+ sZXIgZmFpbGVkIHRvIGRldGVjdCBhbm90aGVyIG9wZXJhdGluZyBzeXN0ZW0gdGhhdCBpcyBwcmVz
+ ZW50IG9uIHlvdXIgY29tcHV0ZXIsIG1vZGlmeWluZyB0aGUgbWFzdGVyIGJvb3QgcmVjb3JkIHdpb
+ GwgbWFrZSB0aGF0IG9wZXJhdGluZyBzeXN0ZW0gdGVtcG9yYXJpbHkgdW5ib290YWJsZSwgdGhvdW
+ doIEdSVUIgY2FuIGJlIG1hbnVhbGx5IGNvbmZpZ3VyZWQgbGF0ZXIgdG8gYm9vdCBpdC4=
+type: boolean
+
+dn: cn=mirror/http/directory,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/http/directory
+default: /debian/
+description: Debian archive mirror directory:
+extendedDescription: Please enter the directory in which the mirror of the Deb
+ ian archive is located.
+type: string
+
+dn: cn=passwd/root-password-again,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: passwd/root-password-again
+description: Re-enter password to verify:
+extendedDescription: Please enter the same root password again to verify that 
+ you have typed it correctly.
+type: password
+
+dn: cn=pkgsel/upgrade,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: pkgsel/upgrade
+choices: none, safe-upgrade, full-upgrade
+default: safe-upgrade
+description: for internal use; can be preseeded
+extendedDescription: type of upgrade to perform
+type: select
+
+#dn: cn=partman-auto/choose_recipe,ou=templates,ou=defaults
+#objectClass: top
+#objectClass: debConfDbEntry
+#cn: partman-auto/choose_recipe
+#choices: ${DESCRIPTIONS}
+#description: Partitioning scheme:
+#extendedDescription:: U2VsZWN0ZWQgZm9yIHBhcnRpdGlvbmluZzoKCiR7VEFSR0VUfQoKVGhl
+# IGRpc2sgY2FuIGJlIHBhcnRpdGlvbmVkIHVzaW5nIG9uZSBvZiBzZXZlcmFsIGRpZmZlcmVudCBzY
+# 2hlbWVzLiBJZiB5b3UgYXJlIHVuc3VyZSwgY2hvb3NlIHRoZSBmaXJzdCBvbmUu
+#type: select
+
+dn: cn=netcfg/wireless_wep,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/wireless_wep
+description: WEP key for wireless device ${iface}:
+extendedDescription:: SWYgYXBwbGljYWJsZSwgcGxlYXNlIGVudGVyIHRoZSBXRVAgc2VjdXJp
+ dHkga2V5IGZvciB0aGUgd2lyZWxlc3MgZGV2aWNlICR7aWZhY2V9LiBUaGVyZSBhcmUgdHdvIHdhe
+ XMgdG8gZG8gdGhpczoKCklmIHlvdXIgV0VQIGtleSBpcyBpbiB0aGUgZm9ybWF0ICdubm5uLW5ubm
+ 4tbm4nLCAnbm46bm46bm46bm46bm46bm46bm46bm4nLCBvciAnbm5ubm5ubm4nLCB3aGVyZSBuIGl
+ zIGEgbnVtYmVyLCBqdXN0IGVudGVyIGl0IGFzIGl0IGlzIGludG8gdGhpcyBmaWVsZC4KCklmIHlv
+ dXIgV0VQIGtleSBpcyBpbiB0aGUgZm9ybWF0IG9mIGEgcGFzc3BocmFzZSwgcHJlZml4IGl0IHdpd
+ GggJ3M6JyAod2l0aG91dCBxdW90ZXMpLgoKT2YgY291cnNlLCBpZiB0aGVyZSBpcyBubyBXRVAga2
+ V5IGZvciB5b3VyIHdpcmVsZXNzIG5ldHdvcmssIGxlYXZlIHRoaXMgZmllbGQgYmxhbmsu
+type: string
+
+dn: cn=partman-auto/disk,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-auto/disk
+description: for internal use; can be preseeded
+extendedDescription: Device to partition, in either devfs or non format
+type: string
+
+dn: cn=partman/choose_partition,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman/choose_partition
+choices: ${DESCRIPTIONS}
+description: This is an overview of your currently configured partitions and m
+ ount points. Select a partition to modify its settings (file system, mount po
+ int, etc.), a free space to create partitions, or a device to initialize its 
+ partition table.
+type: select
+
+dn: cn=pkgsel/include,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: pkgsel/include
+description: for internal use; can be preseeded
+extendedDescription: Comma/space-separated list of extra packages to install
+type: string
+
+dn: cn=partman-lvm/confirm,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-lvm/confirm
+default: false
+description: Write the changes to disks and configure LVM?
+extendedDescription:: QmVmb3JlIHRoZSBMb2dpY2FsIFZvbHVtZSBNYW5hZ2VyIGNhbiBiZSBj
+ b25maWd1cmVkLCB0aGUgY3VycmVudCBwYXJ0aXRpb25pbmcgc2NoZW1lIGhhcyB0byBiZSB3cml0d
+ GVuIHRvIGRpc2suICBUaGVzZSBjaGFuZ2VzIGNhbm5vdCBiZSB1bmRvbmUuCgpBZnRlciB0aGUgTG
+ 9naWNhbCBWb2x1bWUgTWFuYWdlciBpcyBjb25maWd1cmVkLCBubyBhZGRpdGlvbmFsIGNoYW5nZXM
+ gdG8gdGhlIHBhcnRpdGlvbmluZyBzY2hlbWUgb2YgZGlza3MgY29udGFpbmluZyBwaHlzaWNhbCB2
+ b2x1bWVzIGFyZSBhbGxvd2VkIGR1cmluZyB0aGUgaW5zdGFsbGF0aW9uLiBQbGVhc2UgZGVjaWRlI
+ GlmIHlvdSBhcmUgc2F0aXNmaWVkIHdpdGggdGhlIGN1cnJlbnQgcGFydGl0aW9uaW5nIHNjaGVtZS
+ BiZWZvcmUgY29udGludWluZy4KCiR7SVRFTVN9
+type: boolean
+
+dn: cn=tasksel/first,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: tasksel/first
+choices: Desktop environment, Web server, Print server, DNS server, File serve
+ r, Mail server, SQL database, Laptop, Standard system
+description: Choose software to install:
+extendedDescription: At the moment, only the core of the system is installed. 
+ To tune the system to your needs, you can choose to install one or more of th
+ e following predefined collections of software.
+type: multiselect
+
+dn: cn=netcfg/choose_interface,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/choose_interface
+choices: ${ifchoices}
+description: Primary network interface:
+extendedDescription: Your system has multiple network interfaces. Choose the o
+ ne to use as the primary network interface during the installation. If possib
+ le, the first connected network interface found has been selected.
+type: select
+
+dn: cn=passwd/make-user,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: passwd/make-user
+default: true
+description: Create a normal user account now?
+extendedDescription:: SXQncyBhIGJhZCBpZGVhIHRvIHVzZSB0aGUgcm9vdCBhY2NvdW50IGZv
+ ciBub3JtYWwgZGF5LXRvLWRheSBhY3Rpdml0aWVzLCBzdWNoIGFzIHRoZSByZWFkaW5nIG9mIGVsZ
+ WN0cm9uaWMgbWFpbCwgYmVjYXVzZSBldmVuIGEgc21hbGwgbWlzdGFrZSBjYW4gcmVzdWx0IGluIG
+ Rpc2FzdGVyLiBZb3Ugc2hvdWxkIGNyZWF0ZSBhIG5vcm1hbCB1c2VyIGFjY291bnQgdG8gdXNlIGZ
+ vciB0aG9zZSBkYXktdG8tZGF5IHRhc2tzLgoKTm90ZSB0aGF0IHlvdSBtYXkgY3JlYXRlIGl0IGxh
+ dGVyIChhcyB3ZWxsIGFzIGFueSBhZGRpdGlvbmFsIGFjY291bnQpIGJ5IHR5cGluZyAnYWRkdXNlc
+ iA8dXNlcm5hbWU+JyBhcyByb290LCB3aGVyZSA8dXNlcm5hbWU+IGlzIGFuIHVzZXJuYW1lLCBsaW
+ tlICdpbXVyZG9jaycgb3IgJ3Jtcycu
+type: boolean
+
+dn: cn=finish-install/reboot_in_progress,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: finish-install/reboot_in_progress
+description: Installation complete
+extendedDescription: Installation is complete, so it is time to boot into your
+  new system. Make sure to remove the installation media (CD-ROM, floppies), s
+ o that you boot into the new system rather than restarting the installation.
+type: note
+
+dn: cn=partman-md/device_remove_md,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-md/device_remove_md
+default: false
+description: Remove existing software RAID partitions?
+extendedDescription:: VGhlIHNlbGVjdGVkIGRldmljZSBjb250YWlucyBwYXJ0aXRpb25zIHVz
+ ZWQgZm9yIHNvZnR3YXJlIFJBSUQgZGV2aWNlcy4gVGhlIGZvbGxvd2luZyBkZXZpY2VzIGFuZCBwY
+ XJ0aXRpb25zIGFyZSBhYm91dCB0byBiZSByZW1vdmVkOgoKU29mdHdhcmUgUkFJRCBkZXZpY2VzIG
+ Fib3V0IHRvIGJlIHJlbW92ZWQ6ICR7UkVNT1ZFRF9ERVZJQ0VTfQoKUGFydGl0aW9ucyB1c2VkIGJ
+ 5IHRoZXNlIFJBSUQgZGV2aWNlczogJHtSRU1PVkVEX1BBUlRJVElPTlN9CgpOb3RlIHRoYXQgdGhp
+ cyB3aWxsIGFsc28gcGVybWFuZW50bHkgZXJhc2UgYW55IGRhdGEgY3VycmVudGx5IG9uIHRoZSBzb
+ 2Z0d2FyZSBSQUlEIGRldmljZXMu
+type: boolean
+
+dn: cn=console-keymaps-at/keymap,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: console-keymaps-at/keymap
+choices: American English, Belarusian, Belgian, Brazilian (ABNT2 layout), Braz
+ ilian (EUA layout), British English, Bulgarian, Canadian French, Canadian Mul
+ tilingual, Croatian, Czech, Danish, Dutch, Dvorak, Estonian, Finnish, French,
+  German, Greek, Hebrew, Hungarian, Icelandic, Italian, Japanese, Latin Americ
+ an, Latvian, Lithuanian, Macedonian, Norwegian, Polish, Portuguese, Romanian,
+  Russian, Serbian (Cyrillic), Slovakian, Slovene, Spanish, Swedish, Swiss Fre
+ nch, Swiss German, Thai, Turkish (F layout), Turkish (Q layout), Ukrainian
+description: Keymap to use:
+type: select
+
+dn: cn=apt-setup/contrib,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/contrib
+default: false
+description: Use contrib software?
+extendedDescription:: U29tZSBhZGRpdGlvbmFsIHNvZnR3YXJlIGhhcyBiZWVuIG1hZGUgdG8g
+ d29yayB3aXRoIERlYmlhbi4gVGhvdWdoIHRoaXMgc29mdHdhcmUgaXMgZnJlZSwgaXQgZGVwZW5kc
+ yBvbiBub24tZnJlZSBzb2Z0d2FyZSBmb3IgaXRzIG9wZXJhdGlvbi4gVGhpcyBzb2Z0d2FyZSBpcy
+ Bub3QgYSBwYXJ0IG9mIERlYmlhbiwgYnV0IHN0YW5kYXJkIERlYmlhbiB0b29scyBjYW4gYmUgdXN
+ lZCB0byBpbnN0YWxsIGl0LgoKUGxlYXNlIGNob29zZSB3aGV0aGVyIHlvdSB3YW50IHRoaXMgc29m
+ dHdhcmUgdG8gYmUgbWFkZSBhdmFpbGFibGUgdG8geW91Lg==
+type: boolean
+
+dn: cn=mirror/http/proxy,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/http/proxy
+description: HTTP proxy information (blank for none):
+extendedDescription:: SWYgeW91IG5lZWQgdG8gdXNlIGEgSFRUUCBwcm94eSB0byBhY2Nlc3Mg
+ dGhlIG91dHNpZGUgd29ybGQsIGVudGVyIHRoZSBwcm94eSBpbmZvcm1hdGlvbiBoZXJlLiBPdGhlc
+ ndpc2UsIGxlYXZlIHRoaXMgYmxhbmsuCgpUaGUgcHJveHkgaW5mb3JtYXRpb24gc2hvdWxkIGJlIG
+ dpdmVuIGluIHRoZSBzdGFuZGFyZCBmb3JtIG9mICJodHRwOi8vW1t1c2VyXVs6cGFzc11AXWhvc3R
+ bOnBvcnRdLyIu
+type: string
+
+dn: cn=clock-setup/utc,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: clock-setup/utc
+default: true
+description: Is the system clock set to UTC?
+extendedDescription: System clocks are generally set to Coordinated Universal 
+ Time (UTC). The operating system uses your time zone to convert system time i
+ nto local time. This is recommended unless you also use another operating sys
+ tem that expects the clock to be set to local time.
+type: boolean
+
+dn: cn=grub-installer/with_other_os,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: grub-installer/with_other_os
+default: true
+description: Install the GRUB boot loader to the master boot record?
+extendedDescription:: VGhlIGZvbGxvd2luZyBvdGhlciBvcGVyYXRpbmcgc3lzdGVtcyBoYXZl
+ IGJlZW4gZGV0ZWN0ZWQgb24gdGhpcyBjb21wdXRlcjogJHtPU19MSVNUfQoKSWYgYWxsIG9mIHlvd
+ XIgb3BlcmF0aW5nIHN5c3RlbXMgYXJlIGxpc3RlZCBhYm92ZSwgdGhlbiBpdCBzaG91bGQgYmUgc2
+ FmZSB0byBpbnN0YWxsIHRoZSBib290IGxvYWRlciB0byB0aGUgbWFzdGVyIGJvb3QgcmVjb3JkIG9
+ mIHlvdXIgZmlyc3QgaGFyZCBkcml2ZS4gV2hlbiB5b3VyIGNvbXB1dGVyIGJvb3RzLCB5b3Ugd2ls
+ bCBiZSBhYmxlIHRvIGNob29zZSB0byBsb2FkIG9uZSBvZiB0aGVzZSBvcGVyYXRpbmcgc3lzdGVtc
+ yBvciB5b3VyIG5ldyBzeXN0ZW0u
+type: boolean
+
+dn: cn=clock-setup/ntp,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: clock-setup/ntp
+default: true
+description: Set the clock using NTP?
+extendedDescription: The Network Time Protocol (NTP) can be used to set the sy
+ stem's clock. The installation process works best with a correctly set clock.
+type: boolean
+
+dn: cn=partman/confirm,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman/confirm
+default: false
+description: Write the changes to disks?
+extendedDescription:: SWYgeW91IGNvbnRpbnVlLCB0aGUgY2hhbmdlcyBsaXN0ZWQgYmVsb3cg
+ d2lsbCBiZSB3cml0dGVuIHRvIHRoZSBkaXNrcy4gT3RoZXJ3aXNlLCB5b3Ugd2lsbCBiZSBhYmxlI
+ HRvIG1ha2UgZnVydGhlciBjaGFuZ2VzIG1hbnVhbGx5LgoKV0FSTklORzogVGhpcyB3aWxsIGRlc3
+ Ryb3kgYWxsIGRhdGEgb24gYW55IHBhcnRpdGlvbnMgeW91IGhhdmUgcmVtb3ZlZCBhcyB3ZWxsIGF
+ zIG9uIHRoZSBwYXJ0aXRpb25zIHRoYXQgYXJlIGdvaW5nIHRvIGJlIGZvcm1hdHRlZC4KCiR7SVRF
+ TVN9
+type: boolean
+
+dn: cn=partman/confirm_write_new_label,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman/confirm_write_new_label
+type: boolean
+
+dn: cn=preseed/early_command,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: preseed/early_command
+type: string
+
+dn: cn=preseed/late_command,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: preseed/late_command
+type: string
+
+dn: cn=partman-auto/method,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-auto/method
+flags: preseed
+owners: partman-auto
+template: partman-auto/method
+value: regular
+
+dn: cn=netcfg/get_hostname,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/get_hostname
+flags: preseed
+owners: d-i
+template: netcfg/get_hostname
+value: unassigned-hostname
+
+dn: cn=partman-lvm/device_remove_lvm,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-lvm/device_remove_lvm
+flags: preseed
+owners: partman-lvm
+template: partman-lvm/device_remove_lvm
+value: true
+
+dn: cn=mirror/http/hostname,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/http/hostname
+flags: preseed
+owners: d-i
+template: mirror/http/hostname
+value: ftp.hr.debian.org
+
+dn: cn=passwd/root-password,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: passwd/root-password
+flags: preseed
+owners: d-i
+value: root
+
+dn: cn=debian-installer/locale,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: debian-installer/locale
+flags: preseed
+owners: d-i
+template: debian-installer/locale
+value: en_US
+variables: LOCALELIST=en_US.UTF-8, en_US, en_US.ISO-8859-15
+
+dn: cn=apt-setup/non-free,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/non-free
+flags: preseed
+owners: apt-mirror-setup
+template: apt-setup/non-free
+value: true
+
+dn: cn=netcfg/get_domain,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/get_domain
+flags: preseed
+owners: d-i
+template: netcfg/get_domain
+value: unassigned-domain
+
+dn: cn=time/zone,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: time/zone
+flags: preseed
+owners: d-i
+owners: tzsetup-udeb
+template: time/zone
+value: Europe/Zagreb
+
+dn: cn=mirror/country,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/country
+flags: preseed
+owners: d-i
+template: mirror/country
+value: manual
+
+dn: cn=grub-installer/only_debian,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: grub-installer/only_debian
+flags: preseed
+owners: grub-installer
+template: grub-installer/only_debian
+value: true
+
+dn: cn=mirror/http/directory,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/http/directory
+flags: preseed
+owners: d-i
+template: mirror/http/directory
+value: /debian
+
+dn: cn=passwd/root-password-again,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: passwd/root-password-again
+flags: preseed
+owners: d-i
+value: root
+
+dn: cn=pkgsel/upgrade,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: pkgsel/upgrade
+flags: preseed
+owners: pkgsel
+template: pkgsel/upgrade
+value: none
+
+#dn: cn=partman-auto/choose_recipe,ou=hosts,ou=defaults
+#objectClass: top
+#objectClass: debConfDbEntry
+#cn: partman-auto/choose_recipe
+#flags: preseed
+#owners: partman-auto
+#template: partman-auto/choose_recipe
+#value: multi
+
+dn: cn=netcfg/wireless_wep,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/wireless_wep
+flags: preseed
+owners: d-i
+template: netcfg/wireless_wep
+
+dn: cn=partman-auto/disk,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-auto/disk
+flags: preseed
+owners: partman-auto
+template: partman-auto/disk
+value: /dev/hda
+
+dn: cn=partman/choose_partition,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman/choose_partition
+flags: preseed
+owners: partman-base
+template: partman/choose_partition
+value: finish
+
+dn: cn=pkgsel/include,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: pkgsel/include
+flags: preseed
+owners: pkgsel
+template: pkgsel/include
+value: ruby1.8 libldap-ruby1.8 puppet
+
+dn: cn=partman-lvm/confirm,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-lvm/confirm
+flags: preseed
+owners: partman-lvm
+template: partman-lvm/confirm
+value: true
+
+dn: cn=tasksel/first,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: tasksel/first
+flags: preseed
+owners: tasksel
+template: tasksel/first
+value: 
+variables: ORIGCHOICES=Desktop environment, Web server, Print server, DNS serv
+ er, File server, Mail server, SQL database, Laptop, Standard system
+variables: CHOICES=Desktop environment, Web server, Print server, DNS server, 
+ File server, Mail server, SQL database, Laptop, Standard system
+
+dn: cn=netcfg/choose_interface,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: netcfg/choose_interface
+flags: preseed
+owners: d-i
+template: netcfg/choose_interface
+value: auto
+variables: ifchoices=eth0: Realtek Semiconductor Co.\, Ltd. RTL8111/8168B PCI 
+ Express Gigabit Ethernet controller, eth1: FireWire ethernet
+
+dn: cn=passwd/make-user,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: passwd/make-user
+flags: preseed
+owners: user-setup-udeb
+template: passwd/make-user
+value: false
+
+dn: cn=finish-install/reboot_in_progress,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: finish-install/reboot_in_progress
+flags: preseed
+owners: finish-install
+template: finish-install/reboot_in_progress
+
+dn: cn=partman-md/device_remove_md,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-md/device_remove_md
+flags: preseed
+owners: partman-md
+template: partman-md/device_remove_md
+value: true
+
+dn: cn=console-keymaps-at/keymap,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: console-keymaps-at/keymap
+flags: preseed
+owners: d-i
+template: console-keymaps-at/keymap
+value: us
+
+dn: cn=apt-setup/contrib,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/contrib
+flags: preseed
+owners: apt-mirror-setup
+template: apt-setup/contrib
+value: true
+
+dn: cn=mirror/http/proxy,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: mirror/http/proxy
+flags: preseed
+owners: d-i
+template: mirror/http/proxy
+value: 
+
+dn: cn=clock-setup/utc,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: clock-setup/utc
+flags: preseed
+owners: clock-setup
+template: clock-setup/utc
+value: true
+
+dn: cn=grub-installer/with_other_os,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: grub-installer/with_other_os
+flags: preseed
+owners: grub-installer
+template: grub-installer/with_other_os
+value: true
+
+dn: cn=clock-setup/ntp,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: clock-setup/ntp
+flags: preseed
+owners: clock-setup
+template: clock-setup/ntp
+value: true
+
+dn: cn=partman/confirm,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman/confirm
+flags: preseed
+owners: partman-base
+template: partman/confirm
+value: true
+variables:: SVRFTVM9VGhlIHBhcnRpdGlvbiB0YWJsZXMgb2YgdGhlIGZvbGxvd2luZyBkZXZpY2
+ VzIGFyZSBjaGFuZ2VkOgogICBTQ1NJNCAoMCwwLDApIChzZGIpCgpUaGUgZm9sbG93aW5nIHBhcnR
+ pdGlvbnMgYXJlIGdvaW5nIHRvIGJlIGZvcm1hdHRlZDoKICAgcGFydGl0aW9uICMxIG9mIFNDU0k0
+ ICgwLDAsMCkgKHNkYikgYXMgc3dhcAogICBwYXJ0aXRpb24gIzIgb2YgU0NTSTQgKDAsMCwwKSAoc
+ 2RiKSBhcyBleHQzCiAgIHBhcnRpdGlvbiAjMyBvZiBTQ1NJNCAoMCwwLDApIChzZGIpIGFzIGV4dD
+ M=
+
+dn: cn=partman/confirm_write_new_label,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman/confirm_write_new_label
+flags: preseed
+owners: d-i
+value: true
+
+dn: cn=preseed/early_command,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: preseed/early_command
+flags: preseed
+owners: d-i
+value:
+
+dn: cn=preseed/late_command,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: preseed/late_command
+flags: preseed
+owners: d-i
+value: in-target sh -c "echo 10.0.1.1 puppet >>/etc/hosts"
+#value: in-target sh -c "echo $ exp $ cn=default,ou=networks.. configServer $ puppet >>/etc/hosts"
+
+dn: cn=apt-setup/use_mirror,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/use_mirror
+description: Use a network mirror?
+extendedDescription:: QSBuZXR3b3JrIG1pcnJvciBjYW4gYmUgdXNlZCB0byBzdXBwbGVtZW50
+ IHRoZSBzb2Z0d2FyZSB0aGF0IGlzIGluY2x1ZGVkIG9uIHRoZSBDRC1ST00uIFRoaXMgbWF5IGFsc
+ 28gbWFrZSBuZXdlciB2ZXJzaW9ucyBvZiBzb2Z0d2FyZSBhdmFpbGFibGUuCgoke0VYUExBTkFUSU
+ 9OfQ==
+type: boolean
+
+dn: cn=apt-setup/use_mirror,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/use_mirror
+flags: preseed
+owners: apt-mirror-setup
+template: apt-setup/use_mirror
+value: true
+
+dn: cn=apt-setup/services-select,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/services-select
+choices: security updates (from ${SEC_HOST}), volatile updates (from ${VOL_HOS
+ T})
+default: security, volatile
+description: Services to use:
+extendedDescription:: RGViaWFuIGhhcyB0d28gc2VydmljZXMgdGhhdCBwcm92aWRlIHVwZGF0
+ ZXMgdG8gcmVsZWFzZXM6IHNlY3VyaXR5IGFuZCB2b2xhdGlsZS4KClNlY3VyaXR5IHVwZGF0ZXMga
+ GVscCB0byBrZWVwIHlvdXIgc3lzdGVtIHNlY3VyZWQgYWdhaW5zdCBhdHRhY2tzLiBFbmFibGluZy
+ B0aGlzIHNlcnZpY2UgaXMgc3Ryb25nbHkgcmVjb21tZW5kZWQuCgpWb2xhdGlsZSB1cGRhdGVzIHB
+ yb3ZpZGUgbW9yZSBjdXJyZW50IHZlcnNpb25zIGZvciBzb2Z0d2FyZSB0aGF0IGNoYW5nZXMgcmVs
+ YXRpdmVseSBmcmVxdWVudGx5IGFuZCB3aGVyZSBub3QgaGF2aW5nIHRoZSBsYXRlc3QgdmVyc2lvb
+ iBjb3VsZCByZWR1Y2UgdGhlIHVzYWJpbGl0eSBvZiB0aGUgc29mdHdhcmUuIEFuIGV4YW1wbGUgaX
+ MgdGhlIHZpcnVzIHNpZ25hdHVyZXMgZm9yIGEgdmlydXMgc2Nhbm5lci4gVGhpcyBzZXJ2aWNlIGl
+ zIG9ubHkgYXZhaWxhYmxlIGZvciBzdGFibGUgYW5kIG9sZHN0YWJsZSByZWxlYXNlcy4=
+type: multiselect
+
+dn: cn=apt-setup/services-select,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: apt-setup/services-select
+flags: preseed
+owners: apt-setup-udeb
+template: apt-setup/services-select
+value: security, volatile
+variables: SEC_HOST=security.debian.org
+variables: VOL_HOST=volatile.debian.org
+
+dn: cn=popularity-contest/participate,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: popularity-contest/participate
+description: Participate in the package usage survey?
+extendedDescription:: VGhlIHN5c3RlbSBtYXkgYW5vbnltb3VzbHkgc3VwcGx5IHRoZSBkaXN0
+ cmlidXRpb24gZGV2ZWxvcGVycyB3aXRoIHN0YXRpc3RpY3MgYWJvdXQgdGhlIG1vc3QgdXNlZCBwY
+ WNrYWdlcyBvbiB0aGlzIHN5c3RlbS4gVGhpcyBpbmZvcm1hdGlvbiBpbmZsdWVuY2VzIGRlY2lzaW
+ 9ucyBzdWNoIGFzIHdoaWNoIHBhY2thZ2VzIHNob3VsZCBnbyBvbiB0aGUgZmlyc3QgZGlzdHJpYnV
+ 0aW9uIENELgoKSWYgeW91IGNob29zZSB0byBwYXJ0aWNpcGF0ZSwgdGhlIGF1dG9tYXRpYyBzdWJt
+ aXNzaW9uIHNjcmlwdCB3aWxsIHJ1biBvbmNlIGV2ZXJ5IHdlZWssIHNlbmRpbmcgc3RhdGlzdGljc
+ yB0byB0aGUgZGlzdHJpYnV0aW9uIGRldmVsb3BlcnMuIFRoZSBjb2xsZWN0ZWQgc3RhdGlzdGljcy
+ BjYW4gYmUgdmlld2VkIG9uIGh0dHA6Ly9wb3Bjb24uZGViaWFuLm9yZy8uCgpUaGlzIGNob2ljZSB
+ jYW4gYmUgbGF0ZXIgbW9kaWZpZWQgYnkgcnVubmluZyAiZHBrZy1yZWNvbmZpZ3VyZSBwb3B1bGFy
+ aXR5LWNvbnRlc3QiLg==
+type: boolean
+
+dn: cn=popularity-contest/participate,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: popularity-contest/participate
+flags: preseed
+flags: puppet
+owners: popularity-contest
+template: popularity-contest/participate
+value: true
+
+
+# Use 2 spaces on beginning of each continuation line to keep format correct
+dn: cn=regular_atomic,ou=partitioning,ou=Defaults
+objectClass: top
+objectClass: partmanRecipe
+data: regular_atomic ::
+  500 10000 1000000 ext3
+  	$primary{ }
+  	$bootable{ }
+  	method{ format }
+  	format{ }
+  	use_filesystem{ }
+  	filesystem{ ext3 }
+  	mountpoint{ / }
+  .
+  64 512 300% linux-swap
+  	method{ swap }
+  	format{ }
+  .
+
+# Use 2 spaces on beginning of each continuation line to keep format correct
+dn: cn=regular_boot,ou=partitioning,ou=Defaults
+objectClass: top
+objectClass: partmanRecipe
+data: regular_boot ::
+  40 50 100 ext3
+  	$primary{ } $bootable{ }
+  	method{ format } format{ }
+  	use_filesystem{ } filesystem{ ext3 }
+  	mountpoint{ /boot }
+  .
+  500 10000 1000000000 ext3
+  	method{ format } format{ }
+  	use_filesystem{ } filesystem{ ext3 }
+  	mountpoint{ / }
+  .
+  64 512 300% linux-swap
+  	method{ swap } format{ }
+  .
+
+# Use 2 spaces on beginning of each continuation line to keep format correct
+dn: cn=regular_home,ou=partitioning,ou=Defaults
+objectClass: top
+objectClass: partmanRecipe
+data: regular_home ::
+  300 4000 7000 ext3
+    $primary{ }
+    $bootable{ }
+    method{ format }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext3 }
+    mountpoint{ / }
+   .
+  64 512 300% linux-swap
+    method{ swap }
+    format{ }
+   .
+  100 10000 1000000000 ext3
+    method{ format }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext3 }
+    mountpoint{ /home }
+   .
+ 
+
+dn: cn=partman-auto/expert_recipe,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-auto/expert_recipe
+description: for internal use; can be preseeded
+extendedDescription: Expert recipe content
+type: string
+
+dn: cn=partman-auto/expert_recipe,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: partman-auto/expert_recipe
+flags: preseed
+owners: partman-auto
+template: partman-auto/expert_recipe
+value: exp $ cn=regular_home,ou=partitioning,ou=Defaults data
+
+
+dn: cn=ntp/servers,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: ntp/servers
+description: List of NTP servers within a domain
+type: string
+
+dn: cn=ntp/servers,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: ntp/servers
+owners: viper
+flags: puppet
+template: ntp/servers
+value: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0

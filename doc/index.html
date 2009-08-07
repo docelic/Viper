@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - Fully Automated Debian GNU Installation and Configuration<br>
+</h1>
+<br>
+Viper is a system for completely automated installation and
+configuration of Debian GNU based systems.<br>
+<br>
+Viper uses a modern approach (debian-installer, puppet etc.), works
+with existing Debian packages, and does not require any custom patching
+of
+either install media, client or server.<br>
+<br>
+The basis of the whole system is a LDAP server, containing <span
+ style="font-style: italic;">all</span> configuration data.<br>
+<br>
+LDAP has the potential to be enormously successful in configuration
+management, but its flat data structure, absence of any kind of dynamic
+behavior, and heaps of duplicated data make it a mediocre tool.<br>
+To
+build on LDAP's great strengths, while solving the deficiencies, a
+custom OpenLDAP backend called has been implemented.<br>
+<br>
+Along the way, one other crucial benefit of a custom backend became
+apparent -- the ability to make
+provisions for existing components and their use of LDAP, instead of
+requiring modifications
+to their source code.<br>
+<br>
+Finally, one of the design goals was to make Viper natural and easy to
+get results with. For that purpose, everything has been commented, with
+the availability of complete config files and a Quick Start guide.<br>
+<h2>Quick start</h2>
+<ul>
+  <li><a href="server.html">Setting up a Viper server</a><br>
+  </li>
+</ul>
+<h2>Overviews / introductions<br>
+</h2>
+<ul>
+  <li><a href="components.html">Overview of host installation
+procedure using
+Viper<br>
+    </a></li>
+  <li><a href="ldap.html">Overview of Viper OpenLDAP backend
+functionality,
+design and configuration</a></li>
+  <li><a href="data.html">Overview of Viper data structure and
+hierarchy
+in LDAP</a><br>
+  </li>
+</ul>
+<h2>Download</h2>
+Testing releases:<br>
+<ul>
+  <li><a href="http://www.spinlocksolutions.com/viper-nightly.tar.bz2">viper-nightly.tar.bz2</a></li>
+  <li><a href="http://www.spinlocksolutions.com/viper-nightly.tar.gz">viper-nightly.tar.gz</a></li>
+</ul>
+<h2>Resources</h2>
+<ul>
+  <li>IRC channel #viper on irc.oftc.net</li>
+  <li>Mailing list: <a
+ href="https://lists.hcoop.net/listinfo/viper-users">viper-users@lists.hcoop.net</a><br>
+  </li>
+  <li>Email: docelic+spinlocksolutions.com</li>
+  <li><a href="support.html">Commercial support</a></li>
+</ul>
+<h2>Info<br>
+</h2>
+Viper is Free Software, distributed under the terms of the GNU General
+Public License, version 3 or later.<br>
+Copyright 2008-2009 Davor Ocelic, docelic+spinlocksolutions.com, <a
+ href="http://www.spinlocksolutions.com/">http://www.spinlocksolutions.com/</a><br>
+</body>
+</html>

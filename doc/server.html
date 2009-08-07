@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - Setting up an installation server<br>
+</h1>
+Here's a hands-on guide to setting up a completely functional Viper
+server (DHCP + LDAP), on a system running Debian GNU or Ubuntu.<br>
+<h2>Installation<br>
+</h2>
+To set things up, you should just have to run script <a
+ href="../scripts/viper-setup.sh">viper-setup.sh</a> on a Debian GNU
+system. It should do <span style="font-style: italic;">everything</span>
+automatically.<br>
+<br>
+However, for the first time, I suggest you read the script (it contains
+comments) and execute commands manually.<br>
+<h2>Testing</h2>
+After installation, you will get a working setup populated with default
+data. This includes a client with name "c1.com", and three hosts, h1,
+h2 and h3.<br>
+<br>
+Based on the default data, there are tests you can run:<br>
+<h3>With ldapsearch<br>
+</h3>
+ldapsearch -x -b ou=dhcp<br>
+ldapsearch -x -b ou=defaults<br>
+ldapsearch -x -b ou=clients<br>
+<br>
+ldapsearch&nbsp; -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+<br>
+ldapsearch&nbsp; -x -b
+cn=popularity-contest/participate,ou=hosts,ou=defaults<br>
+ldapsearch&nbsp; -x -b
+cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+ldapsearch&nbsp; -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+<h3>With scripts/node_data<br>
+</h3>
+perl scripts/node_data h2.c1.com<br>
+<h3>With scripts/preseed</h3>
+QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
+<h2>Changing the configuration / adding new clients</h2>
+To modify the default configuration, or set up your real, new clients,
+see <a href="client.html">client.html</a>.<br>
+<br>
+</body>
+</html>

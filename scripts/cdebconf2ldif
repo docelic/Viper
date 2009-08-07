@@ -1,0 +1,328 @@
+#!/usr/bin/perl
+#
+# Open cdebconf database and output it in LDIF format. If a list of questions
+# is passed on STDIN, only those questions from the whole set are output.
+#
+# This is intended to provide initial default values for preseeding and/or
+# configuring Debian installations using the Viper system.
+#
+# Copyright 2009, Davor Ocelic <docelic@spinlocksolutions.com>
+#                 SPINLOCK Solutions, http://www.spinlocksolutions.com/
+#                                     http://techpubs.spinlocksolutions.com/
+#
+# SPINLOCK - Advanced GNU/Linux networks in commercial and education sectors
+#
+#
+# Common use:
+#
+# - For adding questions to global tree ou=defaults:
+#
+#     cdebconf2ldif -k lenny-preseed.txt
+#
+# - For adding questions to client tree dc=cli,dc=com,ou=clients,
+#   templates still to global tree:
+#
+#     cdebconf2ldif -d dc=c1,dc=com,ou=clients -k lenny-preseed.txt
+#
+# When adding questions to local tree, you might want to indicate that
+# some should go to the global tree. The way to do this is:
+#
+# 1) Specify client domain as usual, i.e. -d dc=c1,dc=com,ou=clients
+# 2) In preseed file (must use it for this), write # DOMAIN=0 to begin block
+#    of questions that should have no domain appended
+# 3) Use # DOMAIN=1 to switch back to default behavior
+#
+# (Note '#' above must be at beginning of line, like a comment).
+#
+#
+# Options (in order of decreasing "oftenness" of use):
+#
+# --domain         -d <D> domain for use in LDIF output (dc=example, dc=com)
+# --keys-file      -k <F> File ('-' for stdin) of keys to output instead of all.
+#                       This can also be an existing preseed file, and key
+#                       names will be extracted from it.
+#
+# --templates-tree -t <T> LDAP DN part before domain (ie. ou=templates)
+# --questions-tree -q <T> LDAP DN part before domain (ie. ou=hosts)
+#
+# --[no-]prefer-preseed -p Prefer type/val from preseed file passed as -k <F>?
+#
+# --templates-file    <F> Installer's cdebconf templates logfile (/var/log/ins.)
+# --questions-file    <F> Installer's cdebconf questions logfile (/var/log/ins.)
+#
+# --flag <F>   add 'flags: <F>' to all items output (default 'flags: preseed')
+# --[no-]diff  print items not present in all groups (inconsistency detector)
+#
+
+use warnings;
+use strict;
+use Getopt::Long qw/GetOptions/;
+use Debconf::Format::822 qw//;
+use Net::LDAP::Entry qw//;
+use Net::LDAP::LDIF qw//;
+
+my $RAW            = qr/(?i:^jpegPhoto|;binary)/;
+
+my %options= (
+	diff             => undef,
+	flag             => 'preseed',
+	domain           => '',
+	templates_tree   => 'ou=templates,ou=defaults',
+	questions_tree   => 'ou=hosts,ou=defaults',
+	templates_file   => '/var/log/installer/cdebconf/templates.dat',
+	questions_file   => '/var/log/installer/cdebconf/questions.dat',
+	keys_file        => undef,
+	prefer_preseed   => 1,
+	domain_part      => '',
+);
+
+unless( GetOptions(
+	'diff!'                         => \$options{diff},
+	'flag|f=s'                      => \$options{flag},
+	'domain|d=s'                    => \$options{domain},
+	'templates-tree|templates|t=s'  => \$options{templates_tree},
+	'questions-tree|questions|q=s'  => \$options{questions_tree},
+	'templates-file=s'              => \$options{templates_file},
+	'questions-file=s'              => \$options{questions_file},
+	'keys-file|k=s'                 => \$options{keys_file},
+	'prefer-preseed|p!'             => \$options{prefer_preseed},
+)) { die "Can't parse options: $!\n"};
+
+my %open;
+
+my %data;
+
+my %add_domain;
+
+# Create domain_part, basically domain name prefixed by ',' for easy append
+# onto relative DNs.
+$options{domain_part}= ','. $options{domain} if length $options{domain};
+
+#
+# Parse templates and questions DB
+#
+
+for my $section( qw/templates questions/) {
+	my $ckey= $section.'_file';
+	open $open{$section}, $options{$ckey} or
+		warn "Can't rdopen '$options{$ckey}' ($!). Continuing without it ".
+			"(but make sure --keys-file is there).\n";
+
+	while( my ($name, $entry)= Debconf::Format::822::read( '', $open{$section})) {
+		$data{$section}{$name}= $entry
+	}
+}
+
+#
+# Now place all items found to $lists{$section} and @all
+#
+
+my ( @all, %diff);
+
+my %lists;
+for my $section( qw/templates questions/) {
+	$lists{$section}= { map{ $_ => 1} ( keys %{ $data{$section}})};
+	push @all, keys %{ $data{$section}};
+}
+
+
+#
+# If we only want to see diff between templates and questions, 
+# calculate and print the diff, and exit.
+#
+
+if( $options{diff}) {
+	for my $key( @all) {
+		my ( $exists, $place)= (1, undef);
+		for my $group( keys %lists){ 
+			#print "GROUP $group KEY $key\n";
+			if( $exists) {
+				unless( $exists= exists $lists{$group}{$key}) {
+					$place= $group;
+				}
+			}
+		}
+		if( not $exists) {
+			$diff{ $key}= $place
+		}
+	}
+
+	print "Missing items:\n";
+	while( my( $k, $v)= each %diff) {
+		$v= ucfirst( substr $v, 0, 1);
+		print "$v: $k\n";
+	}
+	print "\n";
+
+	exit 0
+}
+
+
+#
+# List of template/question items we want to display. (Defaults to
+# all if no --keys-file specified).
+# In addition to basic functionality (one key per line), a preseed file
+# can also be passed in and it'll be handled properly.
+#
+
+my %filter;
+
+# Should the domain be appended to DN? Default yes. Turn off with
+# "DOMAIN=0/1" in preseed file.
+# Questions with domain appended are added to client tree, others
+# go to global. (Provided that some domain is specified -d, otherwise
+# the flag is a no-op. Also, the whole thing is possible because we
+# count on global and local location have the same relative DN structure).
+my $with_domain= 1;
+
+if( my $f= $options{keys_file}) { # Specify subset of all keys
+	open my $kin, $f or die "Can't rdopen '$f' ($!)\n";
+	while( $_= <$kin>) {
+	 if( /^#.*DOMAIN=(\d)/) { $with_domain= $1}
+
+		next if /^[#\s]/; # space tab hash
+		chomp;
+		my @in= split /\s/, $_, 4;
+
+		# If preseed file was given in
+		if( defined $in[1]) {
+			$filter{$in[1]}= {
+				owners => $in[0],
+				type => $in[2],
+				value => $in[3],
+			};
+
+			# Should we add domain to this DN?
+			$add_domain{$in[1]}= $with_domain;
+
+		# Else if it was one-per-line spec
+		} else {
+			$filter{$in[0]}= {}
+		}
+	}
+	close $kin or die "Can't rdclose '$f' ($!)\n";
+
+} else { # All keys
+	$filter{$_}= {} for @all
+}
+
+
+#
+# 822->LDIF conversion
+#
+
+# Initialize
+
+my ( $writer, $ts, $qs)= ( undef, '', '');
+open my $tsh, '>', \$ts;
+open my $qsh, '>', \$qs;
+
+# Perform the work
+
+for my $key( sort keys %filter) {
+	my $t= $data{templates}{$key};
+	my $q= $data{questions}{$key};
+	#use Data::Dumper;
+	#print Dumper $q;
+
+	# If preseed file was passed in and --prefer-preseed specified, allow 
+	# type/value specs from preseed file to have precedence over values from
+	# /var/log/installer/cdebconf/...
+	# (The important one here is 'value' field, but we also pick up type
+	# not to end up in a situation where we overwrite value but fail to spot
+	# that type changed-- it shouldn't happen generally, but let's be on the
+	# cautious side).
+	$$t{fields}{type}= $filter{$key}{type} if
+		( $options{prefer_preseed} and defined $filter{$key}{type}) or
+		not defined $$t{fields}{type};
+
+	$$q{fields}{value}= $filter{$key}{value} if
+		( $options{prefer_preseed} and defined $filter{$key}{value}) or
+		not defined $$q{fields}{value};
+
+	# Here we know that $filter{$key}{owners} is a string and only one value
+	# because that comes from the preseed file.
+	# Note that owner is substituted only if no owner is found in the
+	# installer logs. The -p option has no effect on owner.
+	{ my $owner= $filter{$key}{owners} || 'd-i';
+
+		$$q{owners}= { $owner => 1} unless(
+			defined $$q{owners} and keys %{ $$q{owners}});
+	}
+
+	my $domain_part= $add_domain{$key} ? $options{domain_part} : '';
+
+	# Template
+
+	my $te= new Net::LDAP::Entry;
+	$te->dn( "cn=$key,$options{templates_tree}$domain_part");
+	$te->add( objectClass => [ 'top', 'debConfDbEntry']);
+
+	$te->add( cn          => $key);
+
+	$te->add( choices     => [ $$t{fields}{choices}])
+		if defined $$t{fields}{choices};
+
+	$te->add( default     => [ $$t{fields}{default}])
+		if defined $$t{fields}{default};
+
+	$te->add( description => [ $$t{fields}{description}])
+		if defined $$t{fields}{description};
+
+	$te->add( extendedDescription => [ $$t{fields}{extended_description}])
+		if defined $$t{fields}{extended_description};
+
+	$te->add( type        => [ $$t{fields}{type}])
+		if defined $$t{fields}{type};
+
+	$writer= new Net::LDAP::LDIF( $tsh, 'w', change => 0, raw => $RAW);
+	if(!( $writer->write_entry( $te))) {
+		warn "Can't write_entry('$te->dn') to scalar\n";
+	}
+	$writer->done;
+	
+	# Question
+
+	my $qe= new Net::LDAP::Entry;
+	$qe->dn( "cn=$key,$options{questions_tree}$domain_part");
+	$qe->add( objectClass => [ 'top', 'debConfDbEntry']);
+
+	$qe->add( cn          => $key);
+
+	$qe->add( flags       => [ keys %{$$q{flags}}, $options{flag}])
+		if keys %{$$q{flags}} or $options{flag};
+
+	#print STDERR "1) $key ", keys %{$$q{owners}}, "\n";
+	#print STDERR "2) $key ", $filter{$key}{owners}, "\n";
+	$qe->add( owners      => [ keys %{$$q{owners}}])
+		if keys %{$$q{owners}};
+
+	$qe->add( template    => [ $$q{fields}{template}])
+		if defined $$q{fields}{template};
+
+	$qe->add( value       => [ $$q{fields}{value}])
+		if defined $$q{fields}{value};
+	
+	my @vars;
+	if ( keys %{$$q{variables}}) {
+		while( my( $k, $v)= each %{$$q{variables}}){
+			push @vars, "$k=$v";
+		}
+	}
+	$qe->add( variables   => [ @vars]) if @vars;
+
+	$writer= new Net::LDAP::LDIF( $qsh, 'w', change => 0, raw => $RAW);
+	if(!( $writer->write_entry( $qe))) {
+		warn "Can't write_entry('$qe->dn') to scalar\n";
+	}
+	$writer->done;
+}
+
+
+#
+# Print the results
+#
+
+print STDOUT $ts, $qs;
+
+0
