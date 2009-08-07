@@ -1,0 +1,21 @@
+                                 *** VIPER ***
+           Fully Automated Debian GNU Installation and Configuration
+
+Viper is a system for completely automated installation and configuration of Debian GNU based systems.
+
+Viper uses a modern approach (debian-installer, puppet etc.), works with existing Debian packages, and does not require any custom patching of either install media, client or server.
+
+The basis of the whole system is a LDAP server, containing all configuration data.
+
+LDAP has the potential to be enormously successful in configuration management, but its flat data structure, absence of any kind of dynamic behavior, and heaps of duplicated data make it a mediocre tool.
+To build on LDAP's great strengths, while solving the deficiencies, a custom OpenLDAP backend called has been implemented.
+
+Along the way, one other crucial benefit of a custom backend became apparent -- the ability to make provisions for existing components and their use of LDAP, instead of requiring modifications to their source code.
+
+Finally, one of the design goals was to make Viper natural and easy to get results with. For that purpose, everything has been commented, with the availability of complete config files and a Quick Start guide.
+
+Viper is released under GNU GPL v3 or later.
+
+http://spinlocksolutions.com/viper/
+http://github.com/docelic/Viper/
+
