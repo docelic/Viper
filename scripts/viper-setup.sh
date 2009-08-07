@@ -1,11 +1,6 @@
 # Install necessary packages
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl
 
-# Download files to right places
-cd /etc/ldap
-wget http://www.spinlocksolutions.com/viper-nightly.tar.bz2
-tar jxf viper-nightly.tar.bz2
-
 # Install slapd.conf as symlink to Viper's version
 mv slapd.conf slapd.conf.orig
 cp -s viper/configs/slapd.conf .
