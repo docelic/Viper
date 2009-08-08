@@ -65,11 +65,12 @@ perl scripts/node_data h2.c1.com<br>
 <h3>With scripts/preseed</h3>
 QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
 <h3>Test results</h3>
-Ldapsearch query for cn=h2,ou=hosts,o=c1.com,ou=clients is a pretty good
+Ldapsearch query for <i>cn=h2,ou=hosts,o=c1.com,ou=clients</i> is a pretty good
 way of determining if everything is working alright. Here's how the output
 from the command should look like:
-$ ldapsearch  -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
 <pre>
+$ ldapsearch  -x -b cn=h2,ou=hosts,o=c1.com,ou=clients
+
 # extended LDIF
 #
 # LDAPv3
