@@ -27,6 +27,8 @@ the install script with the name of the physical interface. Here's the session
 transcript:
 <pre>
 ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0
+invoke-rc.d ipmasq restart
+
 sh scripts/viper-setup.sh eth0
 </pre>
 To configure eth0:1 on every boot, add it to <i>/etc/network/interfaces</i>
@@ -62,11 +64,7 @@ perl scripts/node_data h2.c1.com<br>
 <h3>With scripts/preseed</h3>
 QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
 <h2>Changing the configuration / adding new clients</h2>
-Details to be added, but for now, could use <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a> as a basis.
-<!--
-To modify the default configuration, or set up your real, new clients,
-see <a href="client.html">client.html</a>.<br>
--->
+See <a href="client.html">client.html</a>.
 <br>
 </body>
 </html>
