@@ -19,12 +19,22 @@ To set up a new client, take a look at <a href="../ldifs/c1.com.ldif">ldifs/c1.c
 
 <br><br>
 You'll easily notice sections that do and do not require modification in the LDIF file.
-Fields you will want to modify include the name (c1.com, must correspond to domain name of the client), network subnet (10.0.1.0 and related options), list of hosts and hosts' MAC and IP addresses.
+Fields you will want to modify include the name (c1.com, must correspond to domain name of the client), network subnet (10.0.1.0 and related options), list of hosts, and hosts' MAC and IP addresses.
 
 <br><br>
 That about completes a simple client setup.
 
 <h2>Adding a host</h2>
 
-To add a host, copy an existing host definition, and change the options, such as host name, MAC address, IP address and the list of puppet classes the host belongs to.
+To add a host, copy an existing host definition (found within template <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>), and change the options, such as host name, MAC address, IP address and the list of puppet classes the host belongs to.
 
+<h2>Where's the host configuration?</h2>
+
+The default Viper setup contains a set of Debconf keys that suffices to perform an automated install using preseeding.
+<br><br>
+The keys (Debconf templates and questions) are loaded to the global ou=defaults tree that is queried if values are not found at any level before (site-wide level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific level at
+<i>cn=HOST,ou=hosts,o=c1.com,ou=clients</i>.
+<br><br>
+To verify the list of defaults, see <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and search for all occurrences of "value:". You can modify the defaults, or override them on site- or host-level by copying over to your client's LDIF, adjusting the DN and changing the value.
+<br><br>
+After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in the directory to reload new data.
