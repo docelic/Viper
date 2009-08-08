@@ -25,7 +25,8 @@
 
 * multiple networks per client?
 
-* 'store' overlay that saves computed value for real into the entry
+* 'store' overlay that saves computed value for real into the entry, i.e.
+  random pw or IP host number
 
 * doc note how to kill dbus on debconf hang if server cl+ced or exits
 
@@ -52,8 +53,6 @@
 
 * don't tie host extra info to puppetClient, tie to extraInfo, configInfo,
  configData or so
-
-* store $ .... $ spec to store value (i.e. random pw)
 
 * Use proper OIDs for own attrs
 
