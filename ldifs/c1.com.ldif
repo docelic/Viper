@@ -38,7 +38,6 @@ ou: objectClasses
 
 dn: ou=networks, o=c1.com,ou=clients
 objectClass: top
-#objectClass: dhcpSharedNetwork
 ou: networks
 
 dn: cn=10.0.1.0, ou=networks, o=c1.com,ou=clients
@@ -78,12 +77,20 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Templates
 
+dn: cn=h1,ou=Templates,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+cn: h1
+
 dn: cn=h2,ou=Templates,o=c1.com,ou=clients
 objectClass: top
 objectClass: device
 cn: h2
 
-# h3 template not there
+dn: cn=h3,ou=Templates,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+cn: h3
 
 #
 # Hosts
@@ -94,7 +101,6 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Hosts
 
-# h1, Hosts, spinlock.hr
 dn: cn=h1,ou=Hosts,o=c1.com,ou=clients
 objectClass: top
 objectClass: device
@@ -106,9 +112,7 @@ cn: h1
 ipHostNumber: 10.0.1.9
 macAddress: 00:11:6b:34:ae:8e
 puppetClass: ntp::server
-#puppetClass: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \s \s
 
-# h2, Hosts, spinlock.hr
 dn: cn=h2,ou=Hosts,o=c1.com,ou=clients
 objectClass: top
 objectClass: device
@@ -122,7 +126,6 @@ macAddress: 00:11:6b:34:ae:8d
 puppetClass: test
 puppetClass: ntp::server
 
-# h3, Hosts, spinlock.hr
 dn: cn=h3,ou=Hosts,o=c1.com,ou=clients
 objectClass: top
 objectClass: device
@@ -134,4 +137,3 @@ cn: h3
 ipHostNumber: 10.0.1.10
 macAddress: 00:11:6b:34:ae:8f
 puppetClass: ntp::server
-#puppetClass: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0
