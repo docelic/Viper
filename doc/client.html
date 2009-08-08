@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - Adding clients and hosts</h1>
+
+<h2>Adding a client</h2>
+
+We use the word client to refer to someone who pays for goods or services,
+and the word host to refer to any computer that is hooked up to a computer
+network. (Thanks WordNet 2.0 for definition).
+
+<br><br>
+To set up a new client, take a look at <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>, a template file for a default client "c1.com" that you can use as basis for new clients.
+
+<br><br>
+You'll easily notice sections that do and do not require modification in the LDIF file.
+Fields you will want to modify include the name (c1.com, must correspond to domain name of the client), network subnet (10.0.1.0 and related options), list of hosts and hosts' MAC and IP addresses.
+
+<br><br>
+That about completes a simple client setup.
+
+<h2>Adding a host</h2>
+
+To add a host, copy an existing host definition, and change the options, such as host name, MAC address, IP address and the list of puppet classes the host belongs to.
+
