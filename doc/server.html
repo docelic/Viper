@@ -29,6 +29,14 @@ transcript:
 ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0
 sh scripts/viper-setup.sh eth0
 </pre>
+To configure eth0:1 on every boot, add it to <i>/etc/network/interfaces</i>
+with a stanza like this:
+<pre>
+allow-hotplug eth0:1
+iface eth0:1 inet static
+	address 10.0.1.1
+	netmask 255.255.255.0
+</pre>
 <h2>Testing</h2>
 After installation, you will get a working setup populated with default
 data. This includes a client with name "c1.com", and three hosts, h1,
