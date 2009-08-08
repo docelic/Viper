@@ -19,6 +19,16 @@ automatically.<br>
 <br>
 However, for the first time, I suggest you read the script (it contains
 comments) and execute commands manually.<br>
+<br>
+Before running the script, you should do just one thing related to the
+DHCP server -- you should create a network interface with IP address 10.0.1.1,
+to fit in the example subnet used by our default config. Then, you can run
+the install script with the name of the physical interface. Here's the session
+transcript:
+<pre>
+ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0
+sh scripts/viper-setup.sh eth0
+</pre>
 <h2>Testing</h2>
 After installation, you will get a working setup populated with default
 data. This includes a client with name "c1.com", and three hosts, h1,
