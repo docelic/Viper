@@ -50,24 +50,70 @@ data. This includes a client with name "c1.com", and three hosts, h1,
 h2 and h3.<br>
 <br>
 Based on the default data, there are tests you can run:<br>
-<h3>With ldapsearch<br>
-</h3>
+<h3>With ldapsearch</h3>
 ldapsearch -x -b ou=dhcp<br>
 ldapsearch -x -b ou=defaults<br>
 ldapsearch -x -b ou=clients<br>
 <br>
-ldapsearch&nbsp; -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
 <br>
-ldapsearch&nbsp; -x -b
-cn=popularity-contest/participate,ou=hosts,ou=defaults<br>
-ldapsearch&nbsp; -x -b
-cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-ldapsearch&nbsp; -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-<h3>With scripts/node_data<br>
-</h3>
+ldapsearch -x -b cn=popularity-contest/participate,ou=hosts,ou=defaults<br>
+ldapsearch -x -b cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+ldapsearch -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+<h3>With scripts/node_data</h3>
 perl scripts/node_data h2.c1.com<br>
 <h3>With scripts/preseed</h3>
 QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
+<h3>Test results</h3>
+Ldapsearch query for cn=h2,ou=hosts,o=c1.com,ou=clients is a pretty good
+way of determining if everything is working alright. Here's how the output
+from the command should look like:
+$ ldapsearch  -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
+<pre>
+# extended LDIF
+#
+# LDAPv3
+# base <cn=h2,ou=hosts,o=c1.com,ou=clients> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# h2, hosts, c1.com, clients
+dn: cn=h2,ou=hosts,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: h2
+ipHostNumber: 10.0.1.8
+macAddress: 00:11:6b:34:ae:8d
+puppetclass: test
+puppetclass: ntp::server
+dhcpHWAddress: ethernet 00:11:6b:34:ae:8d
+dhcpOption: host-name "h2"
+dhcpOption: routers 10.0.1.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "c1.com"
+dhcpOption: domain-name "c1.com"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.1.255
+dhcpStatements: fixed-address 10.0.1.8
+hostName: h2
+ipNetmaskNumber: 255.255.255.0
+clientName: c1.com
+ipNetworkNumber: 10.0.1.0
+ipBroadcastNumber: 10.0.1.255
+domainName: c1.com
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 2
+# numEntries: 1
+</pre>
 <h2>Changing the configuration / adding new clients</h2>
 See <a href="client.html">client.html</a>.
 <br>
