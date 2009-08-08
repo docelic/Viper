@@ -25,8 +25,13 @@ Fields you will want to modify include the name (c1.com, must correspond to doma
 That about completes a simple client setup.
 
 <h2>Adding a host</h2>
-
 To add a host, copy an existing host definition (found within template <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>), and change the options, such as host name, MAC address, IP address and the list of puppet classes the host belongs to.
+<br><br>
+Viper (and DHCP) expect to find exactly one host by specific hwAddress search,
+and expect that the host will contain an IP address to assign. This is not
+mandatory, i.e. you could assign an IP from the pool, but i.e. preseed.cgi
+counts on being able to match the host and its configuration in LDAP based
+on the requestor IP. Stick to literally-specified IP addresses if possible.
 
 <h2>Where's the host configuration?</h2>
 
