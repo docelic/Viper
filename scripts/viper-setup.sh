@@ -1,3 +1,11 @@
+#!/bin/sh
+
+ETH_IF=$1
+if test -z "$ETH_IF"; then
+	echo "Usage: $0 <dhcp interface, i.e. eth0>"
+	exit 1
+fi
+
 # Install necessary packages
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl
 
@@ -38,6 +46,7 @@ LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 # Replace "s1" in ldifs/dhcp.ldif with the name of local server:
 cd /etc/ldap/viper/ldifs
 perl -pi -e 'BEGIN{ $h= `hostname`; chomp $h}; s/s1/$h/g' 1-dhcp.ldif
+perl -pi -e 's/eth1/$ETH_IF/g' 1-dhcp.ldif
 
 # Load LDIF data into LDAP (NOTE: 'make' deletes all Viper data from LDAP
 # and then loads all *ldif files, so if you want to use this approach, do not
