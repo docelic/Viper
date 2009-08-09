@@ -14,7 +14,6 @@ network. (Thanks WordNet 2.0 for definition).
 
 <h2>Adding a client</h2>
 
-<br><br>
 To set up a new client, take a look at <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>, a template file for a default client "c1.com" that you can use as basis for new clients (copy to new name, modify and extend).
 
 <br><br>
@@ -24,22 +23,30 @@ Fields you will want to modify include the name (c1.com, must correspond to doma
 <br><br>
 That about completes a simple client setup.
 
+<br><br>
+(Graphical or more convenient interfaces for adding clients, hosts, etc. are
+planned, but for now, LDIF will do).
+
 <h2>Adding a host</h2>
 To add a host, copy an existing host definition (found within template <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>), and change the options, such as host name, MAC address, IP address and the list of puppet classes the host belongs to.
 <br><br>
-Viper (and DHCP) expect to find exactly one host by specific hwAddress search,
-and expect that the host will contain an IP address to assign. This is not
-mandatory, i.e. you could assign an IP from the pool, but i.e. preseed.cgi
+Viper (and DHCP) expect to find hosts by specific hwAddress search. This is not
+mandatory, you could assign an IP from the pool, but i.e. the preseed.cgi
 counts on being able to match the host and its configuration in LDAP based
-on the requestor IP. Stick to literally-specified IP addresses if possible.
+on the requestor's IP, so if possible, stick to literally-specified IP
+addresses.
 
 <h2>Where's the host configuration?</h2>
 
-The default Viper setup contains a set of Debconf keys that suffices to perform an automated install using preseeding.
+The default Viper setup contains a set of Debconf keys that suffice to perform an automated install using preseeding.
 <br><br>
-The keys (Debconf templates and questions) are loaded to the global ou=defaults tree that is queried if values are not found at any level before (site-wide level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific level at
-<i>cn=HOST,ou=hosts,o=c1.com,ou=clients</i>.
+All keys (Debconf templates and questions) are in the global <i>ou=defaults</i>
+tree,
+where they are queried if values are not found at any level before (site-wide
+level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific level at
+<i>cn=HOST,ou=hosts,o=c1.com,ou=clients</i>).
 <br><br>
-To verify the list of defaults, see <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and search for all occurrences of "value:". You can modify the defaults, or override them on site- or host-level by copying over to your client's LDIF, adjusting the DN and changing the value.
+To go over all the defaults, see <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and search for occurrences of "value:". You can modify the defaults, or override them on site- or host-level by copying over to your client's LDIF, adjusting the DN and changing the value.
 <br><br>
-After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in the directory to reload new data.
+After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in the directory to reload new data. ('make' will delete all Viper data and re-load it from LDIF files. This will cause data loss if you were editing anything directly in LDAP and not in LDIF files).
+
