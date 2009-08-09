@@ -99,10 +99,10 @@ value: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::ser
 <br>
 Excerpt from ERB template for Puppet module 'ntp':
 <pre>
-<lt;% if not classes.grep('ntp::client').empty? %>gt;
-<lt;% prefix= '#' %>gt;
-<lt;% ntp_servers.each do |s| -%>gt;
-server <lt;%= s %>gt;
-<lt;% end -%>gt;
-<lt;% end %>gt;
+&lt;% if not classes.grep('ntp::client').empty? %&gt;
+&lt;% prefix= '#' %&gt;
+&lt;% ntp_servers.each do |s| -%&gt;
+server &lt;%= s %&gt;
+&lt;% end -%&gt;
+&lt;% end %&gt;
 </pre>
