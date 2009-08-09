@@ -44,22 +44,21 @@ Debconf will not mind the added questions at all, but it will not query
 them as it doesn't know about them, of course.
 
 <br><br>
-So there are a few ways you can take advantage of the configuration
+There are a few ways you can take advantage of the configuration
 values you add. There are general and Viper-specific approaches.
 The general approaches are of
 little interest to us, but we list them here for completeness.
-The real
-interest lies in Viper-specific methods.
+The real interest lies in Viper-specific methods.
 
 <br><br>
-General approaches:
+General methods:
 
 <ul>
 	<li> Modify Debconf script for a package to query new Debconf values
 	<li> Read values from your scripts
 </ul>
 
-Viper-specific approaches:
+Viper-specific methods:
 
 <ul>
 	<li> Make the value used during constructing of some other value (i.e. define key client/name, then configure webserver root directory to be /var/www/<i>client_name</i>)
@@ -72,4 +71,38 @@ Viper-specific approaches:
 
 </ul>
 
+<h2>Specific example</h2>
 
+Here's an example of how to add a Debconf key ntp/servers. It's value will
+always expand to the list of NTP servers in the client's domain, and we'll
+use it in constructing the host's ntp.conf file.
+<br><br>
+Debconf template and question for ntp/servers:
+<pre>
+dn: cn=ntp/servers,ou=templates,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: ntp/servers
+description: List of NTP servers within a domain
+type: string
+
+dn: cn=ntp/servers,ou=hosts,ou=defaults
+objectClass: top
+objectClass: debConfDbEntry
+cn: ntp/servers
+owners: viper
+flags: puppet
+template: ntp/servers
+value: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0
+</pre>
+
+<br>
+Excerpt from ERB template for Puppet module 'ntp':
+<pre>
+<lt;% if not classes.grep('ntp::client').empty? %>gt;
+<lt;% prefix= '#' %>gt;
+<lt;% ntp_servers.each do |s| -%>gt;
+server <lt;%= s %>gt;
+<lt;% end -%>gt;
+<lt;% end %>gt;
+</pre>
