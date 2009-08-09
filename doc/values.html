@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Viper - Fully Automated Debian GNU Installation, Configuration
+and Monitoring</title>
+</head>
+<body>
+<h1>Viper - Modifying or adding configuration values</h1>
+
+The basis of the host setup is the host's LDAP entry, found at 
+<i>cn=HOSTNAME,ou=hosts,o=DOM.AIN,ou=clients</i>.
+
+<br><br>
+The host entry itself contains a small number of most important
+attributes, such as hostname, macAddress, ipHostNumber and the list of
+classes the host belongs to. (It also
+includes DHCP information, but that data is not important when
+considering hosts in the context of suffix <i>ou=clients</i>, and
+might be simply removed in the future).
+
+<br><br>
+The overarching idea of the whole Viper system is to keep all configuration
+in one place, and basically make no distinction by values installed/queried
+by Debconf, and your own values.
+
+<br><br>
+So this means we use Debconf format for all configuration values, and
+we save each config value to some of the three levels:
+
+<ul>
+	<li>Host-specific level (i.e. cn=ntp/servers,cn=HOSTNAME,ou=hosts,o=DOM.AIN,ou=clients)
+	<li>Site-wide level (i.e. cn=ntp/servers,ou=hosts,ou=defaults,o=DOM.AIN,ou=clients)
+	<li>Global level (i.e. cn=ntp/servers,ou=hosts,ou=defaults)
+</ul>
+
+(Notice also that each Debconf question consists of a template and value.
+Templates are saved basically to the same places as above, just replacing 
+<i>ou=hosts</i> with <i>ou=templates</i>.)
+
+<h2>Accessing configuration values</h2>
+
+Debconf will not mind the added questions at all, but it will not query
+them as it doesn't know about them, of course.
+
+<br><br>
+So there are a few ways how you can take advantage of the configuration
+values you add. They're basically split to two categories, general 
+approaches and Viper-specific approaches. The general approaches are of
+little interest to us, we list them here for completeness, but the real
+interest lies in Viper-specific ways.
+
+<br><br>
+General approaches:
+
+<ul>
+	<li> Read them from your scripts
+	<li> Modify Debconf script for a certain package to honor them
+</ul>
+
+
+<br><br>
+Viper-specific approaches:
+
+<ul>
+	<li> Make the value used during constructing of some other field's value (i.e. configure webserver root directory to be /var/www/<i>CLIENT_NAME</i>)
+
+	<li> Flag question with "flags: puppet" to have it automatically appear 
+	as Puppet variable which you can use in Puppet manifests, modules and
+	ERB templates (i.e. Debconf key ntp/servers, flagged with 'flags: preseed'
+	would appear as variable $ntp_servers in manifests and ntp_servers in 
+	ERB templates).
+
+</ul>
+
+
