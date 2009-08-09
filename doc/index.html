@@ -10,7 +10,8 @@ and Monitoring</title>
 </h1>
 <br>
 Viper is a system for completely automated installation and
-configuration of Debian GNU based systems.<br>
+configuration of Debian GNU based systems, and had the first public
+release in August 2009.<br>
 <br>
 Viper uses a modern approach (debian-installer, puppet etc.), works
 with existing Debian packages, and does not require any custom patching
@@ -71,7 +72,7 @@ in LDAP</a><br>
 
 <h2>Download</h2>
 apt-get install git-core<br>
-test -d /etc/ldap || mkdir /etc/ldap<br>
+mkdir -p /etc/ldap<br>
 cd /etc/ldap<br>
 git clone git://github.com/docelic/Viper.git viper
 <h2>Install</h2>
