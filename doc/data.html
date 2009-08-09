@@ -52,7 +52,7 @@ same as ou=hosts, but it contains the template part of Debconf question<br>
         <br>
       </li>
       <li><span style="font-weight: bold;">ou=objectClasses,ou=defaults</span>:
-it is often useful to append an entry belonging to a certain
+it is often useful to append an entry that belogs to a certain
 objectClass with some default attribute values, and this is organized
 under this tree. If you want entries of class dhcpHost to get appended
 some default values, add entry <span style="font-style: italic;">cn=dhcpHost,ou=objectClasses,ou=defaults</span>,
@@ -93,7 +93,7 @@ primary suffix intended for direct access by all components or scripts
 that use LDAP (except DHCP, as explained above).<br>
     <br>
 The tree supports multiple clients (domains), and is organized like
-this (example of host "c1.com":<br>
+this (example of client "c1.com"):<br>
     <br>
     <ul>
       <li><span style="font-weight: bold;">o=c1.com,ou=clients</span>:
