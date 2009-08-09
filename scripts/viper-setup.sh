@@ -43,7 +43,8 @@ LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 #LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 
 # Adjust local server name in dhcp.ldif:
-# Replace "s1" in ldifs/dhcp.ldif with the name of local server:
+# - Replace "s1" in ldifs/dhcp.ldif with the name of local server
+# - Replace eth1 with name of local physical interface
 cd /etc/ldap/viper/ldifs
 perl -pi -e 'BEGIN{ $h= `hostname`; chomp $h}; s/s1/$h/g' 1-dhcp.ldif
 perl -pi -e 's/eth1/$ETH_IF/g' 1-dhcp.ldif

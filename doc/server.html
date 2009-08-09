@@ -60,11 +60,7 @@ ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
 ldapsearch -x -b cn=popularity-contest/participate,ou=hosts,ou=defaults<br>
 ldapsearch -x -b cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
 ldapsearch -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-<h3>With scripts/node_data</h3>
-perl scripts/node_data h2.c1.com<br>
-<h3>With scripts/preseed</h3>
-QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
-<h3>Test results</h3>
+<h4>Test results</h4>
 Ldapsearch query for <i>cn=h2,ou=hosts,o=c1.com,ou=clients</i> is a pretty good
 way of determining if everything is working alright. Here's how the output
 from the command should look like:
@@ -115,6 +111,10 @@ result: 0 Success
 # numResponses: 2
 # numEntries: 1
 </pre>
+<h3>With scripts/node_data</h3>
+perl scripts/node_data h2.c1.com<br>
+<h3>With scripts/preseed</h3>
+QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
 <h2>Changing the configuration / adding new clients</h2>
 See <a href="client.html">client.html</a>.
 <br>

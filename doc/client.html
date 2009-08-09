@@ -48,5 +48,8 @@ level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific level at
 <br><br>
 To go over all the defaults, see <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and search for occurrences of "value:". You can modify the defaults, or override them on site- or host-level by copying over to your client's LDIF, adjusting the DN and changing the value.
 <br><br>
-After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in the directory to reload new data. ('make' will delete all Viper data and re-load it from LDIF files. This will cause data loss if you were editing anything directly in LDAP and not in LDIF files).
+After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in the
+directory to reload new data. ('make' will delete all Viper data and re-load
+it from LDIF files. This will cause data loss if you were editing anything
+in LDAP directly, avoiding LDIF files).
 
