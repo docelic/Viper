@@ -17,15 +17,16 @@ attributes, such as hostname, macAddress, ipHostNumber and the list of
 classes the host belongs to. (It also
 includes DHCP information, but that data is not important when
 considering hosts in the context of suffix <i>ou=clients</i>, and
-might be simply removed in the future).
+might be removed in the future).
+
+<h2>Places for adding configuration values</h2>
 
 <br><br>
 The overarching idea of the whole Viper system is to keep all configuration
-in one place, and basically make no distinction by values installed/queried
-by Debconf, and your own values.
+in one place, making no distinction between Debconf and our own values.
 
 <br><br>
-So this means we use Debconf format for all configuration values, and
+This means we use Debconf format for all configuration, and
 we save each config value to some of the three levels:
 
 <ul>
@@ -34,7 +35,7 @@ we save each config value to some of the three levels:
 	<li>Global level (i.e. cn=ntp/servers,ou=hosts,ou=defaults)
 </ul>
 
-(Notice also that each Debconf question consists of a template and value.
+(Note that each Debconf question consists of a question and template.
 Templates are saved basically to the same places as above, just replacing 
 <i>ou=hosts</i> with <i>ou=templates</i>.)
 
@@ -58,8 +59,6 @@ General approaches:
 	<li> Modify Debconf script for a certain package to honor them
 </ul>
 
-
-<br><br>
 Viper-specific approaches:
 
 <ul>
