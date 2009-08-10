@@ -1,10 +1,10 @@
 <h1>Viper - steps in the host install process</h1>
+<p>
 <br>
-<div style="text-align: center;"><span
- style="text-decoration: underline;"><img
- style="width: 1280px; height: 410px;" alt="Viper components scheme"
- src="scheme.png"></span>
-<span style="text-decoration: underline;"></span></div>
+<a href="scheme.png"><img
+	alt="Viper components scheme" src="scheme.png" width=400><br>
+	(Click the image for full size)</a>
+ </p>
 <h2>Description</h2>
 For an overview, just read the page. Links are provided for more
 detailed information on individual steps.<br>

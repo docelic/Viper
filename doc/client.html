@@ -69,29 +69,27 @@ counts on being able to match the host and its configuration in LDAP based
 on the requestor's IP, so if possible, stick to literally-specified IP
 addresses.
 </p>
-<h2>Where's the host configuration?</h2>
+<h2>Adding configuration values</h2>
 <p>
 The default Viper setup contains a set of Debconf keys that suffice to perform an automated install using preseeding.
 </p>
 <p>
 The default keys (Debconf templates and questions) are not under host or client
 entry, but in the global <i>ou=defaults</i> tree,
-where they are queried if values are not found at any previos level
-(site-wide level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific
+where they are queried if values are not found at any previous level
+(site-wide level at <i>ou=defaults,o=c1.com,ou=clients</i>, or host-specific
 level at <i>cn=HOST,ou=hosts,o=c1.com,ou=clients</i>).
 </p>
 <p>
-So you should go over the defaults in
+So you should first go over the defaults in
 <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and verify the
 values (search for occurrences of "value:"). You can modify the defaults, or
 override them on site- or host-level by copying over to your client's LDIF,
 adjusting the DN and changing the value.
 </p>
 <p>
-After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in that
-directory to reload new data. ('make' will delete all Viper data and re-load
-it from LDIF files. This will cause data loss if you were editing anything
-in LDAP directly, avoiding LDIF files).
+For information on how to apply the new values, and in general for a page
+dedicated to configuration values, see <a href="values.html">values.html</a>.
 </p>
 				  <div class="clear-flat"></div>
 				</div>
