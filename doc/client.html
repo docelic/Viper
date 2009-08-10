@@ -19,7 +19,7 @@
 <h2>Guides</h2>
 <ul>
   <li><a href="client.html">Adding clients and hosts</a><br>
-  <li><a href="values.html">Modifying / adding configuration values</a><br>
+  <li><a href="values.html">Adding configuration values</a><br>
 </ul>
 <h2>Overviews<br>
 </h2>
@@ -42,42 +42,57 @@
 				</div>
 				<div id="content">
 <h1>Viper - Adding clients and hosts</h1>
+<p>
 We use the word client to refer to someone who pays for goods or services,
 and the word host to refer to any computer that is hooked up to a computer
 network. (Thanks WordNet 2.0 for definition).
+</p>
 <h2>Adding a client</h2>
+<p>
 To set up a new client, take a look at <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>, a template file for a default client "c1.com" that you can use as basis for new clients (copy to new name, modify and extend).
-<br><br>
+</p>
+<p>
 You'll easily notice sections that do and do not require modification in the LDIF file.
 Fields you will want to modify include the name (c1.com, must correspond to domain name of the client), network subnet (10.0.1.0 and related options), list of hosts, and hosts' MAC and IP addresses.
-<br><br>
+</p>
+<p>
 That about completes a simple client setup.
-<br><br>
-(Graphical or more convenient interfaces for adding clients, hosts, etc. are
-planned, but for now, LDIF will do).
+</p>
 <h2>Adding a host</h2>
+<p>
 To add a host, copy an existing host definition (found within template <a href="../ldifs/c1.com.ldif">ldifs/c1.com.ldif</a>), and change the options, such as host name, MAC address, IP address and the list of puppet classes the host belongs to.
-<br><br>
+</p>
+<p>
 Viper (and DHCP) expect to find hosts by specific hwAddress search. This is not
 mandatory, you could assign an IP from the pool, but i.e. the preseed.cgi
 counts on being able to match the host and its configuration in LDAP based
 on the requestor's IP, so if possible, stick to literally-specified IP
 addresses.
+</p>
 <h2>Where's the host configuration?</h2>
+<p>
 The default Viper setup contains a set of Debconf keys that suffice to perform an automated install using preseeding.
-<br><br>
-All keys (Debconf templates and questions) are in the global <i>ou=defaults</i>
-tree,
-where they are queried if values are not found at any level before (site-wide
-level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific level at
-<i>cn=HOST,ou=hosts,o=c1.com,ou=clients</i>).
-<br><br>
-To go over all the defaults, see <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and search for occurrences of "value:". You can modify the defaults, or override them on site- or host-level by copying over to your client's LDIF, adjusting the DN and changing the value.
-<br><br>
-After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in the
+</p>
+<p>
+The default keys (Debconf templates and questions) are not under host or client
+entry, but in the global <i>ou=defaults</i> tree,
+where they are queried if values are not found at any previos level
+(site-wide level at <i>ou=defaults,o=c1.com,ou=clients</i> or host-specific
+level at <i>cn=HOST,ou=hosts,o=c1.com,ou=clients</i>).
+</p>
+<p>
+So you should go over the defaults in
+<a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and verify the
+values (search for occurrences of "value:"). You can modify the defaults, or
+override them on site- or host-level by copying over to your client's LDIF,
+adjusting the DN and changing the value.
+</p>
+<p>
+After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in that
 directory to reload new data. ('make' will delete all Viper data and re-load
 it from LDIF files. This will cause data loss if you were editing anything
 in LDAP directly, avoiding LDIF files).
+</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
