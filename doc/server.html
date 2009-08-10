@@ -44,10 +44,24 @@
 				</div>
 				<div id="content">
 <h1>Viper - Setting up an installation server</h1>
+<p>
 Here's a hands-on guide to setting up a completely functional Viper
-server (DHCP + LDAP), on a system running Debian GNU or Ubuntu.<br>
-<h2>Installation<br>
-</h2>
+server (DHCP + LDAP), on a system running Debian GNU or Ubuntu.
+</p>
+<h2>Download</h2>
+<p>
+The easiest way to download the files is to clone them from the Git
+repository and place in <i>/etc/ldap/viper/</i>.
+<pre>
+apt-get install git-core
+
+mkdir -p /etc/ldap
+cd /etc/ldap
+git clone git://github.com/docelic/Viper.git viper
+cd viper
+</pre>
+</p>
+<h2>Installation</h2>
 To set things up, you should just have to run script <a
  href="../scripts/viper-setup.sh">viper-setup.sh</a> on a Debian GNU
 system. It should do <span style="font-style: italic;">everything</span>
