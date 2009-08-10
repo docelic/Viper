@@ -55,6 +55,32 @@ iface eth0:1 inet static
 </pre>
 </p>
 
+<h2>Net::LDAP::FilterMatch fix</h2>
+<p>
+Net::LDAP's FilterMatch module contains a bug that you have to patch manually, at least until it is
+fixed in the official distribution.
+</p>
+<p>
+Save the following patch as <i>/tmp/ldap-fm.patch</i> and apply with
+<b>patch -p0 &lt; /tmp/ldap-fm.patch</b>:
+<pre>
+ /usr/share/perl5/Net/LDAP/FilterMatch.pm
+--- /usr/share/perl5/Net/LDAP/FilterMatch.pm.old        2009-08-10 19:05:15.000000000 +0200
++++ /usr/share/perl5/Net/LDAP/FilterMatch.pm    2009-08-10 19:05:39.000000000 +0200
+@@ -245,7 +245,7 @@
+   my $regex=shift;
+   my $op=shift;
+   return 1 if ($regex =~ /^$/);
+-  return grep(/\Q$regex\E/i, @_) ? 1 : 0;
++  return grep(/$regex/i, @_) ? 1 : 0;
+ }
+
+ sub _exact_substrings($@)
+</pre>
+And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
+</b>.
+</p>
+
 <h2>Testing</h2>
 <p>
 After installation, you will get a working setup populated with default

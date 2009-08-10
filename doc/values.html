@@ -59,10 +59,47 @@ includes DHCP parameters, but that data is not important when
 considering hosts in the context of <i>ou=clients</i> LDAP suffix, and
 might be removed in the future).
 <br><br>
-So, as said, host-specific configuration data is not kept directly in the host's
-toplevel entry. Configuration values are stored in a one-level subtree under
+The real configuration data is stored in a one-level subtree under
 the host entry. All values (Debian or custom) are saved as Debconf keys,
 following the naming pattern of cn=KEY,cn=HOST,ou=hosts,o=DOM.AIN,ou=clients.
+</p>
+<p>
+When the configuration value is asked for, and is not found in the host's tree,
+Viper looks for a fallback value in site-wide and global defaults tree.
+</p>
+<p>
+Note that the default value can be dynamically-produced (just like any
+other value), and can evaluate to different data in different contexts.
+</p>
+<p>
+For example, you might want to store the location of the Web server's
+DocumentRoot in Viper, and you might want it to be /var/www/CLIENT_NAME.
+That can be achieved with a single default value that expands to
+the corresponding CLIENT_NAME every time it is read.
+</p>
+<h2>Existing configuration data and defaults</h2>
+<p>
+The default Viper setup contains a set of default Debconf keys that suffice
+to perform an automated install using preseeding.
+</p>
+<p>
+All those keys are defined on the global level (<i>ou=defaults</i> tree),
+where they are queried if not found at any of the higher priority levels
+(site level at <i>ou=defaults,o=DOM.AIN,ou=clients</i>, or host
+level at <i>cn=HOST,ou=hosts,o=DOM.AIN,ou=clients</i>).
+</p>
+<p>
+So you should go over the defaults in
+<a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a> and verify the
+values (search for occurrences of "value:"). You can modify the defaults, or
+override them on site- or host-level by copying over to your client's LDIF,
+adjusting the DN and changing the value.
+</p>
+<p>
+After every change in <i>ldifs/*.ldif</i> files, run <i>make</i> in that
+directory to reload new data. ('make' will delete all Viper data and re-load
+it from LDIF files. This will cause data loss if you were editing anything
+in LDAP directly, avoiding LDIF files).
 </p>
 <h2>Locations for adding configuration values</h2>
 <p>
@@ -80,8 +117,8 @@ we save each config value to some of the three levels:
 	<li>Global level (i.e. cn=KEY,ou=hosts,ou=defaults)
 </ul>
 (Note that each Debconf question consists of a question and template.
-Templates are saved to basically the same places as above, just replacing
-<i>ou=hosts</i> with <i>ou=templates</i>.)
+Templates are saved to basically the same places as shown above, just
+replacing <i>ou=hosts</i> with <i>ou=templates</i>.)
 </p>
 <h2>Accessing configuration values</h2>
 <p>
@@ -101,9 +138,10 @@ General methods:
 </ul>
 Viper-specific methods:
 <ul>
-	<li> Make the value used during constructing of some other value (i.e. define key client/name, then configure webserver root directory to be /var/www/<i>client_name</i>)
-	<li> Flag question with "flags: puppet" to have it automatically appear
-	as Puppet variable which you can use in Puppet manifests, modules and
+	<li> Make the value used during constructing of some other value (i.e. define key called "client/name", then configure webserver root directory to be /var/www/<i>client_name</i>)
+	<li> Flag value with "flags: puppet" to have it automatically appear
+	as Puppet variable, which you can then automatically use in Puppet
+	manifests, modules and
 	ERB templates (i.e. Debconf key ntp/servers, flagged with 'flags: preseed'
 	would appear as variable $ntp_servers in manifests and ntp_servers in
 	ERB templates).
@@ -111,7 +149,7 @@ Viper-specific methods:
 </p>
 <h2>Specific example</h2>
 <p>
-Here's an example of how to add a Debconf key ntp/servers. It's value will
+Here's an example of how to add a Debconf key ntp/servers. Its value will
 always expand to the list of NTP servers in the client's domain, and we'll
 use it in constructing the host's ntp.conf file.
 <br><br>
@@ -131,7 +169,9 @@ cn: ntp/servers
 owners: viper
 flags: puppet
 template: ntp/servers
-value: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0
+value: find $ ... 2 0 500 3600 \
+  (&amp;(objectClass=puppetClient)(puppetClass=ntp::server*)) \
+  0 ipHostNumber \0 \0
 </pre>
 <br>
 Excerpt from ERB template for Puppet module 'ntp':
@@ -139,6 +179,13 @@ Excerpt from ERB template for Puppet module 'ntp':
 &lt;% ntp_servers.each do |s| -%&gt;
 server &lt;%= s %&gt;
 &lt;% end -%&gt;
+</pre>
+<br>
+Final, expanded value in ntp.conf template may look like this:
+<pre>
+server 10.0.1.8
+server 10.0.1.9
+server 10.0.1.10
 </pre>
 </p>
 				  <div class="clear-flat"></div>
