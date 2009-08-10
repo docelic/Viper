@@ -29,12 +29,20 @@ Along the way, one other crucial benefit of a custom LDAP backend became
 apparent -- the ability to make
 provisions for existing components and their use of LDAP, instead of
 requiring modifications
-to their source code.<br>&nbsp;
+to their source code.
+</p>
 
 <div class="fineline"></div>
-Finally, one of the design goals was to make Viper natural and easy to
+</p>
+One of the Viper design goals was to make Viper natural and easy to
 get results with. For that purpose, everything has been commented, with
 the availability of complete config files and a Quick Start guide.
+</p>
+<p>
+If you're new to OpenLDAP or LDAP in general, take a look at SPINLOCK Techpubs
+Guide "<a href="http://techpubs.spinlocksolutions.com/dklar/ldap.html">Debian
+GNU: Setting up OpenLDAP</a>".
+</p>
 
 <div class="fineline"></div>
 Viper is Free Software, distributed under the terms of the GNU General

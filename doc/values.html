@@ -19,7 +19,7 @@
 <h2>Guides</h2>
 <ul>
   <li><a href="client.html">Adding clients and hosts</a><br>
-  <li><a href="values.html">Modifying / adding configuration values</a><br>
+  <li><a href="values.html">Adding configuration values</a><br>
 </ul>
 <h2>Overviews<br>
 </h2>
@@ -41,31 +41,50 @@
 </ul>
 				</div>
 				<div id="content">
-<h1>Viper - Modifying or adding configuration values</h1>
-The basis of the host setup is the host's LDAP entry, found at
-<i>cn=HOSTNAME,ou=hosts,o=DOM.AIN,ou=clients</i>.
+<h1>Viper - Adding configuration values</h1>
+<p>
+The primary host configuration location is a host's LDAP entry, always found
+at <i>cn=HOSTNAME,ou=hosts,o=DOM.AIN,ou=clients</i>.
 <br><br>
-The host entry itself contains a small number of most important
-attributes, such as hostname, macAddress, ipHostNumber and the list of
-classes the host belongs to. (It also
-includes DHCP information, but that data is not important when
-considering hosts in the context of suffix <i>ou=clients</i>, and
+The host entry itself contains only a small number of most important,
+host-specific attributes (hostname, macAddress, ipHostNumber) and
+the list of classes the host belongs to.
+<br><br>
+Some other information is also added to the entry by various dynamic
+settings, but that is only used to include useful host properties
+(such as name of the client it belongs to) and not real configuration data.
+<br>
+(In the current default setup, this other information
+includes DHCP parameters, but that data is not important when
+considering hosts in the context of <i>ou=clients</i> LDAP suffix, and
 might be removed in the future).
-<h2>Locations for adding configuration values</h2>
-The overarching idea of the whole Viper system is to keep all configuration
-in one place, making no distinction between Debconf and our own values.
 <br><br>
-This means we use Debconf format for all configuration, and
+So, as said, host-specific configuration data is not kept directly in the host's
+toplevel entry. Configuration values are stored in a one-level subtree under
+the host entry. All values (Debian or custom) are saved as Debconf keys,
+following the naming pattern of cn=KEY,cn=HOST,ou=hosts,o=DOM.AIN,ou=clients.
+</p>
+<h2>Locations for adding configuration values</h2>
+<p>
+The three overarching ideas of the whole Viper system are to first, avoid all
+repetition when data can be derived from already existing information, second,
+keep all configuration in one place, and third, have no distinction
+between Debconf values and our own configuration values.
+</p>
+<p>
+As as result, we use Debconf format for all configuration, and
 we save each config value to some of the three levels:
 <ul>
-	<li>Host-specific level (i.e. cn=ntp/servers,cn=HOSTNAME,ou=hosts,o=DOM.AIN,ou=clients)
-	<li>Site-wide level (i.e. cn=ntp/servers,ou=hosts,ou=defaults,o=DOM.AIN,ou=clients)
-	<li>Global level (i.e. cn=ntp/servers,ou=hosts,ou=defaults)
+	<li>Host-specific level (i.e. cn=KEY,cn=HOST,ou=hosts,o=DOM.AIN,ou=clients)
+	<li>Site-wide level (i.e. cn=KEY,ou=hosts,ou=defaults,o=DOM.AIN,ou=clients)
+	<li>Global level (i.e. cn=KEY,ou=hosts,ou=defaults)
 </ul>
 (Note that each Debconf question consists of a question and template.
 Templates are saved to basically the same places as above, just replacing
 <i>ou=hosts</i> with <i>ou=templates</i>.)
+</p>
 <h2>Accessing configuration values</h2>
+<p>
 Debconf will not mind the added questions at all, but it will not query
 them as it doesn't know about them, of course.
 <br><br>
@@ -89,7 +108,9 @@ Viper-specific methods:
 	would appear as variable $ntp_servers in manifests and ntp_servers in
 	ERB templates).
 </ul>
+</p>
 <h2>Specific example</h2>
+<p>
 Here's an example of how to add a Debconf key ntp/servers. It's value will
 always expand to the list of NTP servers in the client's domain, and we'll
 use it in constructing the host's ntp.conf file.
@@ -119,6 +140,7 @@ Excerpt from ERB template for Puppet module 'ntp':
 server &lt;%= s %&gt;
 &lt;% end -%&gt;
 </pre>
+</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
