@@ -16,7 +16,6 @@
 			<div id="body-bot">
 				<div id="welcome">
 					<h2>Quick Start</h2>
-					<p>
 <ul>
   <li><a href="server.html">Setting up a Viper server</a><br>
   </li>
@@ -49,7 +48,6 @@
 
 </ul>
 
-					</p>
 				</div>
 
 				<div id="content">
@@ -63,7 +61,11 @@
 		</div>
 	</div>
 	<div id="footer">
-		<p>&nbsp;</p>
+	<p style="text-align: right;">
+	<a href="http://www.thewml.org/">
+<img src="images/wml.png"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	</p>
+
 	</div>
 </div>
 
