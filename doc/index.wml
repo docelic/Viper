@@ -1,0 +1,46 @@
+
+<h2>Viper</h2>
+<p>
+Viper is a system for completely automated installation,
+configuration and monitoring of Debian GNU based systems.
+</p><p>
+The first public
+release was in August 2009.
+
+</p><p>
+Viper uses a modern approach (debian-installer,
+<a href="http://www.reductivelabs.com/">Puppet</a> etc.), works
+with existing Debian packages, and does not require any custom patching
+of either install media, client or server.
+</p><p>
+The basis of the whole system is a LDAP server, containing <span
+style="font-style: italic;">all</span> configuration data.<br>
+
+<div class="fineline"></div>
+LDAP has the potential to be enormously successful in configuration
+management, but its flat data structure, absence of any kind of dynamic
+behavior, and heaps of duplicated data make it a mediocre tool.
+</p><p>
+To build on LDAP's great strengths while solving its deficiencies, a
+custom OpenLDAP backend has been implemented.
+</p><p>
+
+Along the way, one other crucial benefit of a custom LDAP backend became
+apparent -- the ability to make
+provisions for existing components and their use of LDAP, instead of
+requiring modifications
+to their source code.<br>&nbsp;
+
+<div class="fineline"></div>
+Finally, one of the design goals was to make Viper natural and easy to
+get results with. For that purpose, everything has been commented, with
+the availability of complete config files and a Quick Start guide.
+
+<div class="fineline"></div>
+Viper is Free Software, distributed under the terms of the GNU General
+Public License, version 3 or later.
+</p><p>
+Copyright 2008-2009 Davor Ocelic,
+<a href="http://www.spinlocksolutions.com/">http://www.spinlocksolutions.com/</a>
+</p>
+

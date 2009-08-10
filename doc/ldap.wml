@@ -1,48 +1,3 @@
-<html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Viper - Fully Automated Debian GNU Installation, Configuration and Monitoring</title>
-	<link rel="stylesheet" href="style.css" type="text/css" charset="utf-8">
-</head>
-<body>
-<div id="wrapper">
-	<div id="body">
-		<div id="body-top">
-			<div id="body-top-2"></div>
-			<div id="body-bot">
-				<div id="welcome">
-					<h2>Quick Start</h2>
-					<p>
-<ul>
-  <li><a href="server.html">Setting up a Viper server</a><br>
-  </li>
-</ul>
-<h2>Guides</h2>
-<ul>
-  <li><a href="client.html">Adding clients and hosts</a><br>
-  <li><a href="values.html">Modifying / adding configuration values</a><br>
-</ul>
-<h2>Overviews<br>
-</h2>
-<ul>
-  <li><a href="components.html">Host installation procedure </a></li>
-  <li><a href="ldap.html">Viper OpenLDAP backend</a></li>
-  <li><a href="data.html">Viper LDAP data structure</a></li>
-</ul>
-<h2>Misc info</h2>
-<ul>
-  <li><a href="hints.html">Hints &amp; tips</a><br>
-</ul>
-<h2>Resources</h2>
-<ul>
-  <li><a href="http://github.com/docelic/Viper/">Viper @ GitHub</a> </li>
-  <li>IRC.OFTC.NET, #viper</li>
-  <li><a href="https://lists.hcoop.net/listinfo/viper-users">Mailing list</a></li>
-  <li><a href="support.html">Commercial support</a></li>
-</ul>
-					</p>
-				</div>
-				<div id="content">
 <h1>Viper - Custom Perl backend for use with the OpenLDAP server.<br>
 </h1>
 LDAP can be enormously successful in configuration management, but its
@@ -79,7 +34,7 @@ script name is also listed.<br>
 <br>
 <div style="text-align: center;"><img
  style="width: 883px; height: 500px;"
- alt="Components using Viper LDAP backend" src="users.png" width="883" height="500"></div>
+ alt="Components using Viper LDAP backend" src="users.png"></div>
 <br>
 <h2>More introduction</h2>
 The Viper backend implements regular LDAP functionality and can be used
@@ -291,15 +246,3 @@ overlay cache (just in the &lt;= 20% range). See 'cacheopen'<br>
 <br>
 </div>
 </div>
-				  <div class="clear-flat"></div>
-				</div>
-				<div class="clear"></div>
-			</div>
-		</div>
-	</div>
-	<div id="footer">
-		<p>&nbsp;</p>
-	</div>
-</div>
-</body>
-</html>

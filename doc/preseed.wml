@@ -1,48 +1,3 @@
-<html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Viper - Fully Automated Debian GNU Installation, Configuration and Monitoring</title>
-	<link rel="stylesheet" href="style.css" type="text/css" charset="utf-8">
-</head>
-<body>
-<div id="wrapper">
-	<div id="body">
-		<div id="body-top">
-			<div id="body-top-2"></div>
-			<div id="body-bot">
-				<div id="welcome">
-					<h2>Quick Start</h2>
-					<p>
-<ul>
-  <li><a href="server.html">Setting up a Viper server</a><br>
-  </li>
-</ul>
-<h2>Guides</h2>
-<ul>
-  <li><a href="client.html">Adding clients and hosts</a><br>
-  <li><a href="values.html">Modifying / adding configuration values</a><br>
-</ul>
-<h2>Overviews<br>
-</h2>
-<ul>
-  <li><a href="components.html">Host installation procedure </a></li>
-  <li><a href="ldap.html">Viper OpenLDAP backend</a></li>
-  <li><a href="data.html">Viper LDAP data structure</a></li>
-</ul>
-<h2>Misc info</h2>
-<ul>
-  <li><a href="hints.html">Hints &amp; tips</a><br>
-</ul>
-<h2>Resources</h2>
-<ul>
-  <li><a href="http://github.com/docelic/Viper/">Viper @ GitHub</a> </li>
-  <li>IRC.OFTC.NET, #viper</li>
-  <li><a href="https://lists.hcoop.net/listinfo/viper-users">Mailing list</a></li>
-  <li><a href="support.html">Commercial support</a></li>
-</ul>
-					</p>
-				</div>
-				<div id="content">
 <h1>Viper - install, step 3/6 - preseed notes</h1>
 After obtaining IP and related options thru
 DHCP in step 2, the host will request the preseed file, at <span
@@ -101,15 +56,3 @@ requested and their return values</li>
 params, see if data from LDAP comes out as you expect<br>
   </li>
 </ol>
-				  <div class="clear-flat"></div>
-				</div>
-				<div class="clear"></div>
-			</div>
-		</div>
-	</div>
-	<div id="footer">
-		<p>&nbsp;</p>
-	</div>
-</div>
-</body>
-</html>
