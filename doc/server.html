@@ -12,7 +12,6 @@
 			<div id="body-bot">
 				<div id="welcome">
 					<h2>Quick Start</h2>
-					<p>
 <ul>
   <li><a href="server.html">Setting up a Viper server</a><br>
   </li>
@@ -40,7 +39,6 @@
   <li><a href="https://lists.hcoop.net/listinfo/viper-users">Mailing list</a></li>
   <li><a href="support.html">Commercial support</a></li>
 </ul>
-					</p>
 				</div>
 				<div id="content">
 <h1>Viper - Setting up an installation server</h1>
@@ -73,13 +71,11 @@ machine that does not already run a LDAP and DHCP server.
 After the system is running, you will have a clean and known-good base to
 start creating your own configuration.<br>
 <br>
-When ran, the script
-should do <span style="font-style: italic;">everything</span>
-automatically.<br>
+The script should do everything automatically.
 However, for the first time, I suggest you read the script (it contains
-comments) and execute commands manually.<br>
+important comments) and execute commands manually.<br>
 <br>
-Before running the script, you should do just one thing related to the
+Before running the script, you should do just one thing, related to the
 DHCP server -- you should create a network interface with IP address 10.0.1.1,
 to fit in the example subnet used by our default config. Then, you can run
 the install script with the name of the physical interface. Here's the session
@@ -98,13 +94,16 @@ iface eth0:1 inet static
 	address 10.0.1.1
 	netmask 255.255.255.0
 </pre>
+</p>
 <h2>Testing</h2>
+<p>
 After installation, you will get a working setup populated with default
 data. This includes a client with name "c1.com", and three hosts, h1,
 h2 and h3.<br>
 <br>
 Based on the default data, there are tests you can run:<br>
-<h3>With ldapsearch</h3>
+<h3>Testing with ldapsearch</h3>
+<p>
 ldapsearch -x -b ou=dhcp<br>
 ldapsearch -x -b ou=defaults<br>
 ldapsearch -x -b ou=clients<br>
@@ -114,14 +113,24 @@ ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
 ldapsearch -x -b cn=popularity-contest/participate,ou=hosts,ou=defaults<br>
 ldapsearch -x -b cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
 ldapsearch -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-<h4>Test results</h4>
+</p>
+<h4>ldapsearch test results</h4>
+<p>
 Ldapsearch query for <i>cn=h2,ou=hosts,o=c1.com,ou=clients</i> is a pretty good
 way of determining if everything is working alright. Here's how the output
 from the command should look like:
 <pre>
 $ ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients
 
+# extended LDIF
+#
+# LDAPv3
+# base <cn=h2,ou=hosts,o=c1.com,ou=clients> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
 
+# h2, hosts, c1.com, clients
 dn: cn=h2,ou=hosts,o=c1.com,ou=clients
 objectClass: top
 objectClass: device
@@ -150,17 +159,25 @@ ipNetworkNumber: 10.0.1.0
 ipBroadcastNumber: 10.0.1.255
 domainName: c1.com
 
+# search result
 search: 2
 result: 0 Success
 
-</pre>
-<h3>With scripts/node_data</h3>
+# numResponses: 2
+# numEntries: 1</pre>
+</p>
+<h3>Testing with scripts/node_data</h3>
+<p>
 perl scripts/node_data h2.c1.com<br>
-<h3>With scripts/preseed</h3>
+</p>
+<h3>Testing with scripts/preseed</h3>
+<p>
 QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
+</p>
 <h2>Changing the configuration / adding new clients</h2>
+<p>
 See <a href="client.html">client.html</a>.
-<br>
+</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
@@ -168,7 +185,10 @@ See <a href="client.html">client.html</a>.
 		</div>
 	</div>
 	<div id="footer">
-		<p>&nbsp;</p>
+	<p style="text-align: right;">
+	<a href="http://www.thewml.org/">
+<img src="images/wml.png" alt="" width="71" height="30"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	</p>
 	</div>
 </div>
 </body>
