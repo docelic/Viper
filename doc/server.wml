@@ -20,13 +20,8 @@ cd viper
 <h2>Setup</h2>
 
 <p>
-To set things up after download, you should just have to run script <a
- href="../scripts/viper-setup.sh">viper-setup.sh</a>.
- It should do <span style="font-style: italic;">everything</span>
-automatically.<br>
-<br>
-However, for the first time, I suggest you read the script (it contains
-comments) and execute commands manually.<br>
+To set things up after download, you will use script <a
+ href="../scripts/viper-setup.sh">scripts/viper-setup.sh</a>.
 <br>
 The purpose of the script is to get Viper up and
 running quickly, with the default config.
@@ -34,6 +29,12 @@ The default config is quite independent and can be ran on probably every
 machine that does not already run a LDAP and DHCP server.
 After the system is running, you will have a clean and known-good base to
 start creating your own configuration.<br>
+<br>
+When ran, the script
+should do <span style="font-style: italic;">everything</span>
+automatically.<br>
+However, for the first time, I suggest you read the script (it contains
+comments) and execute commands manually.<br>
 <br>
 Before running the script, you should do just one thing related to the
 DHCP server -- you should create a network interface with IP address 10.0.1.1,
