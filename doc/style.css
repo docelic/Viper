@@ -71,15 +71,6 @@ body {
 	position: relative;
 	padding-top: 68px;
 }
-h1 {
-	position: absolute;
-	top: 36px;
-	left: 13px;
-	font-size:26px;
-	color:#3f3c2d;
-	font-variant: small-caps;
-	font-family: Arial, Helvetica, sans-serif;
-}
 
 #body-bot {
 	padding-top: 12px;
@@ -133,7 +124,7 @@ h1 {
 
 .fineline {
 	border-bottom: 1px solid #D3CAA9;
-	margin-bottom: 12px;
+	margin: 12px 0;
 }
 
 .fineline-flat {
