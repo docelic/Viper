@@ -166,4 +166,9 @@ server 10.0.1.9
 server 10.0.1.10
 </pre>
 </p>
+<p>
+(If you're familiar with Puppet configuration management system,
+you might notice that this type of dynamic values using Viper eliminates
+the need to use Puppet's exported resources and stored configs.)
+</p>
 
