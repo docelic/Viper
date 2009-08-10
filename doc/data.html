@@ -11,6 +11,11 @@
 			<div id="body-top-2"></div>
 			<div id="body-bot">
 				<div id="welcome">
+					<h1>&clubs;</h1>
+					<h2>VIPER</h2>
+<ul>
+  <li><a href="index.html">Index page</a></li>
+</ul>
 					<h2>Quick Start</h2>
 <ul>
   <li><a href="server.html">Setting up a Viper server</a><br>
@@ -41,32 +46,34 @@
 </ul>
 				</div>
 				<div id="content">
-<h1>Viper - How data in the LDAP server is organized<br>
-</h1>
-One of the important elements of the whole system is data organization
-within LDAP. Until you get a hold of the whole system, do not start
-introducing any changes to this structure, as both names of the entries
-and their position are relevant.<br>
+<h1>Viper - LDAP data structure</h1>
+<p>
+One of the very important elements in the whole system is data organization
+within LDAP. Until you get a hold of it and its implications, do not start
+introducing any changes, as often both names and positions of the entries
+are relevant.<br>
 <br>
-(Viper itself does not care about the tree structure. It's the set of
-dynamic behavior rules in <a href="../configs/slapd.conf">slapd.conf</a>
-that are configured operate in this structure).<br>
+(Technically speaking, Viper itself does not care about the tree structure.
+It's the set of dynamic behavior rules in
+<a href="../configs/slapd.conf">slapd.conf</a> that is configured to operate
+in the following structure.)<br>
 <br>
 Here's the tree:<br>
 <br>
 On the top level, we have three suffixes defined in slapd.conf:
 ou=dhcp, ou=defaults, and ou=clients.<br>
 <br>
-(You'll notice that these do not look like the very common and
-prevalent LDAP DNs that end in something like "dc=example,dc=com". This
+(You'll notice that these do not look like the common
+LDAP DNs that end in something like "dc=example,dc=com". This
 is perfectly alright from the LDAP standpoint, offers us certain
-advantages, and should not be changed).<br>
+advantages, and should not be changed).
+</p>
 <ul>
   <li><span style="font-weight: bold;">ou=dhcp</span>: specialized
 suffix intended to be used only by the ISC DHCP LDAP-enabled server. It
 contains appropriate configuration which rewrites incoming queries
-(sent by DHCP) to the appropriate form, so that the appropriate data is
-found and returned back to DHCP.<br>
+(sent by DHCP) to the the form required to find the data and return it
+as expected back to DHCP.<br>
 LDIF data for this suffix is in <a href="../ldifs/1-dhcp.ldif"><span
  style="font-style: italic;">ldifs/1-dhcp.ldif<br>
     </span></a><br>
@@ -93,7 +100,8 @@ under this tree. If you want entries of class dhcpHost to get appended
 some default values, add entry <span style="font-style: italic;">cn=dhcpHost,ou=objectClasses,ou=defaults</span>,
 and list attributes there (this, of course, also requires an
 appropriate <span style="font-style: italic;">searchAppend</span> rule
-in slapd.conf to actually trigger the append).<br>
+in slapd.conf to actually trigger the append, it is not automatic behavior).
+<br>
         <br>
       </li>
       <li><span style="font-weight: bold;">ou=partitioning,ou=defaults</span>:
@@ -104,10 +112,12 @@ we have "regular_root" and "regular_home" recipes.<br>
         <br>
       </li>
     </ul>
+		<p>
 LDIF data for <span style="font-style: italic;">ou=defaults</span>
 suffix and all in it is in <a href="../ldifs/0-defaults.ldif">ldifs/0-defaults.ldif</a>,
-so you can read it to verify what we've just said.<br>
-    <br>
+so you can read it to verify what we've just said.
+</p>
+<p>
 You'll note that some of the values in ldifs/0-defaults.ldif, especially
 extendedDescription, are often base64-encoded. This is required to
 preserve exact value of the key within LDIF file format, and should not
@@ -115,13 +125,13 @@ bother you (extendedDescription is not important anyway). However, to
 really see what's in there, you can run <span
  style="font-weight: bold;">base64 -d</span> on the command line, paste
 base64-encoded value in there, and press Enter, Ctrl+D. Decoded value
-will be printed.<br>
-    <br>
+will be printed.
+</p><p>
 Also, reading ldifs/0-defaults.ldif is useful to give you a feeling of
 how we achieve dynamic attribute values. The top and the bottom of the
 file contain many interesting and mostly self-explanatory rules that
-implement some serious magic.<br>
-    <br>
+implement some serious magic.
+</p>
   </li>
   <li><span style="font-weight: bold;">ou=clients</span>: This is the
 primary suffix intended for direct access by all components or scripts
