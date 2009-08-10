@@ -11,6 +11,11 @@
 			<div id="body-top-2"></div>
 			<div id="body-bot">
 				<div id="welcome">
+					<h1>&clubs;</h1>
+					<h2>VIPER</h2>
+<ul>
+  <li><a href="index.html">Index page</a></li>
+</ul>
 					<h2>Quick Start</h2>
 <ul>
   <li><a href="server.html">Setting up a Viper server</a><br>
@@ -49,9 +54,9 @@
 	(Click the image for full size)</a>
  </p>
 <h2>Description</h2>
-For an overview, just read the page. Links are provided for more
-detailed information on individual steps.<br>
-<br>
+<p>
+For an overview, just read the page. Follow links if you are looking for
+more detailed information on individual steps.<br>
 <ol>
   <li><a href="boot.html"><span style="font-weight: bold;">Boot from
 standard install media</span></a> - use any standard Debian install
@@ -67,12 +72,12 @@ request and perform a query to LDAP, in an attempt to find the specific
 host (not just a random IP from the DHCP pool). When the request
 reaches LDAP, it will be rewritten and redirected as necessary (using
 features of the Viper slapd backend) to find the host entry. It is
-sufficient for the entry to only contain macAddress and ipHostNumber
-defined, Viper will construct all other options on the fly.<br>
+sufficient for the entry to only contain macAddress and ipHostNumber,
+Viper will construct all other options on the fly.<br>
     <br>
   </li>
   <li><a href="preseed.html"><span style="font-weight: bold;">Obtain
-preseed file</span></a> - after obtaining IP and related options thru
+preseed file</span></a> - after obtaining IP and related options through
 DHCP, the host will request the preseed file, at <span
  style="font-style: italic;">url=http://server/d-i/DIST_NAME/preseed.cfg</span>.
 In our setup, that file is a CGI script which performs a query to LDAP
@@ -85,9 +90,9 @@ the configuration should be generated based on the requestor's IP.<br>
 proceeds. When everything has been preseeded correctly, no questions
 will be asked interactively. Only the minimal Debian system will be
 installed, plus Puppet and, optionally, some minimal .debs that will do
-the necessary preparations. Those optional debs, if installed, do
+the necessary preparations. (Those optional debs, if installed, do
 things like add LDAP support for Debconf and configure Debconf to use
-LDAP etc.<br>
+LDAP etc.)<br>
     <br>
   </li>
   <li><span style="font-weight: bold;">Reboot<br
@@ -95,15 +100,17 @@ LDAP etc.<br>
     <br>
     </span></li>
   <li><a href="configuration.html"><span style="font-weight: bold;">Puppet
-starts, configures everything</span> </a>- puppet will start and
-contact puppetmasterd. Master server will produce configuration based
+starts, configures everything</span> </a>- Puppet will start and
+contact puppetmasterd on server "puppet". The client can resolve the hostname
+because the IP was added to /etc/hosts during installation. The master server
+will produce configuration based
 on site manifests, modules etc., and "externalnodes" information (list
 of classes a host belongs to, and definitions of parameters
 (variables)). The external nodes script contacts LDAP to produce the
-information, but we do not use Puppet's LDAP node terminus directly,
-because we want to do some very useful and necessary extra processing
-to produce classes and variables.</li>
+information, we do not use Puppet's LDAP node terminus directly,
+because some extra processing is required.</li>
 </ol>
+</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
