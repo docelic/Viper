@@ -34,8 +34,8 @@ p {
 	text-align: justify;
 }
 
-body {
-	background: white;
+body, table {
+	background: transparent;
 	text-align: center;
 	font: 11px verdana, arial, sans-serif;
 }

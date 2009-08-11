@@ -1,0 +1,173 @@
+
+<h2>Viper backend syntax reference </h2>
+<p>
+One large part of the complete Viper setup is the custom,
+Perl-based backend for slapd (server component of the OpenLDAP
+suite).
+</p>
+<p>
+The backend was developed to solve a whole set of existing
+LDAP deficiencies (well, deficiencies, at least in the
+context of configuration management).
+</p>
+<p>
+This page should be used as a reference, but its listing of all
+Viper features, with concise description, usage syntax and
+examples, also serves as kind of a showcase.
+</p>
+
+<div class="fineline"></div>
+
+<h3>Configuration directives in slapd.conf</h3>
+
+<p>
+Each suffix configured in Viper/LDAP should begin with the following
+block:
+</p>
+<pre>
+database           perl
+suffix             "<i>SUFFIX</i>"
+perlModulePath     "/etc/ldap/viper"
+perlModule         "Viper"
+directory          "/var/lib/ldap/viper/"
+treesuffix         "<i>SUFFIX</i>"
+</pre>
+
+The first four lines are required by slapd and its back-perl backend
+to configure the suffix and initialize Viper.
+</p><p>
+The last two lines are required by the Viper backend, and the value of
+'treesufix' should be equal to 'suffix'. (This small duplication cannot
+be avoided because 'suffix' directive is consumed by slapd and is not
+passed onto our backend).
+</p><p>
+After the above "header", the following directives can be used. The list is
+sorted alphabetically, with each subtitle specifying configuration directive
+name and its usage syntax. Where applicable, the first value listed
+indicates the default value.
+
+<h4>addIgnoredups 0|1</h4>
+<p>
+Specify whether LDAP ADD operation should ignore adds on existing entries,
+without throwing LDAP_ALREADY_EXISTS error. Applicable if addoverwrites= 0.
+</p>
+
+<h4>addOverwrites 0|1</h4>
+<p>
+Specify whether LDAP ADD operation should overwrite existing entries,
+without throwing LDAP_ALREADY_EXISTS error.
+</p>
+
+<h4>addPrompt SUFFIX PATTERN REPLACEMENT</h4>
+<p>
+Define SUFFIX under which server-side Debconf prompter should run.
+</p>
+<p>
+When Debconf template is added to LDAP under a matching SUFFIX, we can assume
+that its config value is already there (due to how Debconf database saving
+works), and that LDAP now has full information about the question.
+</p>
+<p>
+Viper performs s/PATTERN/REPLACEMENT/ on the template DN to derive the
+exact location of the config question, and then opens a completely-functional
+Debconf interface from the server to an X DISPLAY of choice.
+(Note that in this scencario, the Debconf interface literally runs on the
+server).
+</p>
+<p>
+This allows an administrator to configure client hosts to Noninteractive
+Debconf frontend, capturing any new Debconf questions (arising from automatic
+or manual apt-get installs) on a single X display.
+</p>
+<p>
+Depending on how exactly the host's Debconf is configured, the admin could get
+to see and change the Debconf value either after everything is already
+configured on the client, or, which is much more useful, directly as the
+host's code is in the decision process. (It'll block waiting for the admin
+to select the value).
+</p>
+<p>
+The default configuration shown fits Viper's data model and should
+generally be used without modification.
+</p>
+<p>
+Example: Add server-side prompter under the usual Debconf tree:
+<pre>
+addPrompt  cn=\\S+?,cn=\\w+,ou=templates,o=  ,ou=templates,  ,ou=hosts,
+</pre>
+</p>
+
+<h4>addRelocate LABEL PATTERN REPLACEMENT</h4>
+<p>
+Define entry relocation rule.
+</p>
+<p>
+When Viper-aware Debconf interface runs and it encounters a new question, it
+can ask the admin for both the value and the location where the question
+should be saved in LDAP. That information is then passed onto the Viper backend
+through the viper_location=LABEL variable that is a part of each entry.
+</p>
+<p>
+If LABEL is defined and found, regex replacement (s/PATTERN/REPLACEMENT/)
+will be performed on the entry DN to derive the target location.
+</p>
+<p>
+This feature is used for promoting host-specific values to site-wide or
+global defaults. The examples shown fit Viper's data structure and should
+be usable without change.
+</p>
+<p>
+Example: Define "Site" and "Global" labels
+<pre>
+addRelocate  Site    ,cn=\\S+?,ou=  ,ou=defaults,ou=
+addRelocate  Global  ,*             ,ou=hosts,ou=defaults
+</pre>
+
+For more information on where exactly the site-wide and global defaults
+would be located, see <a href="data.html">LDAP data structure</a>.
+</p>
+
+<h4>extension <i>EXT</i></h4>
+<p>
+Specify file extension to use when storing server data on disk.
+</p>
+<p>
+Viper's data is kept in a directory tree that corresponds to the LDAP
+tree, where DN components are directories, and leaf nodes are files.
+Each file contains one LDAP entry in LDIF format.
+</p>
+<p>
+File extension must be specified to make directories distinguishable
+from files, and the default value should rarely be changed.
+</p>
+<p>
+Default: <tt>.ldif</tt>
+</p>
+
+<h4>modifySmarts 1|0</h4>
+<p>
+Specify whether Viper should ignore MODIFY requests that do not result
+in any real change within the entry.
+</p>
+<p>
+Debconf's LDAP driver submits all questions loaded during a session as
+modifications, regardless of whether their value has changed.
+</p>
+<p>
+ModifySmarts was primarily added to help Viper deal with unnecessary MODIFY
+requests to entries that contain dynamic values, but since that functionality
+has been improved, this directive lost its initial relevance.
+</p>
+<p>
+However, it is still useful to enable it, detect "no-op" modifications and
+avoid writing to disk, preserving meaningful modification timestamps.
+</p>
+
+
+<div class="fineline"></div>
+flow (clean reset save *dump etc.)
+
+<div class="fineline"></div>
+<pre>
+debugging options
+</pre>
