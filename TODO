@@ -17,6 +17,9 @@
 
 * allow rewriting of return attrs
 
+* document for config file, ldif, value spec, when do \\ have to be 
+ escaped, when is SPEC a filter and when a regex etc.
+
 * query na host da otkrije keyeve koji postoje zbog defaulta i ukljuci ih u search osnovnog nivoa
 
 * Check if one can trigger endless loop with dynamic options, and make max loop depth configurable

@@ -51,7 +51,7 @@ LDAP etc.)<br>
  style="font-weight: bold;">
     <br>
     </span></li>
-  <li><a href="configuration.html"><span style="font-weight: bold;">Puppet
+  <li><a href="puppet.html"><span style="font-weight: bold;">Puppet
 starts, configures everything</span> </a>- Puppet will start and
 contact puppetmasterd on server "puppet". The client can resolve the hostname
 because the IP was added to /etc/hosts during installation. The master server

@@ -1,181 +1,608 @@
-<h1>Viper - install, step 6/6 - configuration notes<br>
-</h1>
-All configuration is performed by Puppet configuration management
-system, <a href="http://www.reductivelabs.com/">http://www.reductivelabs.com/</a>.<br>
-<br>
-During installation, 'puppet' host is added to /etc/hosts with the
-appropriate IP. That allows puppetd daemon to start after reboot, find
-its configuration server and start with the work.<br>
-<br>
-Puppetd contacts Puppetmaster on the server as usual, nothing to say
-about that step.<br>
-<br>
-Puppetmaster needs to compile configuration for a host. It does that
-with the help of, of course, Puppet manifest files and modules, and
-information about the host. Information about the host is produced
-as follows:<br>
-<ol>
-  <li>Puppet collects Facter facts (as usual)</li>
-  <li>Puppet runs external_nodes script, <a href="../scripts/node_data"><span
- style="font-style: italic;">scripts/node_data</span></a>, to come up
-with the list of classes a host belongs to. In the same step, it also
-produces a list of parameters, basically variables that will be
-accessible via <span style="font-style: italic;">$name</span> in
-Puppet manifests and <span style="font-style: italic;">name</span> in
-ERB templates.</li>
-</ol>
-Then Puppet proceeds to do its thing, independent of Viper.<br>
-<br>
-What we're interested in here is the <a href="../scripts/node_data"><span
- style="font-style: italic;">scripts/node_data</span></a> script. It
-produces all data based on information returned from LDAP queries.
-Initially, we were using Puppet's support for ldap nodes directly, but
-that approach did not offer flexibility needed.<br>
-<br>
-To find node information, Puppet starts with the certificate name,
-which most often coincides with FQDN.<br>
-<br>
-So, node_data is called with host's FQDN as argument, then it does a
-couple LDAP queries to extract and process all information needed
-(class and parameters list), and dumps the result in YAML format, as
-expected by Puppet.<br>
-<br>
-Here's how it produces the information:<br>
-<br>
+
+<h2>Viper configuration reference</h2>
+<p>
+One large part of the complete Viper setup is the custom,
+Perl-based backend for slapd (server component of the OpenLDAP
+suite).
+</p>
+<p>
+The backend was developed to solve a whole set of existing
+LDAP deficiencies (well, deficiencies, at least in the
+context of configuration management).
+</p>
+<p>
+This page should be used as a reference on available Viper
+configuration directives, to be used in slapd.conf, under
+Viper-enabled suffixes.
+
+</p>
+
+<div class="fineline"></div>
+
+<h3>Configuration directives in slapd.conf</h3>
+
+<p>
+Each suffix configured in Viper/LDAP should begin with the following
+block:
+</p>
+<pre>
+database           perl
+suffix             "<i>SUFFIX</i>"
+perlModulePath     "/etc/ldap/viper"
+perlModule         "Viper"
+directory          "/var/lib/ldap/viper/"
+treesuffix         "<i>SUFFIX</i>"
+</pre>
+
+The first four lines are required by slapd and its back-perl backend
+to configure the suffix and initialize Viper.
+</p><p>
+The last two lines are required by the Viper backend, and the value of
+'treesufix' should be equal to 'suffix'. (This small duplication cannot
+be avoided because 'suffix' directive is consumed by slapd and is not
+passed onto our backend).
+</p><p>
+After the above "header", the following directives can be used. The list is
+sorted alphabetically, with each caption specifying configuration directive
+name and its usage syntax. Where applicable, the first value listed
+indicates the default value.
+
+<h4>addIgnoredups 0|1</h4>
+<p>
+Specify whether LDAP ADD operation should ignore adds on existing entries,
+without throwing LDAP_ALREADY_EXISTS error. Applicable if addoverwrites= 0.
+</p>
+
+<h4>addOverwrites 0|1</h4>
+<p>
+Specify whether LDAP ADD operation should overwrite existing entries,
+without throwing LDAP_ALREADY_EXISTS error.
+</p>
+
+<h4>addPrompt SUFFIX PATTERN REPLACEMENT</h4>
+<p>
+Define SUFFIX under which server-side Debconf prompter should run.
+</p>
+<p>
+When Debconf template is added to LDAP under a matching SUFFIX, we can assume
+that its config value is already there (due to how Debconf database saving
+works), and that LDAP now has full information about the question.
+</p>
+<p>
+Viper performs s/PATTERN/REPLACEMENT/ on the template DN to derive the
+exact location of the config question, and then opens a completely-functional
+Debconf interface from the server to an X DISPLAY of choice.
+(Note that in this scencario, the Debconf interface literally runs on the
+server).
+</p>
+<p>
+This allows an administrator to configure client hosts to Noninteractive
+Debconf frontend, capturing any new Debconf questions (arising from automatic
+or manual apt-get installs) on a single X display.
+</p>
+<p>
+Depending on exactly how Debconf is configured on the client host, the admin
+could get
+to see and change Debconf values either after everything is already
+configured, which is useful but not optimal, or directly as the
+host's code is in the decision process, which is the best option.
+(Debconf process on the client will block waiting for the admin input,
+continuing as it receives it).
+</p>
+<p>
+The default configuration shown fits Viper's data model and should
+generally be used without modification.
+</p>
+<p>
+Example: Add server-side prompter under the usual Debconf tree:
+<pre>
+addPrompt  cn=\\S+?,cn=\\w+,ou=templates,o=  ,ou=templates,  ,ou=hosts,
+</pre>
+</p>
+
+<h4>addRelocate LABEL PATTERN REPLACEMENT</h4>
+<p>
+Define entry relocation rule.
+</p>
+<p>
+When Viper-aware Debconf interface runs on the client host and encounters
+a new question, it
+can ask the admin for both the value and the location where the question
+should be saved in LDAP. That information is then passed onto the Viper backend
+through the viper_location=LABEL variable that is a part of each entry.
+</p>
+<p>
+If LABEL is defined and found, regex replacement (s/PATTERN/REPLACEMENT/)
+will be performed on the entry DN to derive the target location.
+</p>
+<p>
+This feature is used for promoting host-specific values to site-wide or
+global defaults. The examples shown fit Viper's data structure and should
+be usable without change.
+</p>
+<p>
+Example: Define "Site" and "Global" labels
+<pre>
+addRelocate  Site    ,cn=\\S+?,ou=  ,ou=defaults,ou=
+addRelocate  Global  ,*             ,ou=hosts,ou=defaults
+</pre>
+
+For more information on where exactly the site-wide and global defaults
+would be located, see <a href="data.html">LDAP data structure</a>.
+</p>
+
+<h4>cacheOpen SPEC</h4>
+<p>
+Specify how (and how long) to cache LDIF reads from disk. No specification
+implies no cache.
+</p>
+<p>
+SPEC can be a pure number (implies seconds), or a time specification such as 5s,
+10m, 2h, 2d, 1w for seconds, minutes, hours, days and weeks respectively.
+It can also be a number of value uses, such as 20u,
+and number of LDAP operations, 20o.
+</p>
+<p>
+Overall best value, one that minimizes or eliminates the risk of
+serving stale data while still reaching high percentage of total possible
+performance increase, is 1 operation, specified as 1o.
+</p>
+<p>
+Note that cacheOpen does not achieve multiple-times
+performance advantage as overlayConfig cache does. (Depending on usage, 
+cacheOpen gives 10% to 20% speedup of what overlayConfig cache would give).
+</p>
+<p>
+CacheOpen and overlayConfig cache can be used separately or together,
+summing the effect.
+</p>
+
+<h4>clean</h4>
+<p>
+Invoke removal of all saved stack files from disk.
+</p>
+<p>
+To ease writing slapd.conf configuration, Viper supports saving
+stacks of configuration values to disk.
+</p>
+<p>
+Once saved, the stack can be loaded by subsequently-defined suffixes to
+import configuration blocks.
+</p>
+<p>
+Stacks may contain variables that expand to proper values in the context
+of each suffix that is using them.
+</p>
+<p>
+Usually, the first configured suffix in slapd.conf calls "clean" to 
+remove any old stack files and start fresh. (The purpose of the stack
+files is not to keep them indefinitely, but to create them on every
+server startup in suffixes that are configured first and make
+them available for suffixes that follow).
+</p>
+
+<h4>deleteTrees 1|0</h4>
+<p>
+Specify whether Viper should allow deleting non-leaf elements (deleting
+the entry and everything under it in one go).
+<p>
+Whether subtree delete is requested or not can be controlled with
+ldapdelete option -r, but back-perl does not pass that option onto the
+backend, so the client-side option is not honored and deleteTrees is the
+single decision maker.
+</p>
+
+<h4>entryAppend ATTRIBUTE PATTERN -&gt; &lt;attr ATTRIBUTE | append PATTERN REPLACEMENT&gt;</h4>
+<p>
+Specify entryAppend rule, allowing adding extra attributes into an entry
+before returning it to the client.
+</p>
+<p>
+When all ATTRIBUTE PATTERN pairs match, Viper looks to append the entry with
+default attributes.
+</p>
+<p>
+The entry from which to read the attributes to append can be specified in two
+ways.
+</p>
+<p>
+One, with "attr ATTRIBUTE" (usually "attr seeAlso") -- in that case,
+the attribute seeAlso is looked up in the current entry. It is expected
+to contain the DN of the entry of interest.
+</p>
+<p>
+Two, with "append PATTERN REPLACEMENT", where s/PATTERN/REPLACEMENT/ is
+performed on the original DN, and the result is used as the entry from which
+to pull the extra attributes.
+</p>
+<p>
+Examples from production config:
+<pre><protect>
+entryAppend  objectClass "^dhcpHost$"                      \
+             -&gt;                                            \
+             append .+ cn=dhcpHost,ou=objectClasses,ou=defaults
+
+entryAppend  objectClass "^dhcpSubnet$"                    \
+             -&gt;                                            \
+             append .+ cn=dhcpSubnet,ou=objectClasses,ou=defaults
+
+entryAppend  dn          "^cn=default,ou=networks"         \
+             objectClass "^ipNetwork$"                     \
+             -&gt;                                            \
+             attr seeAlso
+
+</protect></pre>
+</p>
+
+<h4>exp MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each entry DN must and must not match respectively, to have
+overlay "exp" run on its attributes.
+</p>
+<p>
+The "exp" overlay enables expansion into values of other attributes, in the
+current or other entry.
+</p>
+
+<h4>extension EXT</h4>
+<p>
+Specify file extension to use when storing server data on disk.
+</p>
+<p>
+Viper's data is kept in a directory tree that corresponds to the LDAP
+tree, where DN components are directories, and leaf nodes are files.
+Each file contains one LDAP entry in LDIF format.
+</p>
+<p>
+File extension must be specified to make directories distinguishable
+from files, and the default value should rarely be changed.
+</p>
+<p>
+Default: <tt>.ldif</tt>
+</p>
+
+<h4>file MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each entry DN must and must not match respectively, to have
+overlay "file" run on its attributes.
+</p>
+<p>
+The "file" overlay enables expansion into values of on-disk files, always
+relative to the suffix base directory.
+</p>
+
+<h4>find MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each entry DN must and must not match respectively, to have
+overlay "find" run on its attributes.
+</p>
+<p>
+The "find" overlay enables internal re-invocation of the search function, 
+and using the values retrieved in constructing the original value.
+</p>
+<p>
+This overlay shares many similarities with "exp", but contains a crucial
+difference -- with "exp", you generally know where the entry and attribute
+to expand to are located. With "find", you generally don't, so you perform
+a search to find them.
+</p>
+
+<h4>load FILE</h4>
+<p>
+Load and process configuration stack from FILE. FILE is always relative to
+suffix base directory.
+</p>
+<p>
+To ease writing slapd.conf configuration, Viper supports saving
+stacks of configuration values to disk.
+</p>
+<p>
+Once saved, the stack can be loaded by subsequently-defined suffixes to
+import configuration blocks.
+</p>
+<p>
+Stacks may contain variables that expand to proper values in the context
+of each suffix that is using them.
+</p>
+
+<h4>message TEXT</h4>
+<p>
+Print TEXT to the log. The log will be a console if slapd is started
+with option -d (such as -d 256) to run in the foreground.
+</p>
+
+<h4>modifyCopyOnWrite 1|0</h4>
+<p>
+When a MODIFY request is issued for an entry that does not really exist 
+(i.e. it comes from a fallback), specify whether Viper should copy the
+entry to the expected location and then modify it, or return
+LDAP_NO_SUCH_OBJECT.
+</p>
+
+<h4>modifySmarts 1|0</h4>
+<p>
+Specify whether Viper should ignore MODIFY requests that do not result
+in any real change within the entry.
+</p>
+<p>
+Debconf's LDAP driver submits all questions loaded during a session as
+modifications, regardless of whether their value has changed.
+</p>
+<p>
+ModifySmarts was primarily added to help Viper deal with unnecessary MODIFY
+requests to entries that contain dynamic values, but since that functionality
+has been improved and completed, this directive lost its initial
+relevance.
+</p>
+<p>
+However, it is still useful to enable it, detect "no-op" modifications and
+avoid writing to disk, preserving meaningful modification timestamps.
+</p>
+
+<h4>overlayConfig OVERLAY OPTION VALUE ...</h4>
+<p>
+Specify default overlay options.
+</p>
+<p>
+OVERLAY can be an overlay name (perl, exp, file, find) or "default".
+</p>
+<p>
+OPTION can be "cache", "prefix" or "if".
 <ul>
-  <li>Classes list: looks at puppetClass attribute for the host<br>
-    <br>
-  </li>
-  <li>Parameters (variables):<br>
-    <ol>
-      <li>All attributes under the host entry (same like Puppet's LDAP
-driver would do)</li>
-      <li>Looks under Debconf tree, finds all questions with "flag:
-puppet" and for each found, uses Debconf key name as variable name, and
-value as value (non-alphanumeric chars are converted to _).<br>
-      </li>
-    </ol>
-  </li>
+	<li>cache SPEC - specify cache expiry time.
+	<br><br>
+	Caching overlay results improves performance enormously in situations
+	where multiple entries are returned and all produce the same dynamic
+	values for certain attributes.
+	<br><br>
+	In such cases, operations of complexity O(n) are reduced to O(1) level.
+	<br><br>
+	Syntax is the same as listed under "cacheOpen", and 1o is again the
+	overall best setting.
+	<br><br>
+	Example: cache 1o
+	<br><br>&nbsp;
+	</li>
+	<li>prefix PREFIX - generic prefix option, used where applicable. Currently
+	only the "file" overlay honors it, where it is a prefix to prepend on
+	all file specifications.
+	<br><br>
+	Directory separator is not added automatically,
+	so to prefix with a directory, include "/" at the end.
+	<br><br>
+	Example: prefix subdir/
+	<br><br>&nbsp;
+	</li>
+	<li>if [!]ATTRIBUTE REGEX - simple conditional. Specify regex that at least
+	one of the attribute values must match to include this value in the entry.
+	<br><br>
+	Attribute can be prepended by "!" to turn "must" into "must not" match.
+	<br><br>
+	Example: if !puppetClass ntp::server.*
+	<br><br>&nbsp;
+	</li>
 </ul>
-Let's see an example invocation and output:<br>
-<br>
-<br>
-$ ./scripts/node_data h2.c1.com<br>
-<table
- style="text-align: left; width: 95%; margin-left: auto; margin-right: auto;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;">
-      <h3>Output</h3>
----<br>
-classes:<br>
-&nbsp; - test<br>
-&nbsp; - ntp::client<br>
-parameters:<br>
-&nbsp; clientName:<br>
-&nbsp;&nbsp;&nbsp; - c1.com<br>
-&nbsp; cn:<br>
-&nbsp;&nbsp;&nbsp; - h2<br>
-&nbsp; dhcpHWAddress:<br>
-&nbsp;&nbsp;&nbsp; - ethernet 00:11:6b:34:ae:8d<br>
-&nbsp; dhcpOption:<br>
-&nbsp;&nbsp;&nbsp; - host-name "h2"<br>
-&nbsp;&nbsp;&nbsp; - routers 10.0.1.1<br>
-&nbsp;&nbsp;&nbsp; - domain-name-servers 192.168.1.254<br>
-&nbsp;&nbsp;&nbsp; - nis-domain "c1.com"<br>
-&nbsp;&nbsp;&nbsp; - domain-name "c1.com"<br>
-&nbsp;&nbsp;&nbsp; - subnet-mask 255.255.255.0<br>
-&nbsp;&nbsp;&nbsp; - broadcast-address 10.0.1.255<br>
-&nbsp; dhcpStatements:<br>
-&nbsp;&nbsp;&nbsp; - fixed-address 10.0.1.8<br>
-&nbsp; domainName:<br>
-&nbsp;&nbsp;&nbsp; - c1.com<br>
-&nbsp; hostName:<br>
-&nbsp;&nbsp;&nbsp; - h2<br>
-&nbsp; ipBroadcastNumber:<br>
-&nbsp;&nbsp;&nbsp; - 10.0.1.255<br>
-&nbsp; ipHostNumber:<br>
-&nbsp;&nbsp;&nbsp; - 10.0.1.8<br>
-&nbsp; ipNetmaskNumber:<br>
-&nbsp;&nbsp;&nbsp; - 255.255.255.0<br>
-&nbsp; ipNetworkNumber:<br>
-&nbsp;&nbsp;&nbsp; - 10.0.1.0<br>
-&nbsp; macAddress:<br>
-&nbsp;&nbsp;&nbsp; - 00:11:6b:34:ae:8d<br>
-&nbsp; ntp_servers:<br>
-&nbsp;&nbsp;&nbsp; - 10.0.1.9<br>
-&nbsp;&nbsp;&nbsp; - 10.0.1.10<br>
-&nbsp; objectClass:<br>
-&nbsp;&nbsp;&nbsp; - top<br>
-&nbsp;&nbsp;&nbsp; - device<br>
-&nbsp;&nbsp;&nbsp; - dhcpHost<br>
-&nbsp;&nbsp;&nbsp; - ipHost<br>
-&nbsp;&nbsp;&nbsp; - ieee802Device<br>
-&nbsp;&nbsp;&nbsp; - puppetClient<br>
-&nbsp; popularity_contest_participate:<br>
-&nbsp;&nbsp;&nbsp; - true<br>
-&nbsp; puppetclass:<br>
-&nbsp;&nbsp;&nbsp; - test<br>
-&nbsp;&nbsp;&nbsp; - ntp::client</td>
-      <td style="vertical-align: top; width: 60%;">
-      <h3>Description<br>
-      </h3>
-      <span style="font-weight: bold;"></span>As we can see on the
-left, the script output is in YAML format, which has the property of
-being very natural to read.<br>
-      <br>
-We see that the host belongs to classes 'test' and 'ntp::client'.<br>
-      <br>
-The parameters list contains parameters, produced according to notes
-above, and ALL parameters are lists, converted to Ruby arrays when
-Puppet loads them from YAML.<br>
-      <br>
-It is an extraordinary quality of Puppet that it supports all data
-structures, including arrays, and does not try to play silly with
-various string expansions, splitting etc.<br>
-      <br>
-Anyway, the parameters and their "arraic" property comes to play in ERB
-templates. Since ALL parameters are array, it is very straightforward
-to remember how to access them. Also, if in the future you change
-single-value parameters to multi-value (or vice versa), the scripts
-will still work (maybe not exactly as you expect, but they won't break
-configuration nor be completely off).<br>
-      <br>
-Example: in the output on the left, we see parameter <span
- style="font-style: italic;">ntp_servers</span>. That one comes from a
-following Debconf question (in LDIF format):<br>
-      <br>
-      <small>dn: cn=ntp/servers,ou=hosts,ou=defaults<br>
-objectClass: top<br>
-objectClass: debConfDbEntry<br>
-cn: ntp/servers<br>
-owners: ntp<br>
-flags: puppet<br>
-template: ntp/servers<br>
-value: find $ ... 2 0 500 3600
-(&amp;(objectClass=puppetClient)(puppetClass=ntp::server*)) 0
-ipHostNumber \0 \0</small><br>
-      <br>
-So, <span style="font-style: italic;">ntp/servers</span> is converted
-to <span style="font-style: italic;">ntp_servers</span>, and the
-value: is produced by running a Viper overlay called "find", which
-expands value to two NTP servers.<br>
-      <br>
-Then, <span style="font-style: italic;">ntp_servers</span> is
-available as an array in ERB templates, so in case of a ntp.conf
-template, we could write simply:<br>
-      <br>
-      <small>&lt;% ntp_servers.each do |s| -%&gt;<br>
-      <br>
-server &lt;%= s %&gt;<br>
-      <br>
-&lt;% end -%&gt;</small><br>
-      <br>
-To produce:<br>
-      <br>
-server 10.0.1.9<br>
-server 10.0.1.10</td>
-    </tr>
-  </tbody>
-</table>
+</p>
+
+<h4>parseVariables 1|0</h4>
+<p>
+Specify whether in the directives that follow, variable and directive expansion
+should be performed.
+</p>
+<p>
+This includes expanding ${variable} to variable values and %{directive} to
+configuration directive values.
+</p>
+
+<h4>perl MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each entry DN must and must not match respectively, to have
+overlay "perl" run on its attributes.
+</p>
+<p>
+By default, Perl overlay is disabled as it is in fact an interface for
+"eval", and is considered dangerous.
+</p>
+
+<h4>save FILE</h4>
+<p>
+Save current stack to FILE, always relative to suffix base directory.
+</p>
+<p>
+To ease writing slapd.conf configuration, Viper supports saving
+stacks of configuration values to disk.
+</p>
+<p>
+Once saved, the stack can be loaded by subsequently-defined suffixes to
+import configuration blocks.
+</p>
+<p>
+Stacks may contain variables that expand to proper values in the context
+of each suffix that is using them.
+</p>
+
+<h4>searchFallback PATTERN REPLACEMENT</h4>
+<p>
+Specify search fallback rule, effectively implementing default entries.
+</p>
+<p>
+When a specific search base is requested, and it does not exist in the searched
+location, it is possible to fallback to a chain of default entries. The first
+entry found wins.
+</p>
+<p>
+Examples: production examples defaulting to site-wide and global defaults
+<pre><protect>
+# Fallback 1: site defaults tree.
+searchFallback  cn=.[^,\\s]+,ou=hosts         ou=hosts,ou=defaults
+searchFallback  cn=.[^,\\s]+,ou=templates     ou=templates,ou=defaults
+
+# Fallback 2: global defaults tree.
+searchFallback  cn=.[^,\\s]+,ou=hosts,.+      ou=hosts,ou=defaults
+searchFallback  cn=.[^,\\s]+,ou=templates,.+  ou=templates,ou=defaults
+</protect></pre>
+</p>
+
+<h4>searchSubst KEY PATTERN ... -&gt; KEY PATTERN REPLACEMENT ...</h4>
+<p>
+Specify searchSubst rule, allowing rewrite of any part of the search
+request.
+</p>
+When the incoming search request matches all KEY PATTERN pairs, Viper
+performs the specified KEY=~ s/PATTERN/REPLACEMENT/ actions to rewrite
+the incoming search.
+</p>
+<p>
+Search rewriting is completely free-form, and it is possible to rewrite searches to a completely different Viper suffix, as long as both are located in the same base directory.
+</p>
+<p>
+This is a legitimate feature of the rewrite model, and is officially used to
+rewrite incoming DHCP search queries under ou=dhcp to appropriate places
+and with appropriate options under ou=clients.
+</p>
+<p>
+KEY can be one of base, scope, deref, size, time, filter, attrOnly. Rewriting
+one last element of a search, the list of attributes to return, is currently
+not possible, but the feature is on the way.
+</p>
+<p>
+Examples: production examples used in rewriting ou=dhcp to ou=clients
+<pre><protect>
+Example 1:
+
+# Solve lack of flexibility in ISC DHCP3 LDAP patch by
+# plainly specifying ldap-base-dn "ou=dhcp" in DHCP's
+# config, and then here, rewriting DHCP ethernet address
+# lookup to the ou=clients tree under which all clients
+# are defined.
+
+searchSubst  base        "^ou=dhcp$"                       \
+             filter      "^\\(&\\(objectClass=dhcpHost\\)\\(dhcpHWAddress=ethernet [\\dabcdef:]+\\)\\)$" \
+             -&gt;                                            \
+             base   .+   ou=clients
+
+
+Example 2:
+
+# Solve lack of flexibility in ISC DHCP3 LDAP patch by
+# rewriting a search in any shared network, tree
+# ou=dhcp, to a proper location,
+
+searchSubst  base        "^ou=\\w+,ou=dhcp$"                \
+             scope       "^1$"                             \
+             filter      "^\\(objectClass=\\*\\)$"         \
+             -&gt;                                            \
+             base   .+   "ou=clients"                      \
+             filter .+   "(&amp;(objectClass=dhcpSubnet)(!(cn=default)))" \
+             scope  .+   2
+</protect></pre>
+</p>
+
+<h4>schemaFatal 0|1</h4>
+<p>
+Specify whether a missing or inaccessible schemaLDIF file should trigger
+a fatal error.
+</p>
+<p>
+It is vital for Viper to be aware of server's schema (which comes from
+the schemaLDIF file). The server surely won't work properly if the schema
+file in LDIF format is missing, or is not up to date with the server's schema.
+</p>
+<p>
+However, we issue a warning and allow startup without it, because you are
+then expected to use <i>scripts/schema.pl</i> to connect to the
+server right away and obtain the schema in LDIF format, saving it to the
+expected location. Then, restart the server to pick it up.
+</p>
+<p>
+The default setup as installed by <i>scripts/viper-setup.sh</i> includes
+all the schema files and the schema.ldif that is in sync with them, so
+it is not necessary to create or sync the file manually.
+</p>
+<p>
+SchemaFatal value should probably set to 1 only when you're sure you do
+have the schema.ldif file, and that its inexistence in your setup is a
+sure indication of an error.
+</p>
+
+<h4>schemaLDIF FILE</h4>
+<p>
+Specify location of server's schema in a single file, in LDIF format.
+</p>
+<p>
+Viper must be aware of server's schema, but back-perl does not pass that
+information onto the backend. The way to produce it then is to first run
+the server without it, then use <i>scripts/schema.pl</i> to obtain the
+schema and save it to the expected location, then re-start the
+server with <i>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd
+restart</i>.
+</p>
+<p>
+Directive "schemaFatal" specifies whether Viper should allow starting
+up without the schema LDIF file in place.
+</p>
+<p>
+Note that the schema in LDIF format does not eliminate the need to have the
+real schema files in /etc/ldap/schema/*.schema. Schema files are read by
+slapd, and schema LDIF file is read by Viper. LDIF is created on the 
+basis of real schema files, and at all times, slapd and Viper should
+have their schemas in sync.
+</p>
+<p>
+This means you need to sync schema LDIF file to the actual server's schema
+every
+time you make a change to any of the /etc/ldap/schema/*.schema files,
+most probably by re-running <i>scripts/schema.pl</i> and restarting
+the server. Unless Viper schema is up to date, LDAP results may be be subtly
+incorrect and error basically impossible to trace (unless you remember it
+may be a stale schema file).
+</p>
+
+<h4>var VARIABLE "VALUE STRING"</h4>
+<p>
+Assign "VALUE STRING" to variable VARIABLE. Variables, in this context,
+are visible only within the suffix where they are defined, and their value
+is expanded with ${variable}, if option "parseVariables" is enabled.
+</p>
+
+<div class="fineline"></div>
+
+<h4>loadDump FILE</h4>
+<p> THIS IS A DEBUG OPTION </p>
+<p>
+Load direct Perl Storable dump of configuration hash from FILE, always
+relative to the suffix base directory.
+</p>
+<p>
+This is an advanced option that should not be called from slapd.conf.
+</p>
+<p>
+It is intended for scenarios where Viper is at least once initialized by slapd
+(and configured via slapd.conf), and config then dumped as Storable object
+using saveDump.
+</p>
+<p>
+After that, you can run Viper "standalone", directly under the Perl
+interpreter using <i>scripts/viper.pl</i>, and instead of re-parsing
+slapd.conf for configuration, simply send "loadDump FILE" to the config
+processor, to load the exact state as had by slapd/Viper.
+</p>
+<p>
+This is almost always needed only when you want to run Viper under the Perl
+interpreter directly, to specify Perl debug or profiling options.
+</p>
+
+<h4>saveDump FILE</h4>
+<p> THIS IS A DEBUG OPTION </p>
+<p>
+Save direct Perl Storable dump of configuration hash to FILE, always
+relative to the suffix base directory.
+</p>
+<p>
+This is an advanced option that should usually be called as the last
+line of slapd.conf configuration for a particular suffix.
+</p>
+<p>
+This is almost always needed only when you want to run Viper under the Perl
+interpreter directly, to specify Perl debug or profiling options.
+</p>
