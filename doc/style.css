@@ -42,7 +42,7 @@ body, table {
 #wrapper {
 	text-align: left;
 	margin: auto;
-	width: 728px;
+	width: 828px;
 }
 
 #body {
@@ -62,7 +62,7 @@ body, table {
 	position: absolute;
 	top: 12px;
 	left: 251px;
-	width: 463px;
+	width: 563px;
 	height: 11px;
 	background: top left url(images/body_top_2.gif) no-repeat;
 }
@@ -109,7 +109,7 @@ body, table {
 
 #content {
 	float: right;
-	width: 418px;
+	width: 518px;
 	padding-right: 34px;
 	padding-top: 23px;
 	color: #686454;
