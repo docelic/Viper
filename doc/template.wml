@@ -43,6 +43,7 @@
 <h2>Misc info</h2>
 <ul>
   <li><a href="hints.html">Hints &amp; tips</a><br>
+  <li><a href="users.html">Viper in the wild</a><br>
 </ul>
 
 <h2>Resources</h2>
@@ -69,7 +70,9 @@
 	<div id="footer">
 	<p style="text-align: right;">
 	<a href="http://www.thewml.org/">
-<img src="images/wml.png"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="images/wml.png"></a>&nbsp;&nbsp;&nbsp;
+	<a href="http://www.hcoop.net/">
+<img src="images/hcbadge3.gif"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	</p>
 
 	</div>
