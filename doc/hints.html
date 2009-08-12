@@ -25,7 +25,8 @@
 <ul>
   <li><a href="client.html">Adding clients and hosts</a><br>
   <li><a href="values.html">Adding configuration values</a><br><br>
-  <li><a href="viper.html">Configuration file reference</a><br>
+  <li><a href="configuration.html">Configuration file reference</a><br>
+  <li><a href="viper.html">Viper syntax reference</a><br>
 </ul>
 <h2>Overviews<br>
 </h2>
@@ -48,21 +49,29 @@
 </ul>
 				</div>
 				<div id="content">
-<h1>Viper - hints, best practices</h1>
+<h1>Viper - hints, tips, best practices</h1>
 <h2>Keeping directory data in LDIF</h2>
+<p>
 Modifying or re-loading LDAP data can be inconvenient without a
-suitable LDAP client. The approach we use during development to keep all
-data in LDIF format, which allows for simple text editing, then deleting
-and re-loading everything LDAP from LDIFs by running 'make'.
+suitable LDAP client. The approach I use during development (but that is
+also showing long-term viability) is to keep all
+data in LDIF format under <i>ldifs/</i> subdirectory, which allows for
+simple text editing, then deleting
+and re-loading everything from LDIFs to LDAP.
 <br><br>
 See subdirectory <i>ldifs/</i> where this is working, and where you can
-modify existing or add your own .ldifs.
+modify existing or add your own .ldifs, then run <i>make</i> to reload
+everything.
+</p>
 <h2>Editing live LDAP data in a text editor</h2>
+<p>
 There exists a LDAP editor called ldapvi that is basically "Vi for LDAP".
 <br><br>
 Try this:<br>
 ldapvi -b cn=h2,ou=hosts,o=c1.com,ou=clients -D cn=admin,ou=clients -w blah
+</p>
 <h2>Extracting LDAP data back to LDIF format</h2>
+<p>
 Viper-enabled LDAP server already keeps data as files on disk in LDIF format.
 <br><br>
 So one option is to just copy directory /var/lib/ldap/viper. Another,
@@ -72,36 +81,47 @@ above).
 <br><br>
 Try this:<br>
 find /var/lib/ldap/viper -name '*.ldif' | xargs cat &gt; alldata.ldif<br>
+</p>
 <h2>Base64 encoded values</h2>
+<p>
 When an attribute value starts with a space or contains any non-standard
 formatting or characters, it is Base64-encoded when exported to LDIF, to
 preserve the value.
 <br><br>
 An example might look like this:
+</p>
 <pre>
 extendedDescription:: UGxlYXNlIGVudGVyIHRoZSBob3N0bmFtZSBvZiB0aGUgbWlycm9yIGZy
  b20gd2hpY2ggRGViaWFuIHdpbGwgYmUgZG93bmxvYWRlZC4KCkFuIGFsdGVybmF0ZSBwb3J0IGNhb
  iBiZSBzcGVjaWZpZWQgdXNpbmcgdGhlIHN0YW5kYXJkIFtob3N0bmFtZV06W3BvcnRdIGZvcm1hdC
  4=
 </pre>
+<p>
 You can use 'base64 -d' on the command line to print decoded value. Note that
 you should remove the attribute name (extendedDescription::),
 newlines and spaces to turn the whole base64-encoded value into a single
 line, then paste the line into base64 -d.
+</p>
 <pre>
 $ base64 -d
 UGxlYXNlIGVudGVyIHRoZSBob3N0bmFtZSBvZiB0aGUgbWlycm9yIGZyb20gd2hpY2ggRGViaWFuIHdpbGwgYmUgZG93bmxvYWRlZC4KCkFuIGFsdGVybmF0ZSBwb3J0IGNhbiBiZSBzcGVjaWZpZWQgdXNpbmcgdGhlIHN0YW5kYXJkIFtob3N0bmFtZV06W3BvcnRdIGZvcm1hdC4=
 [Enter][Ctrl+d]
 
-Please enter the hostname of the mirror from which Debian will be downloaded.
+Reveals the actual text:
 
-An alternate port can be specified using the standard [hostname]:[port] format.
+"Please enter the hostname of the mirror from which
+Debian will be downloaded.
+
+An alternate port can be specified using the standard
+[hostname]:[port] format."
 </pre>
 <h2>Reading LDAP data as filesystem operation</h2>
+<p>
 It is possible to use <a href="http://ldapfs.org/">ldapfs</a> to "mount"
 part of the LDAP tree as disk files. This is an elegant solution if you
 want to query data from shell scripts or other places where writing a
 direct LDAP interface may be inconvenient.
+</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
