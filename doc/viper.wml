@@ -127,7 +127,82 @@ For more information on where exactly the site-wide and global defaults
 would be located, see <a href="data.html">LDAP data structure</a>.
 </p>
 
-<h4>extension <i>EXT</i></h4>
+<h4>cacheOpen SPEC</h4>
+<p>
+Specify how (and how long) to cache LDIF reads from disk.
+</p>
+<p>
+SPEC can be a pure number (implies seconds), or a specification such as 5s,
+10m, 2h, 2d, 1w. It can also be a number of value uses, such as 20u,
+and number of LDAP operations, 20o.
+</p>
+<p>
+The overall best value is 1o, 
+</p>
+
+<h4>deleteTrees 1|0</h4>
+<p>
+Specify whether Viper should allow deleting non-leaf elements (deleting
+the entry and everything under it in one go).
+<p>
+Whether subtree delete is requested or not can be controlled with
+ldapdelete option -r, but back-perl does not pass that option onto the
+backend, so deleteTrees is the single decision maker.
+</p>
+
+<h4>entryAppend ATTRIBUTE PATTERN -&gt; &lt;attr ATTRIBUTE | append PATTERN REPLACEMENT&gt;</h4>
+<p>
+Specify entryAppend rule, allowing adding extra attributes into an entry
+before returning it to the client.
+</p>
+<p>
+When all ATTRIBUTE PATTERN pairs match, Viper looks to append the entry with
+default attributes.
+</p>
+<p>
+The entry from which to read the attributes to append can be specified in two
+ways.
+</p>
+<p>
+One, with "attr ATTRIBUTE" (usually "attr seeAlso") -- in that case,
+the attribute seeAlso is looked up in the current entry. It is expected
+to contain the DN of the entry of interest.
+</p>
+<p>
+Two, with "append PATTERN REPLACEMENT", where s/PATTERN/REPLACEMENT/ is
+performed on the original DN, and the result is used as the entry from which
+to pull the extra attributes.
+</p>
+<p>
+Examples from production config:
+<pre><protect>
+entryAppend  objectClass "^dhcpHost$"                      \
+             -&gt;                                            \
+             append .+ cn=dhcpHost,ou=objectClasses,ou=defaults
+
+entryAppend  objectClass "^dhcpSubnet$"                    \
+             -&gt;                                            \
+             append .+ cn=dhcpSubnet,ou=objectClasses,ou=defaults
+
+entryAppend  dn          "^cn=default,ou=networks"         \
+             objectClass "^ipNetwork$"                     \
+             -&gt;                                            \
+             attr seeAlso
+
+</protect></pre>
+</p>
+
+<h4>exp MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each DN must and must not match respectively, to have
+overlay "exp" ran on its attributes.
+</p>
+<p>
+The "exp" overlay enables expansion into values of other attributes, in the
+current or other entry.
+</p>
+
+<h4>extension EXT</h4>
 <p>
 Specify file extension to use when storing server data on disk.
 </p>
@@ -142,6 +217,41 @@ from files, and the default value should rarely be changed.
 </p>
 <p>
 Default: <tt>.ldif</tt>
+</p>
+
+<h4>file MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each DN must and must not match respectively, to have
+overlay "file" ran on its attributes.
+</p>
+<p>
+The "file" overlay enables expansion into values of on-disk files, always
+relative to the suffix base directory.
+</p>
+
+<h4>find MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each DN must and must not match respectively, to have
+overlay "find" ran on its attributes.
+</p>
+<p>
+The "find" overlay enables re-entrant search function, where subsequent
+searches are performed internally, and their values used in constructing
+the final value.
+</p>
+<p>
+This overlay shares many similarities with "exp", but contains a crucial
+difference -- with "exp", you generally know where the entry and attribute
+to expand to are located. With "find", you generally don't, so you perform
+a search to find them.
+</p>
+
+<h4>modifyCopyOnWrite 1|0</h4>
+<p>
+When a MODIFY request is issued for an entry that does not really exist 
+(i.e. it comes from a fallback), specify whether Viper should copy the
+entry to the expected location and then modify it, or return
+LDAP_NO_SUCH_OBJECT.
 </p>
 
 <h4>modifySmarts 1|0</h4>
@@ -161,6 +271,102 @@ has been improved, this directive lost its initial relevance.
 <p>
 However, it is still useful to enable it, detect "no-op" modifications and
 avoid writing to disk, preserving meaningful modification timestamps.
+</p>
+
+<h4>overlayConfig OVERLAY OPTION VALUE ...</h4>
+<p>
+Specify default overlay options.
+</p>
+<p>
+OVERLAY can be an overlay name (perl, exp, file, find) or "default".
+OPTION can be "cache", "prefix" or "if".
+</p>
+
+<h4>perl MATCH_REGEX NON_MATCH_REGEX</h4>
+<p>
+Specify regexes that each DN must and must not match respectively, to have
+overlay "perl" ran on its attributes.
+</p>
+<p>
+By default, Perl overlay is disabled as it is in fact an interface for
+"eval", and is considered dangerous.
+</p>
+
+<h4>searchFallback PATTERN REPLACEMENT</h4>
+<p>
+Specify search fallback rule, effectively implementing default entries.
+</p>
+<p>
+When a specific search base is requested, and it does not exist in the searched
+location, it is possible to fallback to a chain of default entries. The first
+entry found wins.
+</p>
+<p>
+Examples: production examples defaulting to site-wide and global defaults
+<pre><protect>
+# Fallback 1: site defaults tree.
+searchFallback  cn=.[^,\\s]+,ou=hosts         ou=hosts,ou=defaults
+searchFallback  cn=.[^,\\s]+,ou=templates     ou=templates,ou=defaults
+
+# Fallback 2: global defaults tree.
+searchFallback  cn=.[^,\\s]+,ou=hosts,.+      ou=hosts,ou=defaults
+searchFallback  cn=.[^,\\s]+,ou=templates,.+  ou=templates,ou=defaults
+</protect></pre>
+</p>
+
+<h4>searchSubst KEY PATTERN ... -&gt; KEY PATTERN REPLACEMENT ...</h4>
+<p>
+Specify searchSubst rule, allowing rewrite of any part of the search
+request.
+</p>
+When the incoming search request matches all KEY PATTERN pairs, Viper
+performs the specified KEY=~ s/PATTERN/REPLACEMENT/ actions to rewrite
+the incoming search.
+</p>
+<p>
+Search rewriting is completely free-form, and it is possible to rewrite searches to a completely different Viper suffix, as long as both are located in the same base directory.
+</p>
+<p>
+This is a legitimate feature of the rewrite model, and is officially used to
+rewrite incoming DHCP search queries under ou=dhcp to appropriate places
+and with appropriate options under ou=clients.
+</p>
+<p>
+KEY can be one of base, scope, deref, size, time, filter, attrOnly. Rewriting
+one last element of a search, the list of attributes to return, is currently
+not possible, but the feature is on the way.
+</p>
+<p>
+Examples: production examples used in rewriting ou=dhcp to ou=clients
+<pre><protect>
+Example 1:
+
+# Solve lack of flexibility in ISC DHCP3 LDAP patch by
+# plainly specifying ldap-base-dn "ou=dhcp" in DHCP's
+# config, and then here, rewriting DHCP ethernet address
+# lookup to the ou=clients tree under which all clients
+# are defined.
+
+searchSubst  base        "^ou=dhcp$"                       \
+             filter      "^\\(&\\(objectClass=dhcpHost\\)\\(dhcpHWAddress=ethernet [\\dabcdef:]+\\)\\)$" \
+             -&gt;                                            \
+             base   .+   ou=clients
+
+
+Example 2:
+
+# Solve lack of flexibility in ISC DHCP3 LDAP patch by
+# rewriting a search in any shared network, tree
+# ou=dhcp, to a proper location,
+
+searchSubst  base        "^ou=\\w+,ou=dhcp$"                \
+             scope       "^1$"                             \
+             filter      "^\\(objectClass=\\*\\)$"         \
+             -&gt;                                            \
+             base   .+   "ou=clients"                      \
+             filter .+   "(&amp;(objectClass=dhcpSubnet)(!(cn=default)))" \
+             scope  .+   2
+</protect></pre>
 </p>
 
 

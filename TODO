@@ -15,6 +15,8 @@
 
 * use ViperConfig.pm (server, bind DN, pw, etc.)
 
+* allow rewriting of return attrs
+
 * query na host da otkrije keyeve koji postoje zbog defaulta i ukljuci ih u search osnovnog nivoa
 
 * Check if one can trigger endless loop with dynamic options, and make max loop depth configurable
