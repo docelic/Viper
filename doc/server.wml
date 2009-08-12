@@ -30,35 +30,46 @@ machine that does not already run a LDAP and DHCP server.
 After the system is running, you will have a clean and known-good base to
 start creating your own configuration.<br>
 <br>
-The script should do everything automatically.
-However, for the first time, I suggest you read the script (it contains
-important comments) and execute commands manually.<br>
-<br>
 Before running the script, you should do just one thing, related to the
 DHCP server -- you should create a network interface with IP address 10.0.1.1,
 to fit in the example subnet used by our default config. Then, you can run
 the install script with the name of the physical interface. Here's the session
 transcript:
+</p>
 <pre>
 ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0
 invoke-rc.d ipmasq restart # (If you have it installed)
-
-sh scripts/viper-setup.sh eth0
 </pre>
+<p>
 To configure eth0:1 on every boot, add it to <i>/etc/network/interfaces</i>
 with a stanza like this:
+</p>
 <pre>
 allow-hotplug eth0:1
 iface eth0:1 inet static
 	address 10.0.1.1
 	netmask 255.255.255.0
 </pre>
+<p>
+To run the script, use:
+</p>
+<pre>
+sh scripts/viper-setup.sh eth0
+</pre>
+<p>
+Eth0 should be the name of the physical interface on which address 10.0.1.1
+was configured, and to which client hosts will be connected.
+<br><br>
+The script should do everything automatically.
+However, for the first time, I suggest you read the script (it contains
+important comments) and execute commands manually.<br>
 </p>
 
 <h2>Net::LDAP::FilterMatch fix</h2>
 <p>
 Net::LDAP's FilterMatch module contains a bug that you have to patch manually, at least until it is
-fixed in the official distribution.
+fixed in the official distribution (track bug progress report
+<a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938">here</a>).
 </p>
 <p>
 Save the following patch as <i>/tmp/ldap-fm.patch</i> and apply with
@@ -89,17 +100,17 @@ h2 and h3.<br>
 <br>
 Based on the default data, there are tests you can run:<br>
 <h3>Testing with ldapsearch</h3>
-<p>
-ldapsearch -x -b ou=dhcp<br>
-ldapsearch -x -b ou=defaults<br>
-ldapsearch -x -b ou=clients<br>
-<br>
-ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-<br>
-ldapsearch -x -b cn=popularity-contest/participate,ou=hosts,ou=defaults<br>
-ldapsearch -x -b cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-ldapsearch -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients<br>
-</p>
+<pre>
+ldapsearch -x -b ou=dhcp
+ldapsearch -x -b ou=defaults
+ldapsearch -x -b ou=clients
+
+ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients
+
+ldapsearch -x -b cn=popularity-contest/participate,ou=hosts,ou=defaults
+ldapsearch -x -b cn=debian-installer/locale,cn=h2,ou=hosts,o=c1.com,ou=clients
+ldapsearch -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients
+</pre>
 <h4>ldapsearch test results</h4>
 <p>
 Ldapsearch query for <i>cn=h2,ou=hosts,o=c1.com,ou=clients</i> is a pretty good
