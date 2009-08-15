@@ -170,8 +170,27 @@ fill in that many DN components from the current entry.
 	<b>VALX</b> - value to extract from multi-valued attributes. When
 	unspecified, defaults to the first value. When a number,
 	specifies the value ID. When a string, specifies the joiner on which
-	to join all values (\s can be used for space)
+	to join all values (\s can be used for space).
 </p>
+<p>
+Examples:
+</p>
+<pre>
+<b>exp $ macAddress</b>
+00:18:51:58:36:89
+
+<b>routers $ exp $ cn=default,ou=networks.. router</b>
+routers 10.0.1.1
+
+<b>nis-domain "$ exp $ .. domainName $"</b>
+nis-domain "c1.com"
+
+<b>filename "http://$ exp $ cn=default,ou=networks.. configServer $/cgi-bin/preseed.cfg"</b>
+filename "http://10.0.1.1/cgi-bin/preseed.cfg"
+
+<b>in-target sh -c "echo $ exp $ cn=default,ou=networks.. configServer $ puppet &gt;&gt;/etc/hosts"</b>
+in-target sh -c "echo 10.0.1.1 puppet &gt;&gt;/etc/hosts"
+</pre>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
