@@ -200,6 +200,17 @@ to use Viper's physical host for forwarding.
 Remember to run 'make' in the ldifs/ directory to apply the change by
 reloading all data to LDAP.
 </p>
+<p>
+NOTE: when using Viper in the OpenVZ container, starting ipmasq on the physical
+host will, as explained, do the right thing for the client hosts, but will
+prevent the container from accessing the Internet. This is acceptable
+in the short term, because the container doesn't have to go online to
+operate normally, but it's surely a suboptimal solution.<br>
+I expect the issue is in ipmasq which does not detect and handle
+the bridging setup properly, and so a couple rules need to be inserted
+to iptables manually, to allow this traffic. I yet have to figure out
+the exact lines.
+</p>
 <h2>Testing</h2>
 <p>
 After installation, you will get a working setup populated with default
