@@ -6,17 +6,6 @@
 
 * Make 5o cache possible, and make cacheOpen understand cache specs
 
-* Notes on what will viper-setup.sh install (notes on things like behavior
-change with ipmasq etc.)
-- Guide on installing in CT
-
-* Can't go online from CT when host's ipmasq is on
-
-* Router should be 10.0.1.1 if Viper is host, or 10.0.1.254 if 
- Viper is CT
-
-* configure ethX in dhcp config and eth0: alias for 10.0.1.0 before dhcp setup
-
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
  looping thru subentries. This isn't quite alright as it'll break when base DN
  is coming from fallback (baseDN will be origDN, then on subentries, DN will 
@@ -24,7 +13,7 @@ change with ipmasq etc.)
 
 * use ViperConfig.pm (server, bind DN, pw, etc.)
 
-* allow rewriting of return attrs
+* allow rewriting of requested search attrs to return
 
 * document for config file, ldif, value spec, when do \\ have to be 
  escaped, when is SPEC a filter and when a regex etc.
@@ -37,14 +26,10 @@ change with ipmasq etc.)
 
 * Apt sources to not include local cdrom
 
-* writeup for how data should be added (as debconf keys, and why). and how to export it to node_data
-
 * origdn support for run_appender just like for run_overlays?
 
 * optimization-- skip component splitting if none of the components
  matches the overlay that would run
-
-* preseed filename via filename: DHCP opt
 
 * multiple networks per client?
 
