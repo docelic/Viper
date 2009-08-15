@@ -10,6 +10,9 @@
 change with ipmasq etc.)
 - Guide on installing in CT
 
+* Router should be 10.0.1.1 if Viper is host, or 10.0.1.254 if 
+ Viper is CT
+
 * configure ethX in dhcp config and eth0: alias for 10.0.1.0 before dhcp setup
 
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
