@@ -15,8 +15,10 @@ of either install media, client or server.
 </p><p>
 The basis of the whole system is a LDAP server, containing <span
 style="font-style: italic;">all</span> configuration data.<br>
+</p>
 
 <div class="fineline"></div>
+<p>
 LDAP has the potential to be enormously successful in configuration
 management, but its flat data structure, absence of any kind of dynamic
 behavior, and heaps of duplicated data make it a mediocre tool.
