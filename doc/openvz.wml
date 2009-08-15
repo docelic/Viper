@@ -123,7 +123,7 @@ started or stopped.
 <p>
 As the host's eth0 and eth1 interfaces become part
 of bridges vzbr0 and vzbr1, it means you will remove any eth0 and eth1
-configuration in /etc/network/interfaces, add the following bridge
+configuration in /etc/network/interfaces, then add the following bridge
 configuration, and remember that from now on, the bridges take over
 eth0/eth1, so whatever network operation you want to do on the host, do it on
 vzbr0/vzbr1 instead of ethX devices, and you'll get the expected
