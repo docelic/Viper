@@ -7,7 +7,7 @@ if test -z "$ETH_IF"; then
 fi
 
 # Install necessary packages
-apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl
+apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2
 
 # Install slapd.conf as symlink to Viper's version
 cd /etc/ldap
@@ -61,6 +61,10 @@ cd /etc/dhcp3
 mv dhcpd.conf dhcpd.conf.orig
 cp -s ../ldap/viper/configs/dhcpd.conf .
 invoke-rc.d dhcp3-server restart
+
+# Link preseed CGI script to web server's cgi-bin:
+mkdir -p /usr/lib/cgi-bin
+ln -sf /etc/ldap/viper/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
 
 echo "Viper setup successful."
 
