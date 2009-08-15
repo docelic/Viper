@@ -20,8 +20,6 @@ change with ipmasq etc.)
 that to apply default dhcpOptions even if one specifies some of them
 in the host entry
 
-* Can't go online from CT when host's ipmasq is on
-
 * preseed network interface to eth0 always, because interface=auto is crap
 
 * Router should be 10.0.1.1 if Viper is host, or 10.0.1.254 if 
