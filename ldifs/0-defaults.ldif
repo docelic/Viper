@@ -48,7 +48,7 @@ dhcpOption: nis-domain "$ exp $ .. domainName $"
 dhcpOption: domain-name "$ exp $ .. domainName $"
 dhcpOption: subnet-mask $ exp $ cn=default,ou=networks.. ipNetmaskNumber
 dhcpOption: broadcast-address $ exp $ cn=default,ou=networks.. ipBroadcastNumber
-#dhcpOption: filename "http://...."
+dhcpStatements: filename "http://$ exp $ cn=default,ou=networks.. configServer $/cgi-bin/preseed.cfg"
 dhcpNetMask: 24
 
 dn: cn=dhcpSubnet,ou=objectClasses,ou=Defaults
@@ -813,8 +813,7 @@ objectClass: debConfDbEntry
 cn: preseed/late_command
 flags: preseed
 owners: d-i
-value: in-target sh -c "echo 10.0.1.1 puppet >>/etc/hosts"
-#value: in-target sh -c "echo $ exp $ cn=default,ou=networks.. configServer $ puppet >>/etc/hosts"
+value: in-target sh -c "echo $ exp $ cn=default,ou=networks.. configServer $ puppet >>/etc/hosts"
 
 dn: cn=apt-setup/use_mirror,ou=templates,ou=defaults
 objectClass: top
