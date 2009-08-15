@@ -37,10 +37,25 @@ p {
 	text-align: justify;
 }
 
-body, table {
+body {
 	background: transparent;
 	text-align: center;
 	font: 13px verdana, arial, sans-serif;
+}
+
+table {
+	background: transparent;
+	text-align: left;
+	font: 12px verdana, arial, sans-serif;
+	padding: 0;
+	margin: 10px;
+}
+th {
+	border-bottom: 1px solid black;
+	padding-bottom: 6px;
+}
+td {
+	font-size: 12px;
 }
 #wrapper {
 	text-align: left;

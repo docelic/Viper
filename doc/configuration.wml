@@ -2,13 +2,13 @@
 <h2>Viper configuration reference</h2>
 <p>
 One large part of the complete Viper setup is the custom,
-Perl-based backend for slapd (server component of the OpenLDAP
+Perl-based backend for slapd (slapd is the server component of the OpenLDAP
 suite).
 </p>
 <p>
 The backend was developed to solve a whole set of existing
 LDAP deficiencies (well, deficiencies, at least in the
-context of configuration management).
+context of a configuration management system).
 </p>
 <p>
 This page should be used as a reference on available Viper

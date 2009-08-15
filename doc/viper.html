@@ -53,27 +53,124 @@
 <h2>Viper syntax reference</h2>
 <p>
 One large part of the complete Viper setup is the custom,
-Perl-based backend for slapd (server component of the OpenLDAP
+Perl-based backend for slapd (slapd is the server component of the OpenLDAP
 suite).
 </p>
 <p>
 The backend was developed to solve a whole set of existing
 LDAP deficiencies (well, deficiencies, at least in the
-context of configuration management).
-</p>
-<p>
-For reference on slapd.conf configuration options, see
-<a href="configuration.html">Configuration file reference</a>.
+context of a configuration management system).
 </p>
 <p>
 This page should be used as a reference on available Viper
 syntax that you can use within LDAP attribute values to
-implement all sorts of dynamically computed values.
+implement dynamic behavior.
 </p>
 <div class="fineline"></div>
-<h3></h3>
+<h3>Configuration</h3>
 <p>
-to be written
+All dynamic features must be configured in
+slapd.conf, according to syntax documented in
+<a href="configuration.html">Configuration file reference</a>.
+</p>
+<p>
+After specific features are enabled by appropriate slapd.conf
+configuration, the rules explained here apply.
+</p>
+<div class="fineline"></div>
+<h3>The basics</h3>
+<p>
+Any attribute that wants to take advantage of dynamic behavior will have
+to have at least one '$' character in its value.
+</p>
+<p>
+When '$' is present in the value, the value is split into "components".
+After split, each component contains one type of data: regular text, name
+of the overlay to run, or a parameter for the overlay.
+</p>
+<p>
+Regular text is passed through verbatim, overlay names are stripped,
+and overlay parameters are replaced with the generated value. Then,
+the whole value is put back together, honoring exact whitespace
+and other characteristics as before the expansion.
+</p>
+<p>
+Here are two examples, showing the
+specification and resulting value, to help you put things in perspective:
+</p>
+<pre>
+<b>exp $ macAddress</b>
+00:18:51:58:36:89
+
+<b>domain-name "$ exp $ .. domainName $"</b>
+domain-name "c1.com"
+</pre>
+<p>
+Alright. Now we can take a tour of all the dynamic options.
+</p>
+<div class="fineline"></div>
+<h2>Overlays</h2>
+<p>
+Here's the list of available overlays in order of execution,
+soonest-first.
+</p>
+<h3>File expansion</h3>
+<pre>
+file [prefix PREFIX/] $ FILENAME [SPEC]
+</pre>
+<p>
+Expand into values of on-disk file, relative to suffix data directory.
+</p>
+<p>
+	<b>prefix</b> - prefix to insert between suffix data directory and FILENAME. It is not assumed that prefix will be a directory, so use the trailing "/" when appropriate.
+</p>
+<p>
+	<b>FILENAME</b> - filename to load
+</p>
+<p>
+	<b>SPEC</b> - when omitted, whole file is returned. When number, specific
+line number is returned. When regex without parentheses, line matching the
+regex is returned. When regex with parentheses, $1 is returned.
+</p>
+<p>
+Examples:
+</p>
+<pre>
+<b>file $ myfile</b>
+Test data from 'myfile'
+
+<b>file prefix link. $ myfile</b>
+Test data from 'link.myfile'
+
+<b>file prefix link. $ uptime</b>
+386008.70 380334.60
+
+<b>file prefix link. $ vmstat nr_mapped (\d+)</b>
+27953
+
+<b>file prefix link. $ motd 0</b>
+Linux sl1 2.6.26-2-openvz-amd64 #1 SMP Sun Jun 21 06:01:29 UTC 2009 x86_64
+</pre>
+<h3>Attribute value expansion</h3>
+<pre>
+exp $ [DN] ATTR [VALX]
+</pre>
+<p>
+Expand into values of other attributes.
+</p>
+<p>
+	<b>DN</b> - target entry's DN. When unspecified, the current entry is
+assumed. Dots (".") can be used alone or at the end of DN to
+fill in that many DN components from the current entry.
+</p>
+<p>
+	<b>ATTR</b> - attribute to expand to.
+</p>
+<p>
+	<b>VALX</b> - value to extract from multi-valued attributes. When
+	unspecified, defaults to the first value. When a number,
+	specifies the value ID. When a string, specifies the joiner on which
+	to join all values (\s can be used for space)
 </p>
 				  <div class="clear-flat"></div>
 				</div>
