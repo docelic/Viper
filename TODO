@@ -6,6 +6,27 @@
 
 * Make 5o cache possible, and make cacheOpen understand cache specs
 
+* Let exp search a DN if it's not the current DN (prevent loops). Or
+ better yet, ignore the DN spec and pull as if it was current entry
+
+* Notes on what will viper-setup.sh install (notes on things like behavior
+change with ipmasq etc.)
+- Guide on installing in CT
+
+* locales && reconfigure locales in bootstrapped openvz install
+
+* entryAppend to be able to say when to append - always, if schema allows,
+ if schema allows but not looking at single/multi value etc. Then, use
+that to apply default dhcpOptions even if one specifies some of them
+in the host entry
+
+* Can't go online from CT when host's ipmasq is on
+
+* Router should be 10.0.1.1 if Viper is host, or 10.0.1.254 if 
+ Viper is CT
+
+* configure ethX in dhcp config and eth0: alias for 10.0.1.0 before dhcp setup
+
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
  looping thru subentries. This isn't quite alright as it'll break when base DN
  is coming from fallback (baseDN will be origDN, then on subentries, DN will 
