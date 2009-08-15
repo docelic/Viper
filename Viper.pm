@@ -1627,7 +1627,7 @@ sub run_overlays {
 										$comp= eval $comp;
 									}
 
-								} elsif( $comp=~ /^$ovl/) {
+								} elsif( $comp=~ /^$ovl\b/) {
 									$run= 1; # Operate on the next component
 
 									# Now extract any overlay options (i.e. exp cache 1o $ ...)
