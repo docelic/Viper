@@ -39,7 +39,7 @@
 <h2>Misc info</h2>
 <ul>
   <li><a href="hints.html">Hints &amp; tips</a><br>
-  <li><a href="users.html">Viper in the wild</a><br>
+  <li><a href="users.html">Viper installations</a><br>
 </ul>
 <h2>Resources</h2>
 <ul>
@@ -236,6 +236,11 @@ perl scripts/node_data h2.c1.com<br>
 <h3>Testing with scripts/preseed</h3>
 <p>
 QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
+</p>
+</p>
+<h3>Testing with HTTP client</h3>
+<p>
+wget http://10.0.1.1/cgi-bin/preseed.cfg?ip=10.0.1.8 -O /tmp/preseed.cfg<br>
 </p>
 <h2>Changing the configuration / adding new clients</h2>
 <p>
