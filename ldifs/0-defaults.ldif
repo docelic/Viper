@@ -991,4 +991,4 @@ cn: ntp/servers
 owners: viper
 flags: puppet
 template: ntp/servers
-value: find $ ... 2 0 500 3600 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0
+value: find $ ... 2 0 0 0 (&(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0

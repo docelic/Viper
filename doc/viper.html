@@ -191,6 +191,174 @@ filename "http://10.0.1.1/cgi-bin/preseed.cfg"
 <b>in-target sh -c "echo $ exp $ cn=default,ou=networks.. configServer $ puppet &gt;&gt;/etc/hosts"</b>
 in-target sh -c "echo 10.0.1.1 puppet &gt;&gt;/etc/hosts"
 </pre>
+<h3>Subsearch value expansion</h3>
+<pre>
+find $ BASEDN SCOPE DEREF SIZE TIME FILTER ATTRONLY ATTR [VALX [GVALX]]
+</pre>
+<p>
+Perform a subsearch using full LDAP SEARCH specification, retrieve
+specified attribute from all entries found, and construct the final value
+based on some combination of all attribute values.
+</p>
+<p>
+This feature arose from the need to be able to search and extract data
+from the directory, without knowing the data location specifically (as would
+be the case when using 'exp' overlay).
+</p>
+<p>
+For example, this feature allows you to find all NTP servers configured for
+a client, then construct a NTP config file with a line "server IP.ADD.RE.SS"
+for each of the hosts.
+</p>
+<p>
+People familiar with Puppet's exported resources may notice that this feature
+can perform the same function and elegantly provide data in a Puppet array
+variable, without the need for Puppet trickery and using stored configs.
+</p>
+<p>
+	<b>BASEDN</b> - starting point in the tree for the search.
+	Dots (".") can be used alone or at the end of DN to
+fill in that many DN components from the current entry.
+</p>
+<p>
+	<b>SCOPE</b> - search scope, 0= base, 1= one, 2= sub, 3= children. In general,
+  you want to include the basedn in the search, and also search through all
+	the tree beneath it, so use scope 2 (sub)
+</p>
+<p>
+	<b>DEREF</b> - dereference, 0= never, 1= always, 2= search, 3= find.
+	Currently unused, but must specify something, so use 0
+</p>
+<p>
+	<b>SIZE</b> - limit in number of entries returned, 0 = unlimited,
+	"max" = maximum. Currently unused, but must specify something, so use 0
+</p>
+<p>
+	<b>TIME</b> - time limit in seconds, 0 = unlimited, "max" = maximum.
+	Currently unused, but must specify something, so use 0
+</p>
+<p>
+	<b>FILTER</b> - complete, valid LDAP filter to match against, the default
+	matches all and is (objectClass=*)
+</p>
+<p>
+	<b>ATTRONLY</b> - return attribute names only.
+	Currently unused, but must specify something, so use 0
+</p>
+<p>
+	<b>ATTR</b> - the attribute to retrieve from each entry found
+</p>
+<p>
+	<b>VALX</b> - either a numerical ID of the value you want, or a string
+	which is used to join eventual multiple values <b>of each individual entry</b>
+	in a single string. When omitted, defaults to 0 (first value). When \s,
+	joins values in a single string with whitespace. When \0, does not join
+	the values but takes them as multiple values for an attribute.
+</p>
+<p>
+	<b>GVALX</b> - either a numerical ID of the value you want, or a string
+	which is used to join values <b>from all entries found</b> in
+	a single string. When omitted, defaults to 0 (first value). When \s,
+	joins values in a single string with whitespace. When \0, does not join
+	the values but takes them as multiple values.
+	<br><br>
+	Note that joining on GVALX operates after joining on VALX, so any combination
+	of joins is possible. For example, you may join values from each individual
+	entry in a single string using say, a pipe ("|"), but leave all strings
+	as multiple values (valx=|, gvalx=\0).<br>
+	Or, you may choose to leave all values from individual entries
+	as multiple values, then join them all together in a big string
+	using say, a pipe (VALX=\0, GVALX=|).<br>
+	Or for example, with valx="|" and gvalx=", ", one might get a result
+	     such as "e1v1|e1v2, e2v1, e3v1|e3v2|e3v3".
+</p>
+<p>
+Examples:
+</p>
+<pre>
+<b>find $ ... 2 0 0 0 (&amp;(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0</b>
+10.0.0.7
+10.0.0.8
+10.0.0.9
+</pre>
+<p>
+In the above example, notice that we literally use "..." as BASEDN
+specification, which expand to the last three components from the
+original search base. If someone requested LDAP key
+cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients, the last three
+components would be ou=hosts,o=c1.com,ou=clients, and that would be
+the starting point for the search.
+</p>
+<p>
+Also, keep in mind that the search filter is not a regex but a fully valid
+LDAP search filter (it's not a regex).
+We match "ntp::server*" and not just "ntp::server",
+because the module might have subclasses (NTP module has a subclass
+ntp::server::stock which we also want to match in our search).
+</p>
+<h3>Perl evaluation</h3>
+<pre>
+perl $ SPEC
+</pre>
+<p>
+Pass SPEC through Perl evaluator and return the result.
+</p>
+<p>
+This is a dangerous feature, and is disabled by default. To enable it,
+you need to edit Viper.pm and enable constant PERLEVAL.
+</p>
+<p>
+Examples:
+</p>
+<pre>
+<b>perl $ 3 + 4</b>
+7
+
+<b>perl $ "string."</b>
+string.
+</pre>
+<h2>Overlays - generic options</h2>
+<p>
+Each overlay may support overlay-specific options, and generic options
+applicable to all.
+</p>
+<p>
+The options are:
+<ul>
+	<li><b>cache</b> - dynamically produced values might take a long time to
+ compute. Viper supports a generic cache mechanism which allows caching
+ of any overlay's result, with variable validity period, specifiable as
+ time interval, number of accesses, or number of LDAP operations.
+	<br><br>
+ Examples:
+ <br>&nbsp;
+ <ol>
+  <li>Time interval: 5 (implies seconds), 5s, 10m, 2h, 2d, 1w. The letters
+ stand for seconds, minutes, hours days and weeks respectively.
+ <br>&nbsp;
+	<li> Number of accesses: specify how many times the value should be retrieved
+ internally from cache before being rebuilt. This is the least used method
+ for specifying cache validity, as you
+ do not know and cannot control how many times a value will be accessed
+ during processing (it may happen 1 or N times during each request).
+ To specify such validity period,
+ use specifier 'u', i.e. 20u. Note that 20u
+ implies the value will be rebuilt on 20th access, giving out cached value
+ 19 times.
+ <br>&nbsp;
+	<li>
+ Number of LDAP operations: specify how many operations should LDAP perform
+ using the cached value. This is a better approach than using number of
+ accesses, because LDAP operations are quantifiable and under your control.
+ To specify such validity period, use specifier
+ 'o', such as 1o.
+ <br>&nbsp;
+ </ol>
+ Expiry setting of 1o is by far best overall setting that
+ minimizes or eliminates risk of stale data getting served, while still
+ producing enormous performance benefits (multiple times).
+</ul>
+</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>
