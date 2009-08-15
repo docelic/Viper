@@ -102,9 +102,11 @@ vzctl set 110 --netif_add eth1,,,,vzbr1 --save
 (If you get "Invalid syntax" error on the above, as we said, you need
 to upgrade your vzctl to at least 3.0.23).
 </p>
+
+<h2>Bridging setup on the host</h2>
 <p>
-Ok. Note that ethX interfaces in the CT are standalone devices that
-are not linked to host's ethX. To do that, we'll use bridging.
+The ethX interfaces we have added to the CT are standalone devices that
+are not linked to host's ethX. To make this link, we'll use bridging.
 </p>
 <p>
 Simply, bridge is a device to which you just add the devices you
@@ -120,7 +122,7 @@ As the host's eth0 and eth1 interfaces become part
 of bridges vzbr0 and vzbr1, it means you will remove any eth0 and eth1
 configuration in /etc/network/interfaces, add the following bridge
 configuration, and remember that from now on, the bridges take over
-eth0/eth1, so whatever network operation you want to do, do it on
+eth0/eth1, so whatever network operation you want to do on the host, do it on
 vzbr0/vzbr1 instead of ethX devices, and you'll get the expected
 results.
 </p>
@@ -153,7 +155,7 @@ iface vzbr1 inet static
 	post-down brctl delbr vzbr1
 </pre>
 <p>
-Apply the new interfaces configuration like this
+Apply the new host interfaces configuration like this
 (execute this ONLY locally, DO NOT run over SSH
 as it'll kill your connection and leave machine in the unconfigured state):
 </p>
@@ -165,8 +167,15 @@ ifup vzbr0
 ifup vzbr1
 </pre>
 <p>
-Now configure vz to run the script that changes the veth devices in the
-bridges as containers are started or stopped.
+(Note that bridges autodetect network topology change, and that takes a
+couple of seconds. When configuring vzbr0, its DHCP client will already
+start sending packets before the bridge had autoadjusted itself. This
+is alright and has no unwanted effects, except that the DHCP will
+take a bit longer to get the address.)
+</p>
+<p>
+Now configure OpenVZ to run the script that automatically changes the veth
+devices in the bridges as containers are started or stopped.
 </p>
 <pre>
 test -r /etc/vz/vznet.conf || echo '#!/bin/bash' &gt; /etc/vz/vznet.conf
@@ -174,9 +183,65 @@ echo 'EXTERNAL_SCRIPT="/usr/sbin/vznetaddbr"' &gt;&gt; /etc/vz/vznet.conf
 chmod 755 /etc/vz/vznet.conf
 </pre>
 <p>
-Finally, start the CT110:
+Start the CT110:
 </p>
 <pre>
 vzctl start 110
 </pre>
+
+<h2>Starting the container, configuring the installation</h2>
+<pre>
+vzctl start 110
+vzctl enter 110
+</pre>
+
+<p>
+/etc/network/interfaces for the container:
+</p>
+<pre>
+auto eth0
+iface eth0 inet dhcp
+
+auto eth1
+iface eth1 inet static
+	address 10.0.1.1
+	netmask 255.255.255.0
+</pre>
+<p>
+Bring up interfaces and finish the configuration:
+</p>
+<pre>
+ifup eth0
+ifup eth1
+</pre>
+
+<p>
+Update packages list and install the minimum of tools:
+</p>
+<pre>
+apt-get update
+
+apt-get install openssh-{client,server} vim less
+</pre>
+
+<h2>Installing Viper</h2>
+<p>
+We can now exit the container shell (Ctrl+d) that we have entered via 
+"vzctl enter 110", and try using SSH to login as usual. The 
+connection should succeed because we've installed the SSH server in
+the container, and it should let us in without a password because we
+added the public key to authorized_keys.
+</p>
+<p>
+Just make sure you SSH as the same user whose key you copied (root
+or your regular user account).
+</p>
+<pre>
+ssh 10.0.1.1
+</pre>
+<p>
+After you've successfully SSH-ed in, you can follow the usual Viper
+installation instructions (<a href="server.html">server.html</a>)
+as if it was a physical host and not a container.
+</p>
 
