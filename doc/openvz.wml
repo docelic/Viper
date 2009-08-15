@@ -244,7 +244,7 @@ Just make sure you SSH as the same user whose key you copied (root
 or your regular user account).
 </p>
 <pre>
-echo 10.0.1.1 viper >> /etc/hosts
+echo 10.0.1.1 viper &gt;&gt; /etc/hosts
 
 ssh viper
 </pre>
