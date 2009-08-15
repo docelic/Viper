@@ -7,16 +7,16 @@ cn: dhcp
 objectClass: top
 objectClass: dhcpService
 objectClass: dhcpSharedNetwork
-dhcpPrimaryDN: cn=s1, ou=dhcp
+dhcpPrimaryDN: cn=viper, ou=dhcp
 dhcpStatements: ddns-update-style none
 dhcpStatements: default-lease-time 600
 dhcpStatements: max-lease-time 7200
 description: This is the DHCP subtree. Note that a simple search in this suffix will not reveal much information. The purpose of this suffix is to display dynamic behavior in response to certain combinations of search parameters. Take a look at slapd.conf, subsection ou=dhcp, for a list of the conditions that trigger this behavior. By default, this subtree in slapd.conf is prepared for accesses from ISC DHCP3 LDAP-enabled server, but the same combinations can be triggered manually (and response observed) with ldapsearch.
 
-dn: cn=s1, ou=dhcp
+dn: cn=viper, ou=dhcp
 objectClass: top
 objectClass: dhcpServer
-cn: s1
+cn: viper
 dhcpServiceDN: ou=dhcp
 
 # Entry that will be searched for automatically, and is
