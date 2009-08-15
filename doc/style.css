@@ -11,6 +11,9 @@ h2{
 img {
 	border: 0px;
 }
+pre {
+	padding: 2px;
+}
 a {
 	text-decoration: underline;
 }

@@ -7,7 +7,7 @@ if test -z "$ETH_IF"; then
 fi
 
 # Install necessary packages
-apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 ipmasq
+apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 ipmasq puppet
 
 # Install slapd.conf as symlink to Viper's version
 cd /etc/ldap
