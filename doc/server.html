@@ -25,7 +25,8 @@
 <ul>
   <li><a href="client.html">Adding clients and hosts</a><br>
   <li><a href="values.html">Adding configuration values</a><br><br>
-  <li><a href="viper.html">Configuration file reference</a><br>
+  <li><a href="configuration.html">Configuration file reference</a><br>
+  <li><a href="viper.html">Viper syntax reference</a><br>
 </ul>
 <h2>Overviews<br>
 </h2>
@@ -66,7 +67,7 @@ git clone git://github.com/docelic/Viper.git viper
 cd viper
 </pre>
 </p>
-<h2>Setup</h2>
+<h2>Main setup (Viper/LDAP + DHCP)</h2>
 <p>
 To set things up after download, you will use script <a
  href="../scripts/viper-setup.sh">scripts/viper-setup.sh</a>.
@@ -112,6 +113,30 @@ The script should do everything automatically.
 However, for the first time, I suggest you read the script (it contains
 important comments) and execute commands manually.<br>
 </p>
+<h2>Apache setup</h2>
+<p>
+For client hosts to be able to retrieve the preseed file, the
+preseed CGI needs to be linked to the cgi-bin directory. This step
+was already done by the setup script.
+</p>
+<p>
+So, the client hosts can reach the preseed file if you specify
+it with the full path, i.e. url=http://10.0.1.1/cgi-bin/preseed.cfg.
+</p>
+<p>
+However, when only the server (without the path) is specified, debian
+installer will look for file /d-i/RELEASE-NAME/preseed.cfg.
+This may save you some typing when starting the installations, and if
+you want to have this "shortcut", the necessary configuration should be
+added manually to /etc/apache2/sites-available/default:
+</p>
+<pre>
+ScriptAlias /d-i/squeeze/ /usr/lib/cgi-bin/
+ScriptAlias /d-i/lenny/ /usr/lib/cgi-bin/
+</pre>
+<p>
+(Then reload apache with <i>/etc/init.d/apache2 reload</i>.)
+</p>
 <h2>Net::LDAP::FilterMatch fix</h2>
 <p>
 Net::LDAP's FilterMatch module contains a bug that you have to patch manually, at least until it is
@@ -119,21 +144,11 @@ fixed in the official distribution (track bug progress report
 <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938">here</a>).
 </p>
 <p>
-Save the following patch as <i>/tmp/ldap-fm.patch</i> and apply with
-<b>patch -p0 &lt; /tmp/ldap-fm.patch</b>:
+The patch is simple, and included in Viper distribution as file
+<i>support/FilterMatch.pm.patch</i>. Apply it with:
+</p>
 <pre>
- /usr/share/perl5/Net/LDAP/FilterMatch.pm
---- /usr/share/perl5/Net/LDAP/FilterMatch.pm.old        2009-08-10 19:05:15.000000000 +0200
-+++ /usr/share/perl5/Net/LDAP/FilterMatch.pm    2009-08-10 19:05:39.000000000 +0200
-@@ -245,7 +245,7 @@
-   my $regex=shift;
-   my $op=shift;
-   return 1 if ($regex =~ /^$/);
--  return grep(/\Q$regex\E/i, @_) ? 1 : 0;
-+  return grep(/$regex/i, @_) ? 1 : 0;
- }
-
- sub _exact_substrings($@)
+patch -p0 &lt; support/FilterMatch.pm.patch
 </pre>
 And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 </b>.
