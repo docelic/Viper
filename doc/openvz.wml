@@ -1,5 +1,5 @@
 
-<h2>Viper in OpenVZ CT</h2>
+<h1>Viper in OpenVZ CT</h1>
 <p>
 This is a practical guide on setting up OpenVZ and creating a container
 (CT) in which you will install Viper.
@@ -15,10 +15,10 @@ well, without introducing Viper-specific configs to the desktop
 system. 
 </p>
 <p>
-Welcome to OpenVZ.
+So OpenVZ container is a solution.
 </p>
 
-<h3>Host setup</h3>
+<h2>Host setup</h2>
 <p>
 Let's first install vz-enabled kernel, after which you should reboot into
 it (make sure you select openvz in the bootloader menu, sometimes it
@@ -38,11 +38,11 @@ sudo sh -c 'echo "net.ipv4.conf.eth0.proxy_arp=1" &gt;&gt; /etc/sysctl.conf'
 sudo sysctl -p
 </pre>
 
-<h3>vzctl</h3>
+<h2>vzctl</h2>
 <p>
 We need to use vzctl version &gt;= 3.0.23. It is currently in Debian testing
 or unstable. If dpkg -l vzctl shows a lower version, adjust your sources.list
-to also contain testing, do 'apt-get install vzctl' to upgrade it, and then
+to also contain testing, do 'apt-get install vzctl' to upgrade vzctl, and then
 remove testing from sources.list.
 </p>
 <pre>
@@ -53,7 +53,7 @@ remove testing from sources.list.
 5) apt-get update
 </pre>
 
-<h3>Installing the container</h3>
+<h2>Installing the container</h2>
 <p>
 Now let's debootstrap the Debian installation for container 110, apply
 necessary vz configuration and add a SSH key so later we can ssh in
