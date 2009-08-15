@@ -5,7 +5,8 @@ server, on a system running Debian GNU or Ubuntu.
 </p>
 <p>
 The procedure can be followed both standalone on a physical machine, or
-inside the OpenVZ container (see <a href="openvz.html">openvz.html</a>).
+inside the OpenVZ container (for openvz, see
+<a href="openvz.html">Viper in OpenVZ container</a> first).
 </p>
 <h2>Download</h2>
 <p>
@@ -37,20 +38,31 @@ start creating your own configuration.<br>
 Before running the script, you should do just one thing, related to the
 DHCP server -- you should create a network interface with IP address 10.0.1.1,
 to fit in the example subnet used by our default config. Then, you can run
-the install script with the name of the physical interface. Here's the session
-transcript:
+the install script with the name of the physical interface.
+</p>
+<p>
+Here's the session transcript that uses device eth1. This is a practical
+scenario on a host with two network interfaces: eth0 that uses DHCP and hooks
+to whatever the host's parent network and gateway to the Internet is, and
+eth1 that is intended for Viper and that hooks into a separate switch or
+client hosts directly.
+</p>
+<p>
+(If you've set up Viper in the VZ container, chances are you already
+configured eth0 and eth1, so you do not need to run ifconfig or
+modify /etc/network/interfaces as shown here; proceed to running the script).
 </p>
 <pre>
-ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0
+ifconfig eth1 inet 10.0.1.1 netmask 255.255.255.0
 invoke-rc.d ipmasq restart # (If you have it installed)
 </pre>
 <p>
-To configure eth0:1 on every boot, add it to <i>/etc/network/interfaces</i>
+To configure eth1 on every boot, add it to <i>/etc/network/interfaces</i>
 with a stanza like this:
 </p>
 <pre>
-allow-hotplug eth0:1
-iface eth0:1 inet static
+allow-hotplug eth1
+iface eth1 inet static
 	address 10.0.1.1
 	netmask 255.255.255.0
 </pre>
@@ -58,15 +70,32 @@ iface eth0:1 inet static
 To run the script, use:
 </p>
 <pre>
-sh scripts/viper-setup.sh eth0
+sh scripts/viper-setup.sh eth1
 </pre>
 <p>
-Eth0 should be the name of the physical interface on which address 10.0.1.1
+Eth1 should be the name of the physical interface on which address 10.0.1.1
 was configured, and to which client hosts will be connected.
 <br><br>
 The script should do everything automatically.
 However, for the first time, I suggest you read the script (it contains
 important comments) and execute commands manually.<br>
+</p>
+
+<h2>Net::LDAP::FilterMatch fix</h2>
+<p>
+Net::LDAP's FilterMatch module contains a bug that you have to patch manually, at least until it is
+fixed in the official distribution (track bug progress report
+<a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938">here</a>).
+</p>
+<p>
+The patch is simple, and included in Viper distribution as file 
+<i>support/FilterMatch.pm.patch</i>. Apply it with:
+</p>
+<pre>
+patch -p0 &lt; support/FilterMatch.pm.patch
+</pre>
+And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
+</b>.
 </p>
 
 <h2>Apache setup</h2>
@@ -94,21 +123,35 @@ ScriptAlias /d-i/lenny/ /usr/lib/cgi-bin/
 (Then reload apache with <i>/etc/init.d/apache2 reload</i>.)
 </p>
 
-<h2>Net::LDAP::FilterMatch fix</h2>
+<h2>Gatewaying</h2>
 <p>
-Net::LDAP's FilterMatch module contains a bug that you have to patch manually, at least until it is
-fixed in the official distribution (track bug progress report
-<a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938">here</a>).
+Client hosts need to have access to the Internet to download
+the packages etc.
 </p>
 <p>
-The patch is simple, and included in Viper distribution as file 
-<i>support/FilterMatch.pm.patch</i>. Apply it with:
+In the default configuration, clients use Viper's host for
+NAT/IP forwarding (i.e. attribute 'router' in <i>ldifs/c1.com.ldif</i>).
 </p>
-<pre>
-patch -p0 &lt; support/FilterMatch.pm.patch
-</pre>
-And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
-</b>.
+<p>
+To make that work, you need to <b>apt-get install ipmasq</b> on the Viper host.
+Note that it's the *host*, so even if you installed Viper in OpenVZ container,
+you still run this command on the physical host.
+</p>
+<p>
+As said, for client c1.com, DHCP will configure hosts to use
+router 10.0.1.1 (which is the IP of the Viper install server for that
+subnet). This will work if you're running Viper outside of OpenVZ.
+</p>
+<p>
+If you're running Viper as a container under OpenVZ, you cannot use 10.0.1.1
+as the router, because the container can't do forwarding (the 'nat' table only
+exists on the physical host).
+The physical host is configured to have eth1 at address 10.0.1.254, so
+you need to edit <i>ldifs/c1.com.ldif</i>, search for "router: "
+and change the value from 10.0.1.1 to 10.0.1.254, telling the hosts
+to use Viper's physical host for forwarding.
+Remember to run 'make' in the ldifs/ directory to apply the change by
+reloading all data to LDAP.
 </p>
 
 <h2>Testing</h2>
@@ -197,5 +240,5 @@ wget http://10.0.1.1/cgi-bin/preseed.cfg?ip=10.0.1.8 -O /tmp/preseed.cfg<br>
 </p>
 <h2>Changing the configuration / adding new clients</h2>
 <p>
-See <a href="client.html">client.html</a>.
+See <a href="client.html">Adding clients and hosts</a>.
 </p>
