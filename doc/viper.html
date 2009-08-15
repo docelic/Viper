@@ -202,13 +202,13 @@ based on some combination of all attribute values.
 </p>
 <p>
 This feature arose from the need to be able to search and extract data
-from the directory, without knowing the data location specifically (as would
-be the case when using 'exp' overlay).
+from the directory, without knowing the data location specifically (opposite
+of what would be the case when using 'exp' overlay).
 </p>
 <p>
 For example, this feature allows you to find all NTP servers configured for
-a client, then construct a NTP config file with a line "server IP.ADD.RE.SS"
-for each of the hosts.
+a client, then construct a NTP client config file containing line
+"server IP.ADD.RE.SS" for each of the servers found.
 </p>
 <p>
 People familiar with Puppet's exported resources may notice that this feature
@@ -276,7 +276,7 @@ fill in that many DN components from the current entry.
 Examples:
 </p>
 <pre>
-<b>find $ ... 2 0 0 0 (&amp;(objectClass=puppetClient)(puppetClass=ntp::server*)) 0 ipHostNumber \0 \0</b>
+<b>find $ ... 2 0 0 0 (puppetClass=ntp::server*) 0 ipHostNumber \0 \0</b>
 10.0.0.7
 10.0.0.8
 10.0.0.9

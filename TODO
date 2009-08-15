@@ -8,6 +8,10 @@
 
 * Fix component with value 0 disappearing
 
+* support for Puppet environments and machine/service status so you can
+write find ovl with ldap filter based on that. Like ntp servers in
+state=working or something.
+
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
