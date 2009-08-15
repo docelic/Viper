@@ -1,0 +1,29 @@
+
+<h2>Viper syntax reference</h2>
+<p>
+One large part of the complete Viper setup is the custom,
+Perl-based backend for slapd (server component of the OpenLDAP
+suite).
+</p>
+<p>
+The backend was developed to solve a whole set of existing
+LDAP deficiencies (well, deficiencies, at least in the
+context of configuration management).
+</p>
+<p>
+For reference on slapd.conf configuration options, see 
+<a href="configuration.html">Configuration file reference</a>.
+</p>
+<p>
+This page should be used as a reference on available Viper
+syntax that you can use within LDAP attribute values to
+implement all sorts of dynamically computed values.
+</p>
+
+<div class="fineline"></div>
+
+<h3></h3>
+
+<p>
+to be written
+</p>

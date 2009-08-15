@@ -9,10 +9,6 @@
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
-* Notes on what will viper-setup.sh install (notes on things like behavior
-change with ipmasq etc.)
-- Guide on installing in CT
-
 * locales && reconfigure locales in bootstrapped openvz install
 
 * entryAppend to be able to say when to append - always, if schema allows,
@@ -20,12 +16,7 @@ change with ipmasq etc.)
 that to apply default dhcpOptions even if one specifies some of them
 in the host entry
 
-* Can't go online from CT when host's ipmasq is on
-
-* Router should be 10.0.1.1 if Viper is host, or 10.0.1.254 if 
- Viper is CT
-
-* configure ethX in dhcp config and eth0: alias for 10.0.1.0 before dhcp setup
+* preseed network interface to eth0 always, because interface=auto is crap
 
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
  looping thru subentries. This isn't quite alright as it'll break when base DN
@@ -34,27 +25,21 @@ in the host entry
 
 * use ViperConfig.pm (server, bind DN, pw, etc.)
 
-* allow rewriting of return attrs
+* allow rewriting of requested search attrs to return
 
 * document for config file, ldif, value spec, when do \\ have to be 
  escaped, when is SPEC a filter and when a regex etc.
 
 * query na host da otkrije keyeve koji postoje zbog defaulta i ukljuci ih u search osnovnog nivoa
 
-* Check if one can trigger endless loop with dynamic options, and make max loop depth configurable
-
 * See if we can get rid of $entry->clone()s... Enormous time waster (3x)
 
 * Apt sources to not include local cdrom
-
-* writeup for how data should be added (as debconf keys, and why). and how to export it to node_data
 
 * origdn support for run_appender just like for run_overlays?
 
 * optimization-- skip component splitting if none of the components
  matches the overlay that would run
-
-* preseed filename via filename: DHCP opt
 
 * multiple networks per client?
 
@@ -70,7 +55,8 @@ in the host entry
 * see if ->check_state is needed on modify? maybe not really
 
 * If overlay fails, hide that attribute from displaying since data in there
- is most probably incomplete
+ is most probably incomplete (in some cases its hidden, but do it in 100% of
+ cases)
 
 * configure local bind9 so it resolves according to dhcp leases
 
@@ -94,14 +80,9 @@ in the host entry
 - See why ->must( $oc) wasn't working in Viper.pm test, and document that if you want
   to entryAppend, the original entry must be of the desired objectclasses
 
-- output rewriting (i.e. removing ou=static at entry, add ou=static on exit)
-
 - config for DHCP to not accept unknown clients in the pool, so that if someone makes
 a mistake in HW addr of a system, the IP it gets assigned is from a 'known bad' pool,
 so that they can easily spot the mistake
-
-* unallowed attrs are not checked for on ADD, and also they show in retrieval from
-server (if they were in ldif) even if they're not allowed
 
 * Allow search fallback only if the final component is missing, but the rest is
  there? Currently we don't check for that so what happens is whatever crap you
@@ -119,7 +100,7 @@ server (if they were in ldif) even if they're not allowed
 - See if after appending from seeAlsoAttr, that attr should be removed from
  the entry or it can stay in there
 
-- when debconf key changed, trigger reload of service owning the key
+- when debconf key changed, trigger reload of service owning the key?
 
 * Change searchFallback so that it's similar to searchSubst/entryAppend, i.e.
   should allow to specify conditions, and then rewrite a person wants. Infact,
