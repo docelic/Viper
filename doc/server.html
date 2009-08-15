@@ -18,7 +18,7 @@
 </ul>
 					<h2>Quick Start</h2>
 <ul>
-  <li><a href="server.html">Setting up a Viper server</a><br>
+  <li><a href="server.html">Setting up Viper server</a><br>
   <li><a href="openvz.html">Viper in OpenVZ container</a><br>
   </li>
 </ul>
@@ -195,9 +195,10 @@ as the router, because the container can't do forwarding (the 'nat' table only
 exists on the physical host).
 The physical host is configured to have eth1 at address 10.0.1.254, so
 you need to edit <i>ldifs/c1.com.ldif</i>, search for "router: "
-and change the value from 10.0.1.1 to 10.0.1.254, telling client hosts
+and change the value from 10.0.1.1 to 10.0.1.254, telling the hosts
 to use Viper's physical host for forwarding.
-Remember to run 'make' in the ldifs/ directory to apply the change.
+Remember to run 'make' in the ldifs/ directory to apply the change by
+reloading all data to LDAP.
 </p>
 <h2>Testing</h2>
 <p>
