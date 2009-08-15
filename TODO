@@ -6,6 +6,10 @@
 
 * Make 5o cache possible, and make cacheOpen understand cache specs
 
+* Notes on what will viper-setup.sh install (notes on things like behavior
+change with ipmasq etc.)
+- Guide on installing in CT
+
 * configure ethX in dhcp config and eth0: alias for 10.0.1.0 before dhcp setup
 
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when

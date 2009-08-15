@@ -190,6 +190,11 @@ perl scripts/node_data h2.c1.com<br>
 <p>
 QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
 </p>
+</p>
+<h3>Testing with HTTP client</h3>
+<p>
+wget http://10.0.1.1/cgi-bin/preseed.cfg?ip=10.0.1.8 -O /tmp/preseed.cfg<br>
+</p>
 <h2>Changing the configuration / adding new clients</h2>
 <p>
 See <a href="client.html">client.html</a>.
