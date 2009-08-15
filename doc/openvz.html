@@ -53,7 +53,8 @@
 <h1>Viper in OpenVZ CT</h1>
 <p>
 This is a practical guide on setting up OpenVZ and creating a container
-(CT) in which you will install Viper.
+(CT). In it, you can then install Viper as usual and documented in
+<a href="server.html">Setting up a Viper server</a>.
 </p>
 <p>
 Installing Viper under CT can be very useful. For example, I have
@@ -113,7 +114,7 @@ debootstrap --arch i386 lenny /var/lib/vz/private/110 \
 
 cd /etc/vz/conf
 
-wget http://git.openvz.org/?p=vzctl;a=blob_plain;f=etc/conf/ve-unlimited.conf-sample \
+wget 'http://git.openvz.org/?p=vzctl;a=blob_plain;f=etc/conf/ve-unlimited.conf-sample' \
   -O ve-unlimited.conf-sample
 
 vzctl set 110 --applyconfig unlimited --save
@@ -125,6 +126,8 @@ ln -sf /var/lib/vz/private/110 /viper
 
 sed -i -e '/getty/d' /viper/etc/inittab
 echo viper &gt; /viper/etc/hostname
+echo 127.0.0.1 localhost.localdomain localhost &gt;&gt; /viper/etc/hosts
+echo 10.0.1.1 viper &gt;&gt; /viper/etc/hosts
 
 test -r ~/.ssh/id_dsa.pub || ssh-keygen -t dsa
 mkdir -p /viper/root/.ssh
@@ -244,6 +247,9 @@ vzctl enter 110
 /etc/network/interfaces for the container:
 </p>
 <pre>
+auto lo
+iface lo inet loopback
+
 auto eth0
 iface eth0 inet dhcp
 
@@ -256,6 +262,7 @@ iface eth1 inet static
 Bring up interfaces and finish the configuration:
 </p>
 <pre>
+ifup lo
 ifup eth0
 ifup eth1
 </pre>
