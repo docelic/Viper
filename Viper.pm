@@ -1367,6 +1367,11 @@ sub run_overlays {
 											}
 										}
 
+										# XXX remove this
+										p 'FILE: will read dir='.  $this->{directory}.
+											', file='.  $file.
+											', spec='.  $spec;
+
 										# Load file contents, end if reading wasn't successful
 										my( $ret, @comp)= $this->read_file(
 											$this->{directory}, $file, $spec);
@@ -2388,10 +2393,10 @@ sub read_file {
 	# line matching the regex is returned. If not found, empty string
 	# is returned.
 	if( defined $spec and $spec =~ qr/^\d+$/o) {
+
 		@data= ();
 		@data= $data[$spec] if defined $data[$spec];
 	} elsif( $spec) {
-		@data= ();
 		for( @data) {
 			if( /$spec/) {
 				@data= ( defined $1 ? $1 : $_)
