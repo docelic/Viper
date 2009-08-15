@@ -10,6 +10,8 @@
 change with ipmasq etc.)
 - Guide on installing in CT
 
+* Can't go online from CT when host's ipmasq is on
+
 * Router should be 10.0.1.1 if Viper is host, or 10.0.1.254 if 
  Viper is CT
 
