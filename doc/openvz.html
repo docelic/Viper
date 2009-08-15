@@ -18,7 +18,7 @@
 </ul>
 					<h2>Quick Start</h2>
 <ul>
-  <li><a href="server.html">Setting up a Viper server</a><br>
+  <li><a href="server.html">Setting up Viper server</a><br>
   <li><a href="openvz.html">Viper in OpenVZ container</a><br>
   </li>
 </ul>
@@ -67,9 +67,15 @@ well, without introducing Viper-specific configs to the desktop
 system.
 </p>
 <p>
-So OpenVZ container is a solution.
+OpenVZ container is the solution.
 </p>
-<h2>Host setup</h2>
+<p>
+Note that we use the term "host" to refer to any host, physical or virtual.
+When context is relevant, we use the term "physical host" or "CT0" to refer
+to the physical host, and "container", "CT", "CT110" or similar to
+refer to the containers.
+</p>
+<h2>Physical host setup</h2>
 <p>
 Let's first install vz-enabled kernel, after which you should reboot into
 it (make sure you select openvz in the bootloader menu, sometimes it
@@ -153,7 +159,7 @@ vzctl set 110 --netif_add eth1,,,,vzbr1 --save
 (If you get "Invalid syntax" error on the above, as we said, you need
 to upgrade your vzctl to at least 3.0.23).
 </p>
-<h2>Bridging setup on the host</h2>
+<h2>Bridging setup on the physical host</h2>
 <p>
 The ethX interfaces we have added to the CT are standalone devices that
 are not linked to host's ethX. To make this link, we'll use bridging.
@@ -163,13 +169,14 @@ Simply, bridge is a device to which you just add the devices you
 want to bridge.
 In our setup, the host's eth0 and eth1 interfaces will become part
 of bridges vzbr0 and vzbr1. The container's devices (visible as veth110.0
-and veth110.1) are present only while the CT is running, so the vznet.conf
+and veth110.1 on the physical host) are present only while the CT is running,
+so the vznet.conf
 script will take care of adding/removing them from the bridges as CT is
 started or stopped.
 </p>
 <p>
 As the host's eth0 and eth1 interfaces become part
-of bridges vzbr0 and vzbr1, it means you will remove any eth0 and eth1
+of bridges vzbr0 and vzbr1, it means you should remove any eth0 and eth1
 configuration in /etc/network/interfaces, then add the following bridge
 configuration, and remember that from now on, the bridges take over
 eth0/eth1, so whatever network operation you want to do on the host, do it on
