@@ -146,29 +146,29 @@ patch -p0 &lt; support/FilterMatch.pm.patch
 And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 </b>.
 </p>
-<h2>Apache setup</h2>
+<h2>HTTP setup</h2>
 <p>
-For client hosts to be able to retrieve the preseed file, the
-preseed CGI needs to be linked to the cgi-bin directory. This step
-was already done by the setup script.
+Client hosts to be able to retrieve the preseed file over HTTP, so
+the preseed CGI script needs to be linked to the cgi-bin directory.
+<p>
+</p>
+if your cgi-bin dir is in the standard location,
+<i>/usr/lib/cgi-bin/</i>, this was already done by the setup script.
 </p>
 <p>
-So, the client hosts can reach the preseed file if you specify
-it with the full path, i.e. url=http://10.0.1.1/cgi-bin/preseed.cfg.
+The client hosts can reach the preseed file at location
+url=http://SERVER/cgi-bin/preseed.cfg.
 </p>
 <p>
-However, when only the server (without the path) is specified, debian
-installer will look for file /d-i/RELEASE-NAME/preseed.cfg.
-This may save you some typing when starting the installations, and if
-you want to have this "shortcut", the necessary configuration should be
-added manually to /etc/apache2/sites-available/default:
+You do not need to specify this explicitly, because DHCP has been configured
+to send "filename" argument to the host, informing it of the preseed
+file location.
 </p>
-<pre>
-ScriptAlias /d-i/squeeze/ /usr/lib/cgi-bin/
-ScriptAlias /d-i/lenny/ /usr/lib/cgi-bin/
-</pre>
 <p>
-(Then reload apache with <i>/etc/init.d/apache2 reload</i>.)
+This allows you to connect client host to the network, take standard boot media
+and choose <i>Advanced -&gt; Automatic installation</i>, completing the
+installation without any input, be it at the d-i boot prompt or during
+installation.
 </p>
 <h2>Gatewaying</h2>
 <p>
@@ -200,6 +200,26 @@ to use Viper's physical host for forwarding.
 Remember to run 'make' in the ldifs/ directory to apply the change by
 reloading all data to LDAP.
 </p>
+<p>
+NOTE: when using Viper in the OpenVZ container, starting ipmasq on the physical
+host will, as explained, do the right thing for the client hosts, but will
+prevent the container from accessing the Internet. This is acceptable
+in the short term, because the container doesn't have to go online to
+operate normally, but it's surely a suboptimal solution.<br>
+The issue is in ipmasq detection code that doesn't handle our bridge
+configuration properly. Until I find a proper solution, here's a quick
+fix which you have to run every time after restarting ipmasq:
+</p>
+<pre>
+# Find out how many forward rules there are,
+# subtract 2 to get last rule ID.
+iptables -L forward -v | wc -l  # (in my case, 8 - 2 = 6).
+
+# Delete last rule (DROP) from forward chain and
+# change policy to accept
+iptables -D FORWARD 6
+iptables -P FORWARD ACCEPT
+</pre>
 <h2>Testing</h2>
 <p>
 After installation, you will get a working setup populated with default
