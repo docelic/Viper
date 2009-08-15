@@ -287,7 +287,9 @@ Just make sure you SSH as the same user whose key you copied (root
 or your regular user account).
 </p>
 <pre>
-ssh 10.0.1.1
+echo 10.0.1.1 viper>> /etc/hosts
+
+ssh viper
 </pre>
 <p>
 After you've successfully SSH-ed in, you can follow the usual Viper
