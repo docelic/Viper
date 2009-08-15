@@ -98,10 +98,10 @@ And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d 
 </b>.
 </p>
 
-<h2>Apache setup</h2>
+<h2>HTTP setup</h2>
 <p>
-Client hosts to be able to retrieve the preseed file, the
-preseed CGI needs to be linked to the cgi-bin directory.
+Client hosts to be able to retrieve the preseed file over HTTP, so
+the preseed CGI script needs to be linked to the cgi-bin directory.
 <p>
 </p>
 if your cgi-bin dir is in the standard location,
@@ -117,9 +117,10 @@ to send "filename" argument to the host, informing it of the preseed
 file location.
 </p>
 <p>
-This allows you to connect client host to the network, take standard boot media,
-choose <i>Advanced -&gt; Automatic installation</i>, and perform installation
-without having to type any information at the d-i boot prompt.
+This allows you to connect client host to the network, take standard boot media
+and choose <i>Advanced -&gt; Automatic installation</i>, completing the
+installation without any input, be it at the d-i boot prompt or during
+installation.
 </p>
 
 <h2>Gatewaying</h2>
@@ -162,14 +163,16 @@ The issue is in ipmasq detection code that doesn't handle our bridge
 configuration properly. Until I find a proper solution, here's a quick
 fix which you have to run every time after restarting ipmasq:
 </p>
-<pre>
-# Find out how many forward rules there are, subtract 2 to get last rule ID.
+<pre><protect>
+# Find out how many forward rules there are,
+# subtract 2 to get last rule ID.
 iptables -L forward -v | wc -l  # (in my case, 8 - 2 = 6).
 
-# Delete last rule (DROP) from forward chain and change policy to accept
+# Delete last rule (DROP) from forward chain and
+# change policy to accept
 iptables -D FORWARD 6
 iptables -P FORWARD ACCEPT
-</pre>
+</protect></pre>
 
 <h2>Testing</h2>
 <p>
