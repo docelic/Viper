@@ -157,7 +157,7 @@ $Viper::VERSION= '.1p210'; # Fri Aug  7 19:50:58 CEST 2009
 #
 # - When an entry is read, it is possible to cause attribute value expansion
 #   into values of on-disk files, ALWAYS relative to server data dir, such as:
-#     "result is $ file [spec] $ FNAME" ===> "result is FILE-DATA". [Spec] is
+#     "result is $ file $ FNAME [SPEC]" ===> "result is FILE-DATA". [SPEC] is
 #     optional and when number, specific line number is returned; when 
 #     string, a line or $1 matching the regex from the file is returned;
 #     when not present, whole file is returned. See 'fileval'
@@ -367,8 +367,8 @@ our %S2L= (
 our @OVERLAYS= ( grep { defined $_ } (
 	FILEVAL    ? 'file'   : undef,
 	EXPANDVAL  ? 'exp'    : undef,
-	PERLEVAL   ? 'perl'   : undef,
 	FINDVAL    ? 'find'   : undef,
+	PERLEVAL   ? 'perl'   : undef,
 ));
 
 # Necessary variables for Debconf interaction and server-side prompting.
@@ -1342,7 +1342,7 @@ sub run_overlays {
 									# OVERLAY FILEVAL
 									if( $ovl eq 'file') { # fileval
 										# We want to include file contents
-										my( $file, $spec)= split /\s+/, $comp;
+										my( $file, $spec)= split /\s+/, $comp, 2;
 
 										if( $opts{prefix}) {
 											$file= $opts{prefix}. $file;
