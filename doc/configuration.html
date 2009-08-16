@@ -229,14 +229,14 @@ ldapdelete option -r, but back-perl does not pass that option onto the
 backend, so the client-side option is not honored and deleteTrees is the
 single decision maker.
 </p>
-<h4>entryAppend ATTRIBUTE PATTERN -&gt; &lt;attr ATTRIBUTE | append PATTERN REPLACEMENT&gt;</h4>
+<h4>entryAppend ATTRIBUTE PATTERN -&gt; &lt;attr ATTRIBUTE [ATTRATTR [ATTR...]] | append PATTERN REPLACEMENT [ATTR...]&gt;</h4>
 <p>
 Specify entryAppend rule, allowing adding extra attributes into an entry
 before returning it to the client.
 </p>
 <p>
 When all ATTRIBUTE PATTERN pairs match, Viper looks to append the entry with
-default attributes.
+a set of default attributes.
 </p>
 <p>
 The entry from which to read the attributes to append can be specified in two
@@ -248,9 +248,21 @@ the attribute seeAlso is looked up in the current entry. It is expected
 to contain the DN of the entry of interest.
 </p>
 <p>
+If ATTRATTR and ATTRs are unspecified, the entry is appended with
+all allowed attributes. Otherwise, it is appended only with attributes
+listed in the ATTRATTR attribute within the entry and in the literal
+list of ATTRs.
+</p>
+<p>
 Two, with "append PATTERN REPLACEMENT", where s/PATTERN/REPLACEMENT/ is
 performed on the original DN, and the result is used as the entry from which
 to pull the extra attributes.
+</p>
+<p>
+In the 'append' method, there is no ATTRATTR field, so you cannot append
+the entry with the values of attributes listed in the entry, but you do
+have the option of specifying ATTRs to append with.
+If left unspecified, the entry is appended with all allowed attributes.
 </p>
 <p>
 Examples from production config:
@@ -427,7 +439,8 @@ overlay "perl" run on its attributes.
 </p>
 <p>
 By default, Perl overlay is disabled as it is in fact an interface for
-"eval", and is considered dangerous.
+"eval", and is considered dangerous. To activate it, open Viper.pm and
+enable constant PERLEVAL.
 </p>
 <h4>save FILE</h4>
 <p>
