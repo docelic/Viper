@@ -977,7 +977,7 @@ sub search {
 		# in reverse order.
 		if( $filter->match( $entry)) {
 			DEBUG and p 'SEARCH MATCH:', $entry->dn;
-			unshift @matches, $as_ldif? $ldif: $entry
+			unshift @matches, $as_ldif? $ldif: $entry;
 		}
 	}
 
@@ -1296,15 +1296,29 @@ sub run_overlays {
 
 					DEBUG and DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
 
+					# XXX this can be moved in the for( $a) loop, and there
+					# we can skip processing if there's no '$' in any of the
+					# values.
 					my @v= $e->get_value( $a);
 					my @v2;
 
-					# Implemented via while( shift @v) and not using for( @v) so that one
-					# value can result in instantiating multiple values.
-					while( my $v= shift @v) {
+					# Implemented via while( defined( shift @v) and not using
+					# for( @v) so that one value can result in instantiating
+					# multiple values. For that we need to be able to
+					# modify @v while iterating through it.
+					while( defined( my $v= shift @v)) {
 
 						my @vstack;
 
+						# (Note that we cannot move index() check up to reorganize
+						# this, because the code is currently designed that each overlay
+						# operates on all attributes and values before moving onto
+						# the next.
+						# XXX I'm not sure if that's really needed in practice. Even
+						# if it is, we can probably save on splitting/putting back
+						# the value after each overlay run if we kept the components
+						# in an array ad operated on the array. Something to think about
+						# for later.
 						if( index( $v, '$') != -1) {
 							# Ok, there are at least two components in this 
 							# attribute's value, so it makes sense for us to run.
@@ -1370,7 +1384,7 @@ sub run_overlays {
 										# XXX remove this
 										p 'FILE: will read dir='.  $this->{directory}.
 											', file='.  $file.
-											', spec='.  $spec;
+											', spec='.  ( $spec|| '');
 
 										# Load file contents, end if reading wasn't successful
 										my( $ret, @comp)= $this->read_file(
