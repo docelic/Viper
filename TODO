@@ -1,17 +1,15 @@
 * IDEAS FOR COMPLETING THE THING:
 
-* echo >> line in late_command to use expansion & perl munging to produce IP of server, or to have IP of server registered somewhere (also through defaults)
-
 * Test if server side prompter works after changes
 
 * Make 5o cache possible, and make cacheOpen understand cache specs
-
-* Fix component with value 0 disappearing
 
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
 * locales && reconfigure locales in bootstrapped openvz install
+
+* check if proper order of values is preserved even when overlays run
 
 * entryAppend to be able to say when to append - always, if schema allows,
  if schema allows but not looking at single/multi value etc. Then, use
@@ -54,8 +52,6 @@ in the host entry
 * doc note how to kill dbus on debconf hang if server cl+ced or exits
 
 * specify pw checking, see krb auth
-
-* Support num_ops counting thru check-state in every function and make cache 10o a possible setting
 
 * see if ->check_state is needed on modify? maybe not really
 
