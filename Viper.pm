@@ -2810,9 +2810,9 @@ sub check_prompter {
 	# Now that the Debconf question has been asked and completely dealt
 	# with, remove it from the memory cache.
 	if( $key and $dt->{exists}->{$key}) {
-		undef $dt->{ovl_cache}->{$key};
+		undef $dt->{cache}->{$key};
 		$dt->{exists}->{$key}= 0;
-		undef $dc->{ovl_cache}->{$key};
+		undef $dc->{cache}->{$key};
 		$dc->{exists}->{$key}= 0;
 		# XXX config option to select whether saveloc is always reinitialized
 		# or set to last-state.
