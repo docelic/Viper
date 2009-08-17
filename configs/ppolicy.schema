@@ -36,114 +36,114 @@
 # For an explanation of this schema, see
 # draft-behera-ldap-password-policy-08.txt.
 
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.1
-#      NAME 'pwdAttribute'
-#      EQUALITY objectIdentifierMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.2
-#      NAME 'pwdMinAge'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.3
-#      NAME 'pwdMaxAge'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.4
-#      NAME 'pwdInHistory'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.5
-#      NAME 'pwdCheckQuality'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.6
-#      NAME 'pwdMinLength'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.7
-#      NAME 'pwdExpireWarning'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.8
-#      NAME 'pwdGraceAuthNLimit'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.9
-#      NAME 'pwdLockout'
-#      EQUALITY booleanMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.10
-#      NAME 'pwdLockoutDuration'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.11
-#      NAME 'pwdMaxFailure'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.12
-#      NAME 'pwdFailureCountInterval'
-#      EQUALITY integerMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.13
-#      NAME 'pwdMustChange'
-#      EQUALITY booleanMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.14
-#      NAME 'pwdAllowUserChange'
-#      EQUALITY booleanMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.42.2.27.8.1.15
-#      NAME 'pwdSafeModify'
-#      EQUALITY booleanMatch
-#      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-#      SINGLE-VALUE )
-#
-#attributetype ( 1.3.6.1.4.1.4754.1.99.1
-#     NAME 'pwdCheckModule'
-#     EQUALITY caseExactIA5Match
-#     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-#     DESC 'Loadable module that instantiates "check_password() function'
-#     SINGLE-VALUE )
-#
-#objectclass ( 1.3.6.1.4.1.4754.2.99.1
-#      NAME 'pwdPolicyChecker'
-#      SUP top
-#      AUXILIARY
-#      MAY ( pwdCheckModule ) )
-#
-#objectclass ( 1.3.6.1.4.1.42.2.27.8.2.1
-#      NAME 'pwdPolicy'
-#      SUP top
-#      AUXILIARY
-#      MUST ( pwdAttribute )
-#      MAY ( pwdMinAge $ pwdMaxAge $ pwdInHistory $ pwdCheckQuality $
-#      pwdMinLength $ pwdExpireWarning $ pwdGraceAuthNLimit $ pwdLockout
-#      $ pwdLockoutDuration $ pwdMaxFailure $ pwdFailureCountInterval $
-#      pwdMustChange $ pwdAllowUserChange $ pwdSafeModify ) )
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.1
+      NAME 'pwdAttribute'
+      EQUALITY objectIdentifierMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.2
+      NAME 'pwdMinAge'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.3
+      NAME 'pwdMaxAge'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.4
+      NAME 'pwdInHistory'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.5
+      NAME 'pwdCheckQuality'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.6
+      NAME 'pwdMinLength'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.7
+      NAME 'pwdExpireWarning'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.8
+      NAME 'pwdGraceAuthNLimit'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.9
+      NAME 'pwdLockout'
+      EQUALITY booleanMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.10
+      NAME 'pwdLockoutDuration'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.11
+      NAME 'pwdMaxFailure'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.12
+      NAME 'pwdFailureCountInterval'
+      EQUALITY integerMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.13
+      NAME 'pwdMustChange'
+      EQUALITY booleanMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.14
+      NAME 'pwdAllowUserChange'
+      EQUALITY booleanMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.42.2.27.8.1.15
+      NAME 'pwdSafeModify'
+      EQUALITY booleanMatch
+      SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+      SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.4754.1.99.1
+     NAME 'pwdCheckModule'
+     EQUALITY caseExactIA5Match
+     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+     DESC 'Loadable module that instantiates "check_password() function'
+     SINGLE-VALUE )
+
+objectclass ( 1.3.6.1.4.1.4754.2.99.1
+      NAME 'pwdPolicyChecker'
+      SUP top
+      AUXILIARY
+      MAY ( pwdCheckModule ) )
+
+objectclass ( 1.3.6.1.4.1.42.2.27.8.2.1
+      NAME 'pwdPolicy'
+      SUP top
+      AUXILIARY
+      MUST ( pwdAttribute )
+      MAY ( pwdMinAge $ pwdMaxAge $ pwdInHistory $ pwdCheckQuality $
+      pwdMinLength $ pwdExpireWarning $ pwdGraceAuthNLimit $ pwdLockout
+      $ pwdLockoutDuration $ pwdMaxFailure $ pwdFailureCountInterval $
+      pwdMustChange $ pwdAllowUserChange $ pwdSafeModify ) )
