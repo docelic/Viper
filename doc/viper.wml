@@ -198,11 +198,10 @@ fill in that many DN components from the current entry.
 </p>
 <p>
 	<b>SIZE</b> - limit in number of entries returned, 0 = unlimited,
-	"max" = maximum. Currently unused, but must specify something, so use 0
+	"max" = maximum
 </p>
 <p>
-	<b>TIME</b> - time limit in seconds, 0 = unlimited, "max" = maximum.
-	Currently unused, but must specify something, so use 0
+	<b>TIME</b> - time limit in seconds, 0 = unlimited, "max" = maximum
 </p>
 <p>
 	<b>FILTER</b> - complete, valid LDAP filter to match against, the default

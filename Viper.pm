@@ -288,6 +288,7 @@ use Net::LDAP::Constant qw/LDAP_ALREADY_EXISTS LDAP_NO_SUCH_OBJECT LDAP_OTHER/;
 use Net::LDAP::Constant qw/LDAP_INVALID_SYNTAX LDAP_INVALID_DN_SYNTAX/;
 use Net::LDAP::Constant qw/LDAP_NOT_ALLOWED_ON_NONLEAF LDAP_FILTER_ERROR/;
 use Net::LDAP::Constant qw/LDAP_INVALID_CREDENTIALS/;
+use Net::LDAP::Constant qw/LDAP_TIMELIMIT_EXCEEDED LDAP_SIZELIMIT_EXCEEDED/;
 use Net::LDAP::LDIF     qw//;
 use Net::LDAP::Schema   qw//;
 use Net::LDAP::Filter   qw//;
@@ -304,7 +305,7 @@ use subs                qw/p pd pc pcd/;
 
 # To make use of DEBUG, server must run in foreground mode. Something like:
 # su -c 'LD_PRELOAD=/usr/lib/libperl.so.5.10 /usr/sbin/slapd -d 256'
-use constant DEBUG    => 0; # General debug?
+use constant DEBUG    => 1; # General debug?
 use constant DEBUG_OVL=> 0; # Overlays debug?
 use constant DEBUG_CCH=> 0; # Cache debug?
 use constant DEBUG_DTL=> 0; #  Detailed debug?
@@ -1009,7 +1010,11 @@ sub search {
 		if( $filter->match( $entry)) {
 			DEBUG and p 'SEARCH MATCH:', $entry->dn;
 			unshift @matches, $as_ldif? $ldif: $entry;
+
+			goto SEARCH_DONE if @matches> $req{size};
 		}
+
+		goto SEARCH_DONE if time- $this->{start}> $req{time};
 	}
 
 	# Further entries may follow unless only base was specifically
@@ -1040,21 +1045,34 @@ sub search {
 					return $ret unless $ret== LDAP_SUCCESS;
 					if( $filter->match( $entry)) {
 						DEBUG and p 'SEARCH MATCH:', $entry->dn;
-						unshift @matches, $as_ldif? $ldif : $entry
+						unshift @matches, $as_ldif? $ldif : $entry;
+
+						goto SEARCH_DONE if @matches> $req{size};
 					}
+
+					goto SEARCH_DONE if time- $this->{start}> $req{time};
 			} )
 			->maxdepth( $md)
 			->readable
 			->in( $dir)
 	}
 
-	if( DEBUG and @matches) {
-		p 'SEARCH TOTAL:', scalar @matches, 'matches.'
+	SEARCH_DONE:
+
+	if( my $count= @matches) {
+		p 'SEARCH TOTAL:', scalar @matches,
+			'matches (time='. ( time- $this->{start}). "/$req{time}, ".
+			"size=$count/$req{size})"
 	}
 
 	$this->{level}-= 1;
 
-	( LDAP_SUCCESS, @matches)
+	# Return should be 0 (LDAP_SUCCESS) if no limits were hit.
+	$ret= LDAP_SUCCESS;
+	$ret= LDAP_SIZELIMIT_EXCEEDED if @matches> $req{'size'};
+	$ret= LDAP_TIMELIMIT_EXCEEDED if time- $this->{start}> $req{'time'};
+
+	( $ret, @matches)
 }
 
 
@@ -3049,8 +3067,13 @@ sub check_state {
 	if( ref $$arg[@$arg-1]) {
 		pop @$arg;
 		$this->{level}++;
+
+	# If here, means we are entering a new search from slapd
 	} else{
 		$this->{level}= 1;
+
+		$this->{start}= time;
+
 		$this->{dn2leaf_cache}= undef; # Clear per-op dn2leaf cache
 
 		while( my ($ovl, $ovlref)= each %{ $this->{op_cache_validity}}) {
