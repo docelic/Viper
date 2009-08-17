@@ -134,15 +134,10 @@ so that they can easily spot the mistake
 
 * resolve file XXXs
 
-* ldapsearch -x, why returns limit 500 results even on -z0 -l0
-
 * Make Viper its own package, with slap* version of tools -> vipercat, viperadd etc.
 
 NOTES:
 - pass on info about expansion etc. through operational attrs
-- if someone wants a static tree, they should either modify text
-  files or load up another ldap instance with overlay and dynamic turned
-  off
 
 # List of extra todos:
 # - ldap server on every client host, delegate part of the tree to it
