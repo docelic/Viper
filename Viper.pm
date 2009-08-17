@@ -287,6 +287,7 @@ use Net::LDAP::Constant qw/LDAP_SUCCESS LDAP_PARAM_ERROR LDAP_OPERATIONS_ERROR/;
 use Net::LDAP::Constant qw/LDAP_ALREADY_EXISTS LDAP_NO_SUCH_OBJECT LDAP_OTHER/;
 use Net::LDAP::Constant qw/LDAP_INVALID_SYNTAX LDAP_INVALID_DN_SYNTAX/;
 use Net::LDAP::Constant qw/LDAP_NOT_ALLOWED_ON_NONLEAF LDAP_FILTER_ERROR/;
+use Net::LDAP::Constant qw/LDAP_INVALID_CREDENTIALS/;
 use Net::LDAP::LDIF     qw//;
 use Net::LDAP::Schema   qw//;
 use Net::LDAP::Filter   qw//;
@@ -316,7 +317,7 @@ use constant APPENDER => 1; # Enable appending with other entries' attributes.
 use constant FILEVAL  => 1; # Enable value expansion by reading files.
 use constant EXPANDVAL=> 1; # Enable value expansion by loading DN attrs.
 use constant FINDVAL  => 1; # Enable re-searching and returning certain attr.
-use constant PERLEVAL => 0; # Enable Perl evaluation of values. *DANGEROUS*
+use constant PERLEVAL => 1; # Enable Perl evaluation of values. *DANGEROUS*
 
 use constant RELOCATOR=> 0; # Enable relocation of Debconf keys from client.
 use constant PROMPTER => 0; # Enable relocation of Debconf keys from server.
@@ -568,15 +569,30 @@ sub init {
 }
 
 
-# Called to verify bind credentials
+# Called to verify bind credentials.
+# Note that this function is called only when it is an
+# authenticated bind AND rootpw for the suffix in slapd.conf
+# is not set. If the bind DN matches rootdn in slapd.conf
+# and rootpw is set, then slapd does the verification itself
+# (matching password against rootpw) and does not trigger
+# this function.
 sub bind {
-	my( $this)= @_;
+	my( $this, $dn, $pw)= @_;
 
-	p "BIND @_";
+	p "BIND $dn"; # Do not show $pw in log.
 
-	# XXX Any password lets a user in.
+	my ( $ret, undef, undef, $entry)= $this->load( $dn);
+	return LDAP_INVALID_CREDENTIALS unless $ret== LDAP_SUCCESS;
 
-	LDAP_SUCCESS
+	my @pws= $entry->get_value( 'userPassword');
+
+	# See if any userPassword (can be multi-value) matches
+	# the provided password
+	if( ( firstidx { "$pw" eq "$_" } @pws)!= -1) {
+		return LDAP_SUCCESS
+	}
+
+	LDAP_INVALID_CREDENTIALS
 }
 
 
@@ -674,48 +690,59 @@ sub config {
 
 		} elsif( $key eq 'load' and CFG_STACK) {    # LOAD STACK
 
-			# Use only first argument as filename; the rest is unused, but in
-			# some future time may contain a list of s/X/Y/g replacements to
-			# perform before sending each stored line to config processor.
-			for( $val[0]) {
-				my $orig_fn= $_;
+			# In load specification, the first argument is the filename. The rest,
+			# if present, is a list of PATTERN REPLACEMENT to perform
+			# on each stored line before sending it to the config processor.
+			$_= shift @val;
+			my $orig_fn= $_;
 
-				s/[^\w\.]//g; # allow only [\w\.]+ in filename
-				s/^\.//; # delete all '.' prefix on the filename
+			s/[^\w\.]//g; # allow only [\w\.]+ in filename
+			s/^\.//; # delete all '.' prefix on the filename
 
-				if( $orig_fn ne $_) {
-					p "Stack load filename sanitized to '$_'";
+			if( $orig_fn ne $_) {
+				p "Stack load filename sanitized to '$_'";
+			}
+
+			# Evaluate Dumper data that we read in
+			my $edata;
+			{
+				use vars qw/$VAR1/;
+				my( $ret, @data)= $this->read_file( $this->{tmpdir}, $_);
+				return $ret unless $ret== LDAP_SUCCESS;
+
+				my $data= join q{}, @data;
+				$edata= eval $data;
+
+				if( $@) {
+					warn "Error loading stack file '$_' ($@)\n";
+					return LDAP_OPERATIONS_ERROR
+				}
+			}
+
+			if( defined $edata) {
+					if( ref $edata ne 'ARRAY') {
+					warn "Loaded stack file '$_', but it's not an arrayref!\n";
+					return LDAP_OPERATIONS_ERROR
 				}
 
-				# Evaluate Dumper data that we read in
-				my $edata;
-				{
-					use vars qw/$VAR1/;
-					my( $ret, @data)= $this->read_file( $this->{tmpdir}, $_);
-					return $ret unless $ret== LDAP_SUCCESS;
+				# List of substitutions to perform on each line and each
+				# argument before sending everything to the config processor.
+				my %substs= @val;
 
-					my $data= join q{}, @data;
-					$edata= eval $data;
+				# Now send line by line to the config routine
+				for my $line( @$edata) {
 
-					if( $@) {
-						warn "Error loading stack file '$_' ($@)\n";
-						return LDAP_OPERATIONS_ERROR
+					# Perform any substs specified as 'load FILE PAT REPL...':
+					for my $arg( @$line) {
+						while( my( $p, $r)= each %substs) {
+							$arg=~ s/$p/$r/g;
+						}
 					}
+
+					$this->config( @$line)
 				}
-
-				if( defined $edata) {
-						if( ref $edata ne 'ARRAY') {
-						warn "Loaded stack file '$_', but it's not an arrayref!\n";
-						return LDAP_OPERATIONS_ERROR
-					}
-
-					# Now send line by line to the config routine
-					for my $line( @$edata) {
-						$this->config( @$line)
-					}
-				} else {
-					warn "Empty stack file '$_'. Configuration mistake?\n"
-				}
+			} else {
+				warn "Empty stack file '$_'. Configuration mistake?\n"
 			}
 
 		} elsif( $key eq 'clean' and CFG_STACK) {   # DELETE OLD STACK FILES
