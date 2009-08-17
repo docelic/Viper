@@ -10,6 +10,9 @@
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
 
+* For every attr that is defined as containing a DN in schema, support
+ expansion of dots (".") to components
+
 * check if proper order of values is preserved even when overlays run
 
 * entryAppend to be able to say when to append - always, if schema allows,
@@ -74,8 +77,6 @@ in the host entry
 
 * don't tie host extra info to puppetClient, tie to extraInfo, configInfo,
  configData or so
-
-* Use proper OIDs for own attrs
 
 - some trigger, that could run arbitrary things, like ipcalc to conver .255 -> /32 etc.
 
