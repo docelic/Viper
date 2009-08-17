@@ -16,9 +16,7 @@ cp -s viper/configs/slapd.conf .
 
 # Copy schemas over
 cd /etc/ldap/schema
-mkdir orig
-mv * orig
-cp -s ../viper/configs/{*schema,schema.ldif} .
+cp -fs ../viper/configs/{*schema,schema.ldif} .
 
 # One-time viper subdirectory creation
 mkdir /var/lib/ldap/viper
