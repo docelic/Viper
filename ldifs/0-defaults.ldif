@@ -78,7 +78,7 @@ dhcpNetMask: 24
 # 
 dn: cn=puppetClient,ou=objectClasses,ou=Defaults
 objectClass: top
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: puppetClient
 hostName: exp $ cn
 domainName: exp $ .. domainName
