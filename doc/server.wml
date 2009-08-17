@@ -50,7 +50,7 @@ client hosts directly.
 <p>
 (If you've set up Viper in the VZ container, chances are you already
 configured eth0 and eth1, so you do not need to run ifconfig or
-modify /etc/network/interfaces as shown here; proceed to running the script).
+modify /etc/network/interfaces as shown here; proceed to "Running the script").
 </p>
 <pre>
 ifconfig eth1 inet 10.0.1.1 netmask 255.255.255.0
@@ -67,7 +67,7 @@ iface eth1 inet static
 	netmask 255.255.255.0
 </pre>
 <p>
-To run the script, use:
+<b>Running the script:</b>
 </p>
 <pre>
 sh scripts/viper-setup.sh eth1
@@ -100,8 +100,8 @@ And then re-start slapd with <b>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d 
 
 <h2>HTTP setup</h2>
 <p>
-Client hosts to be able to retrieve the preseed file over HTTP, so
-the preseed CGI script needs to be linked to the cgi-bin directory.
+Client hosts need to be able to retrieve the preseed file over HTTP, so
+the preseed CGI script needs to be linked in the cgi-bin directory.
 <p>
 </p>
 if your cgi-bin dir is in the standard location,
@@ -112,9 +112,9 @@ The client hosts can reach the preseed file at location
 url=http://SERVER/cgi-bin/preseed.cfg.
 </p>
 <p>
-You do not need to specify this explicitly, because DHCP has been configured
-to send "filename" argument to the host, informing it of the preseed
-file location.
+You do not need to specify the location explicitly, because DHCP has been
+configured to send "filename" argument to the host, informing it of the
+preseed file URL.
 </p>
 <p>
 This allows you to connect client host to the network, take standard boot media
@@ -166,7 +166,7 @@ fix which you have to run every time after restarting ipmasq:
 <pre><protect>
 # Find out how many forward rules there are,
 # subtract 2 to get last rule ID.
-iptables -L forward -v | wc -l  # (in my case, 8 - 2 = 6).
+iptables -L FORWARD -v | wc -l  # (in my case, 8 - 2 = 6).
 
 # Delete last rule (DROP) from forward chain and
 # change policy to accept
@@ -174,13 +174,15 @@ iptables -D FORWARD 6
 iptables -P FORWARD ACCEPT
 </protect></pre>
 
+
 <h2>Testing</h2>
 <p>
 After installation, you will get a working setup populated with default
 data. This includes a client with name "c1.com", and three hosts, h1,
 h2 and h3.<br>
 <br>
-Based on the default data, there are tests you can run:<br>
+Based on the default data, there are tests you can run:
+
 <h3>Testing with ldapsearch</h3>
 <pre>
 ldapsearch -x -b ou=dhcp

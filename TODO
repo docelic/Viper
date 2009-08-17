@@ -4,19 +4,11 @@
 
 * Make 5o cache possible, and make cacheOpen understand cache specs
 
-<<<<<<< HEAD:TODO
-=======
-* Fix component with value 0 disappearing
-
-* support for Puppet environments and machine/service status so you can
-write find ovl with ldap filter based on that. Like ntp servers in
-state=working or something.
-
->>>>>>> a64fcd02827787b25eb2e594af5476861870d9a3:TODO
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
-* locales && reconfigure locales in bootstrapped openvz install
+* Make viper server also a recursive dns, so can use it as dns instead
+ of 192.168.1.254
 
 * check if proper order of values is preserved even when overlays run
 
