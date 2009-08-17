@@ -13,6 +13,8 @@
 
 * check if proper order of values is preserved even when overlays run
 
+* udpkg -i partman_auto_raid in ubuntu 8.04 early_command
+
 * entryAppend to be able to say when to append - always, if schema allows,
  if schema allows but not looking at single/multi value etc. Then, use
 that to apply default dhcpOptions even if one specifies some of them
