@@ -2130,8 +2130,8 @@ sub dn2leaf {
 
 # Quick debug print. p(...)
 sub p { if( DEBUG) { print {*STDERR} '### ', join( ' ', @_), "\n"}}
-sub pd{ if( DEBUG and DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
-sub pc{ if( DEBUG and DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
+sub pd{ if( DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
+sub pc{ if( DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
 
 # Subroutine that appends the entry with attributes from other entries
 # according to 'entryappend' config directive. This has become a quite
@@ -2991,7 +2991,7 @@ sub check_state {
 	# We keep track of how many loops we've done via $this->{level}.
 	if( ref $$arg[@$arg-1]) {
 		pop @$arg;
-		$this->{level}+= 1
+		$this->{level}++;
 	} else{
 		$this->{level}= 1;
 		$this->{ovl_cache}{op}= undef; # Clear per-op ovl cache
