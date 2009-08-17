@@ -1,0 +1,167 @@
+#
+# Client CSTP. Configuration based on c1.com.ldif
+#
+
+#
+# Base
+#
+
+dn: o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organization
+domainName: cstp.hr
+o: cstp.hr
+
+#
+# Defaults
+#
+
+dn: ou=Defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Defaults
+
+dn: ou=templates,ou=Defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: templates
+
+dn: ou=hosts,ou=Defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: hosts
+
+dn: ou=objectClasses,ou=Defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: objectClasses
+
+#
+# DHCP
+#
+
+dn: ou=networks, o=cstp.hr,ou=clients
+objectClass: top
+ou: networks
+
+dn: cn=10.0.2.0, ou=networks, o=cstp.hr,ou=clients
+cn: 10.0.2.0
+objectClass: top
+objectClass: ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+ipNetmaskNumber: 255.255.255.0
+ipBroadcastNumber: 10.0.2.255
+ipNetworkNumber: 10.0.2.0
+router: 10.0.2.1
+configServer: 10.0.2.1
+nameServer: 192.168.43.1
+#nameServer: 192.168.1.254
+dhcpNetMask: 24
+
+dn: cn=default, ou=networks, o=cstp.hr,ou=clients
+cn: default
+objectClass: top
+objectClass: ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+seeAlso: cn=10.0.2.0, ou=networks, o=cstp.hr,ou=clients
+
+#dn: cn=pool1, cn=10.0.2.0, ou=networks, o=cstp.hr,ou=clients
+#cn: pool1
+#objectClass: top
+#objectClass: dhcpPool
+#dhcpRange: 10.0.2.80 10.0.2.120
+
+#
+# Templates
+#
+
+dn: ou=Templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Templates
+
+dn: cn=h1,ou=Templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+cn: h1
+
+dn: cn=h2,ou=Templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+cn: h2
+
+dn: cn=h3,ou=Templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+cn: h3
+
+#
+# Hosts
+#
+
+dn: ou=Hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Hosts
+
+dn: cn=h1,ou=Hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: h1
+ipHostNumber: 10.0.2.2
+macAddress: 00:22:64:23:04:05
+#macAddress: 00:0b:6a:8e:31:ff
+
+
+dn: cn=l1,ou=Hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: l1
+ipHostNumber: 10.0.2.3
+macAddress: 00:25:b3:46:16:7c
+
+
+dn: cn=h2,ou=Hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: h2
+ipHostNumber: 10.0.2.4
+macAddress: 00:22:64:c0:c2:81
+
+
+dn: cn=h3,ou=Hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: h3
+ipHostNumber: 10.0.2.5
+macAddress: 00:22:64:be:fe:7d
+
+
+dn: cn=l2,ou=Hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: l2
+ipHostNumber: 10.0.2.6
+macAddress: 00:25:b3:49:ff:8c
