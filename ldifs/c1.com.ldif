@@ -49,7 +49,7 @@ objectClass: organizationalRole
 cn: accounts
 
 #
-# People
+# People & accounts
 #
 
 dn: employeeNumber=1000,ou=people,o=c1.com,ou=clients
@@ -59,14 +59,10 @@ givenName: Davor
 sn: Ocelic
 displayName: Davor Ocelic
 employeeNumber: 1000
-#homePhone: +3
+#homePhone: +385-91-444-4040
 mobile: +385-91-444-4040
 mail: docelic@spinlocksolutions.com
 #title: dipl.-ing.
-
-#
-# Accounts
-#
 
 dn: uidNumber=1000,cn=accounts,o=c1.com,ou=clients
 objectClass: organizationalRole
@@ -78,6 +74,11 @@ gidNumber: 1000
 homeDirectory: /home/docelic
 loginShell: /bin/bash
 roleOccupant: employeeNumber=1000,ou=people,o=c1.com,ou=clients
+
+dn: gidNumber=1000,ou=groups,o=c1.com,ou=clients
+objectClass: posixGroup
+cn: docelic
+gidNumber: 1000
 
 #
 # DHCP
