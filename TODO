@@ -2,7 +2,7 @@
 
 * Test if server side prompter works after changes
 
-* Make 5o cache possible, and make cacheOpen understand cache specs
+* make cacheOpen understand cache specs
 
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
@@ -16,6 +16,9 @@
  if schema allows but not looking at single/multi value etc. Then, use
 that to apply default dhcpOptions even if one specifies some of them
 in the host entry
+
+* tests/ dir and a suite of test queries diff-ed to expected return values
+ based on client c1.com
 
 * Support fileVal to find all $1 or regex matching within the file, return
  them as array, then have joiner as usual
