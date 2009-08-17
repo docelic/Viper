@@ -202,11 +202,12 @@ objectclass ( 1.3.6.1.1.1.2.6 NAME 'ipHost'
 	MUST ( cn $ ipHostNumber )
 	MAY ( l $ description $ manager ) )
 
-objectclass ( 1.3.6.1.1.1.2.7 NAME 'ipNetwork'
-	DESC 'Abstraction of an IP network'
-	SUP top STRUCTURAL
-	MUST ( cn $ ipNetworkNumber )
-	MAY ( ipNetmaskNumber $ l $ description $ manager ) )
+# Disabled and redefined in spinlock.schema
+#objectclass ( 1.3.6.1.1.1.2.7 NAME 'ipNetwork'
+#	DESC 'Abstraction of an IP network'
+#	SUP top STRUCTURAL
+#	MUST ( cn $ ipNetworkNumber )
+#	MAY ( ipNetmaskNumber $ l $ description $ manager ) )
 
 objectclass ( 1.3.6.1.1.1.2.8 NAME 'nisNetgroup'
 	DESC 'Abstraction of a netgroup'
