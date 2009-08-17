@@ -11,6 +11,11 @@
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
 
+* check if multiple 'if' options to an overlay work properly
+
+* streamline common work in verlays (put stuff to functions), 
+ uniform debug log printing from them etc.
+
 * For every attr that is defined as containing a DN in schema, support
  expansion of dots (".") to components
 
