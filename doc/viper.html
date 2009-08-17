@@ -80,8 +80,8 @@ configuration, the rules explained here apply.
 <div class="fineline"></div>
 <h3>The basics</h3>
 <p>
-Any attribute that wants to take advantage of dynamic behavior will have
-to have at least one '$' character in its value.
+Any attribute value that wants to take advantage of dynamic behavior will
+have to have at least one '$' character in its value.
 </p>
 <p>
 When '$' is present in the value, the value is split into "components".
@@ -89,10 +89,11 @@ After split, each component contains one type of data: regular text, name
 of the overlay to run, or a parameter for the overlay.
 </p>
 <p>
-Regular text is passed through verbatim, overlay names are stripped,
-and overlay parameters are replaced with the generated value. Then,
+In each overlay,
+regular text is passed through verbatim, while overlay name
+and parameters are replaced with the generated value. Then,
 the whole value is put back together, honoring exact whitespace
-and other characteristics as before the expansion.
+and other characteristics as before the processing.
 </p>
 <p>
 Here are two examples, showing the
@@ -193,7 +194,7 @@ in-target sh -c "echo 10.0.1.1 puppet &gt;&gt;/etc/hosts"
 </pre>
 <h3>Subsearch value expansion</h3>
 <pre>
-find $ BASEDN SCOPE DEREF SIZE TIME FILTER ATTRONLY ATTR [VALX [GVALX]]
+find [if [!]ATTRIBUTE PATTERN] $ BASEDN SCOPE DEREF SIZE TIME FILTER ATTRONLY ATTR [VALX [GVALX]]
 </pre>
 <p>
 Perform a subsearch using full LDAP SEARCH specification, retrieve
@@ -214,6 +215,11 @@ a client, then construct a NTP client config file containing line
 People familiar with Puppet's exported resources may notice that this feature
 can perform the same function and elegantly provide data in a Puppet array
 variable, without the need for Puppet trickery and using stored configs.
+</p>
+<p>
+	<b>if</b> - process and include this value in output only if at least one
+	of the ATTRIBUTE values matches PATTERN. The exclamation mark ("!") can be
+	used to invert test logic.
 </p>
 <p>
 	<b>BASEDN</b> - starting point in the tree for the search.
@@ -283,7 +289,7 @@ Examples:
 </pre>
 <p>
 In the above example, notice that we literally use "..." as BASEDN
-specification, which expand to the last three components from the
+specification, which expands to the last three components of the
 original search base. If someone requested LDAP key
 cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients, the last three
 components would be ou=hosts,o=c1.com,ou=clients, and that would be
@@ -291,8 +297,8 @@ the starting point for the search.
 </p>
 <p>
 Also, keep in mind that the search filter is not a regex but a fully valid
-LDAP search filter (it's not a regex).
-We match "ntp::server*" and not just "ntp::server",
+LDAP search filter. Furthermore,
+we match "ntp::server*" and not just "ntp::server",
 because the module might have subclasses (NTP module has a subclass
 ntp::server::stock which we also want to match in our search).
 </p>
@@ -317,13 +323,29 @@ Examples:
 <b>perl $ "string."</b>
 string.
 </pre>
-<h2>Overlays - generic options</h2>
+<h2>Overlays - specifying options</h2>
 <p>
 Each overlay may support overlay-specific options, and generic options
-applicable to all.
+applicable to all overlays.
 </p>
 <p>
-The options are:
+Options, if any, need to be specified in the same component as the
+overlay, such as:
+</p>
+<pre>
+<b>OVERLAY [OPTION VALUE ...] $ PARAMETERS</b>
+
+<b>file prefix link. $ myfile</b>
+
+<b>exp cache 10s $ cn=default,ou=networks.. configServer $</b>
+</pre>
+<p>
+Options parser supports quoting using double quotes, but do pay attention
+to separate fields using a single space character.
+</p>
+<p>
+Overlay-specific options are documented in individual overlay descriptions.
+Generic options are documented here:
 <ul>
 	<li><b>cache</b> - dynamically produced values might take a long time to
  compute. Viper supports a generic cache mechanism which allows caching
