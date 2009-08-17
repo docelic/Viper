@@ -32,6 +32,53 @@ objectClass: top
 objectClass: organizationalUnit
 ou: objectClasses
 
+dn: ou=people,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+#description:
+
+dn: ou=groups,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=accounts,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalRole
+cn: accounts
+
+#
+# People
+#
+
+dn: employeeNumber=1000,ou=people,o=c1.com,ou=clients
+objectClass: inetOrgPerson
+cn: Davor Ocelic
+givenName: Davor
+sn: Ocelic
+displayName: Davor Ocelic
+employeeNumber: 1000
+#homePhone: +3
+mobile: +385-91-444-4040
+mail: docelic@spinlocksolutions.com
+#title: dipl.-ing.
+
+#
+# Accounts
+#
+
+dn: uidNumber=1000,cn=accounts,o=c1.com,ou=clients
+objectClass: organizationalRole
+objectClass: posixAccount
+cn: docelic
+uid: docelic
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/docelic
+loginShell: /bin/bash
+roleOccupant: employeeNumber=1000,ou=people,o=c1.com,ou=clients
+
 #
 # DHCP
 #
@@ -49,7 +96,7 @@ objectClass: dhcpOptions
 ipNetmaskNumber: 255.255.255.0
 ipBroadcastNumber: 10.0.1.255
 ipNetworkNumber: 10.0.1.0
-router: 10.0.1.254
+router: 10.0.1.1
 configServer: 10.0.1.1
 nameServer: 192.168.1.254
 dhcpNetMask: 24
