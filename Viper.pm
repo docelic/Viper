@@ -1,5 +1,5 @@
 package Viper;
-$Viper::VERSION= '.1p210'; # Fri Aug  7 19:50:58 CEST 2009
+$Viper::VERSION= '.1p410'; # Mon Aug 17 11:15:45 UTC 2009
 #
 # vim: se ts=2 sts=2 sw=2 ai
 #
@@ -287,6 +287,7 @@ use Net::LDAP::Constant qw/LDAP_SUCCESS LDAP_PARAM_ERROR LDAP_OPERATIONS_ERROR/;
 use Net::LDAP::Constant qw/LDAP_ALREADY_EXISTS LDAP_NO_SUCH_OBJECT LDAP_OTHER/;
 use Net::LDAP::Constant qw/LDAP_INVALID_SYNTAX LDAP_INVALID_DN_SYNTAX/;
 use Net::LDAP::Constant qw/LDAP_NOT_ALLOWED_ON_NONLEAF LDAP_FILTER_ERROR/;
+use Net::LDAP::Constant qw/LDAP_INVALID_CREDENTIALS/;
 use Net::LDAP::LDIF     qw//;
 use Net::LDAP::Schema   qw//;
 use Net::LDAP::Filter   qw//;
@@ -299,14 +300,14 @@ use Text::CSV_XS        qw//;
 use Memoize::Expire     qw//;
 use List::MoreUtils     qw/any firstidx/;
 
-use subs                qw/p pd pc/;
+use subs                qw/p pd pc pcd/;
 
 # To make use of DEBUG, server must run in foreground mode. Something like:
 # su -c 'LD_PRELOAD=/usr/lib/libperl.so.5.10 /usr/sbin/slapd -d 256'
-use constant DEBUG    => 0; # General debug output
+use constant DEBUG    => 0; # General debug?
+use constant DEBUG_OVL=> 0; # Overlays debug?
+use constant DEBUG_CCH=> 0; # Cache debug?
 use constant DEBUG_DTL=> 0; #  Detailed debug?
-use constant DEBUG_OVL=> 0; #  Overlays-related debug output?
-use constant DEBUG_CCH=> 0; #  Cache debug?
 
 use constant CFG_STACK=> 1; # Allow save/reset/load config file routines
 use constant CFG_DUMP => 1; # Allow savedump/loaddump config file routines
@@ -316,7 +317,7 @@ use constant APPENDER => 1; # Enable appending with other entries' attributes.
 use constant FILEVAL  => 1; # Enable value expansion by reading files.
 use constant EXPANDVAL=> 1; # Enable value expansion by loading DN attrs.
 use constant FINDVAL  => 1; # Enable re-searching and returning certain attr.
-use constant PERLEVAL => 0; # Enable Perl evaluation of values. *DANGEROUS*
+use constant PERLEVAL => 1; # Enable Perl evaluation of values. *DANGEROUS*
 
 use constant RELOCATOR=> 0; # Enable relocation of Debconf keys from client.
 use constant PROMPTER => 0; # Enable relocation of Debconf keys from server.
@@ -464,6 +465,8 @@ sub new {
 		level          => 0,       # Loop/depth count. Usually 1
 		ovl_cache      => {},	     # Will contain queues with cached ovl values
 		dn2leaf_cache  => {},	     # Will contain queues with cached dn2leaf values
+
+		op_cache_validity=> {},    # Num-ops cache validity
 	};
 
 	# Must be done here as schema parser already has to be present
@@ -566,15 +569,32 @@ sub init {
 }
 
 
-# Called to verify bind credentials
+# Called to verify bind credentials.
+# Note that this function is called only when it is an
+# authenticated bind AND rootpw for the suffix in slapd.conf
+# is not set. If the bind DN matches rootdn in slapd.conf
+# and rootpw is set, then slapd does the verification itself
+# (matching password against rootpw) and does not trigger
+# this function.
 sub bind {
-	my( $this)= @_;
+	my( $this, $dn, $pw)= @_;
 
-	p "BIND @_";
+	$this->normalize( \$dn);
 
-	# XXX Any password lets a user in.
+	p "BIND $dn"; # Do not show $pw in log.
 
-	LDAP_SUCCESS
+	my ( $ret, undef, undef, $entry)= $this->load( $dn);
+	return LDAP_INVALID_CREDENTIALS unless $ret== LDAP_SUCCESS;
+
+	my @pws= $entry->get_value( 'userPassword');
+
+	# See if any userPassword (can be multi-value) matches
+	# the provided password
+	if( ( firstidx { "$pw" eq "$_" } @pws)!= -1) {
+		return LDAP_SUCCESS
+	}
+
+	LDAP_INVALID_CREDENTIALS
 }
 
 
@@ -672,48 +692,59 @@ sub config {
 
 		} elsif( $key eq 'load' and CFG_STACK) {    # LOAD STACK
 
-			# Use only first argument as filename; the rest is unused, but in
-			# some future time may contain a list of s/X/Y/g replacements to
-			# perform before sending each stored line to config processor.
-			for( $val[0]) {
-				my $orig_fn= $_;
+			# In load specification, the first argument is the filename. The rest,
+			# if present, is a list of PATTERN REPLACEMENT to perform
+			# on each stored line before sending it to the config processor.
+			$_= shift @val;
+			my $orig_fn= $_;
 
-				s/[^\w\.]//g; # allow only [\w\.]+ in filename
-				s/^\.//; # delete all '.' prefix on the filename
+			s/[^\w\.]//g; # allow only [\w\.]+ in filename
+			s/^\.//; # delete all '.' prefix on the filename
 
-				if( $orig_fn ne $_) {
-					p "Stack load filename sanitized to '$_'";
+			if( $orig_fn ne $_) {
+				p "Stack load filename sanitized to '$_'";
+			}
+
+			# Evaluate Dumper data that we read in
+			my $edata;
+			{
+				use vars qw/$VAR1/;
+				my( $ret, @data)= $this->read_file( $this->{tmpdir}, $_);
+				return $ret unless $ret== LDAP_SUCCESS;
+
+				my $data= join q{}, @data;
+				$edata= eval $data;
+
+				if( $@) {
+					warn "Error loading stack file '$_' ($@)\n";
+					return LDAP_OPERATIONS_ERROR
+				}
+			}
+
+			if( defined $edata) {
+					if( ref $edata ne 'ARRAY') {
+					warn "Loaded stack file '$_', but it's not an arrayref!\n";
+					return LDAP_OPERATIONS_ERROR
 				}
 
-				# Evaluate Dumper data that we read in
-				my $edata;
-				{
-					use vars qw/$VAR1/;
-					my( $ret, @data)= $this->read_file( $this->{tmpdir}, $_);
-					return $ret unless $ret== LDAP_SUCCESS;
+				# List of substitutions to perform on each line and each
+				# argument before sending everything to the config processor.
+				my %substs= @val;
 
-					my $data= join q{}, @data;
-					$edata= eval $data;
+				# Now send line by line to the config routine
+				for my $line( @$edata) {
 
-					if( $@) {
-						warn "Error loading stack file '$_' ($@)\n";
-						return LDAP_OPERATIONS_ERROR
+					# Perform any substs specified as 'load FILE PAT REPL...':
+					for my $arg( @$line) {
+						while( my( $p, $r)= each %substs) {
+							$arg=~ s/$p/$r/g;
+						}
 					}
+
+					$this->config( @$line)
 				}
-
-				if( defined $edata) {
-						if( ref $edata ne 'ARRAY') {
-						warn "Loaded stack file '$_', but it's not an arrayref!\n";
-						return LDAP_OPERATIONS_ERROR
-					}
-
-					# Now send line by line to the config routine
-					for my $line( @$edata) {
-						$this->config( @$line)
-					}
-				} else {
-					warn "Empty stack file '$_'. Configuration mistake?\n"
-				}
+			} else {
+				warn "Empty stack file '$_'. Configuration mistake?\n"
 			}
 
 		} elsif( $key eq 'clean' and CFG_STACK) {   # DELETE OLD STACK FILES
@@ -1294,7 +1325,7 @@ sub run_overlays {
 					# Ok, we know overlay is configured with at least one line in
 					# slapd.conf and that line matches our attribute name.
 
-					DEBUG and DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
+					DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
 
 					# XXX this can be moved in the for( $a) loop, and there
 					# we can skip processing if there's no '$' in any of the
@@ -1499,7 +1530,8 @@ sub run_overlays {
 										# XXX add this check to other ovls too?
 										if( !defined $comp or !length $comp) {
 											warn "ExpandVal of $attr for ".
-												($dn|| 'local entry'). "is empty\n";
+												($dn|| 'local entry'). " is empty. ".
+												"Wrong server schemas and/or schema.ldif file?\n";
 										}
 
 									# OVERLAY FIND / SUBSEARCH
@@ -1642,8 +1674,29 @@ sub run_overlays {
 
 									# OVERLAY PERLEVAL
 									} elsif( $ovl eq 'perl') {
+
+										my $key;
+										if( $opts{cacheref}) {
+											$key= $comp;
+
+											if( exists $opts{cacheref}{$key}) {
+												pc "Using cache value for PERL '$key'";
+												$comp= $opts{cacheref}{$key};
+												goto PERL_DONE
+											}
+										}
+
 										# XXX Eval error handling, sandbox
 										$comp= eval $comp;
+
+										# If cacheref exists and $key is there, time for
+										# us to save key to cache.
+										if( $opts{cacheref} and $key) {
+											pc "Rebuilding cache value for PERL '$key'";
+											$opts{cacheref}{$key}= $comp
+										}
+
+										PERL_DONE:
 									}
 
 								} elsif( $comp=~ /^$ovl\b/) {
@@ -2130,8 +2183,9 @@ sub dn2leaf {
 
 # Quick debug print. p(...)
 sub p { if( DEBUG) { print {*STDERR} '### ', join( ' ', @_), "\n"}}
-sub pd{ if( DEBUG and DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
-sub pc{ if( DEBUG and DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
+sub pd{ if( DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
+sub pc{ if( DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
+sub pcd{ if( DEBUG_DTL and DEBUG_CCH){print {*STDERR} '+++ ',join(' ',@_),"\n"}}
 
 # Subroutine that appends the entry with attributes from other entries
 # according to 'entryappend' config directive. This has become a quite
@@ -2810,9 +2864,9 @@ sub check_prompter {
 	# Now that the Debconf question has been asked and completely dealt
 	# with, remove it from the memory cache.
 	if( $key and $dt->{exists}->{$key}) {
-		undef $dt->{ovl_cache}->{$key};
+		undef $dt->{cache}->{$key};
 		$dt->{exists}->{$key}= 0;
-		undef $dc->{ovl_cache}->{$key};
+		undef $dc->{cache}->{$key};
 		$dc->{exists}->{$key}= 0;
 		# XXX config option to select whether saveloc is always reinitialized
 		# or set to last-state.
@@ -2922,22 +2976,25 @@ sub ovl_options {
 			# separate hash for each cache option).
 			# Note also that queues are per-overlay and per-spec, not just per-spec,
 			# so it's not possible that overlays confuse their cached values.
-			my $qname= $ovl. '_'. $n;
 
-			pc "Parsed cache spec '$spec' to '$nparm $n' ".
-				"(queue $qprefix, $qname)";
+			pcd "Parsed cache spec '$spec' to '$nparm $n' ".
+				"(queue $qprefix, ovl $ovl)";
 
 			# Create queue if it doesn't exist yet.
-			if( not exists $this->{ovl_cache}{$qprefix}{$qname}) {
+			if( not defined $this->{ovl_cache}{$qprefix}{$ovl}{$n}) {
 				if( $qprefix ne 'op') {
 					# Time and use queues are tied, operation count queue is not
-					tie %{ $this->{ovl_cache}{$qprefix}{$qname}} =>
+					tie %{ $this->{ovl_cache}{$qprefix}{$ovl}{$n}} =>
 						'Memoize::Expire', $nparm => $n;
 				} else {
 					# This is op-qeueue, realized without Tie.
-					%{ $this->{ovl_cache}{$qprefix}{$qname}}= ();
+					%{ $this->{ovl_cache}{$qprefix}{$ovl}{$n}}= ();
+
+					# Register initial and current (same as initial) validity period.
+					$this->{op_cache_validity}{$ovl}{$n}= $n;
 				}
-				p "Created cache queue $qprefix-$qname ($nparm $n)";
+
+				p "Created cache queue $qprefix-$ovl-$n ($nparm $n)";
 			}
 
 			# Onto @newopts, add cacheref which is a direct pointer to the queue
@@ -2947,7 +3004,7 @@ sub ovl_options {
 			# would override our values dereived here. The override will elegantly
 			# happen when @newopts is turned to a hash on the receiver end,
 			# i.e. %opts= $this->ovl_options( $optspec).
-			unshift @newopts, 'cacheref', $this->{ovl_cache}{$qprefix}{$qname};
+			unshift @newopts, 'cacheref', $this->{ovl_cache}{$qprefix}{$ovl}{$n};
 
 			# Push could be done outside of per-option block, but the way we do it
 			# here, we can achieve the option to be ignored if the top if() doesn't
@@ -2991,11 +3048,19 @@ sub check_state {
 	# We keep track of how many loops we've done via $this->{level}.
 	if( ref $$arg[@$arg-1]) {
 		pop @$arg;
-		$this->{level}+= 1
+		$this->{level}++;
 	} else{
 		$this->{level}= 1;
-		$this->{ovl_cache}{op}= undef; # Clear per-op ovl cache
 		$this->{dn2leaf_cache}= undef; # Clear per-op dn2leaf cache
+
+		while( my ($ovl, $ovlref)= each %{ $this->{op_cache_validity}}) {
+			for my $n( keys %{ $ovlref}) {
+				if( --$ovlref->{$n}< 1) {
+					$this->{ovl_cache}{op}{$ovl}{$n}= undef;
+					$ovlref->{$n}= $n;
+				}
+			}
+		}
 	}
 }
 
