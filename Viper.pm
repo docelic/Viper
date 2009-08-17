@@ -579,6 +579,8 @@ sub init {
 sub bind {
 	my( $this, $dn, $pw)= @_;
 
+	$this->normalize( \$dn);
+
 	p "BIND $dn"; # Do not show $pw in log.
 
 	my ( $ret, undef, undef, $entry)= $this->load( $dn);

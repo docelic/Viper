@@ -74,6 +74,7 @@ gidNumber: 1000
 homeDirectory: /home/docelic
 loginShell: /bin/bash
 roleOccupant: employeeNumber=1000,ou=people,o=c1.com,ou=clients
+userPassword: abc
 
 dn: gidNumber=1000,ou=groups,o=c1.com,ou=clients
 objectClass: posixGroup
