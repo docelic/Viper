@@ -7,7 +7,8 @@
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
-* locales && reconfigure locales in bootstrapped openvz install
+* Make viper server also a recursive dns, so can use it as dns instead
+ of 192.168.1.254
 
 * check if proper order of values is preserved even when overlays run
 
