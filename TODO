@@ -11,6 +11,8 @@
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
 
+* $this->{start} must be keyed to the $level as well
+
 * For every attr that is defined as containing a DN in schema, support
  expansion of dots (".") to components
 
@@ -129,8 +131,6 @@ so that they can easily spot the mistake
   triggers, for example search in ou=dhcp and some ethernet addr can trigger
   creation of an entry with some IP, and then return that IP as if it was
   there.
-
-* perl's init() to pass on suffix
 
 * resolve file XXXs
 
