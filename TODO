@@ -11,6 +11,9 @@
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
 
+* For every attr that is defined as containing a DN in schema, support
+ expansion of dots (".") to components
+
 * check if proper order of values is preserved even when overlays run
 
 * udpkg -i partman_auto_raid in ubuntu 8.04 early_command
@@ -30,7 +33,7 @@ in the host entry
 
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
  looping thru subentries. This isn't quite alright as it'll break when base DN
- is coming from fallback (baseDN will be origDN, then on subentries, DN will 
+ s coming from fallback (baseDN will be origDN, then on subentries, DN will 
  be fallbackDN)
 
 * use ViperConfig.pm (server, bind DN, pw, etc.). Actually, let's just come
@@ -80,9 +83,6 @@ in the host entry
 
 * don't tie host extra info to puppetClient, tie to extraInfo, configInfo,
  configData or so
-
-* Do not modify any schema elements in spinlock.schema, override with
- viperELEM_NAME and corresponding OID
 
 - some trigger, that could run arbitrary things, like ipcalc to conver .255 -> /32 etc.
 
