@@ -2,13 +2,14 @@
 
 * Test if server side prompter works after changes
 
-* Make 5o cache possible, and make cacheOpen understand cache specs
+* make cacheOpen understand cache specs
 
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
+* configure local bind9 so it resolves according to dhcp leases
 
 * For every attr that is defined as containing a DN in schema, support
  expansion of dots (".") to components
@@ -20,6 +21,9 @@
 that to apply default dhcpOptions even if one specifies some of them
 in the host entry
 
+* tests/ dir and a suite of test queries diff-ed to expected return values
+ based on client c1.com
+
 * Support fileVal to find all $1 or regex matching within the file, return
  them as array, then have joiner as usual
 
@@ -30,7 +34,9 @@ in the host entry
  is coming from fallback (baseDN will be origDN, then on subentries, DN will 
  be fallbackDN)
 
-* use ViperConfig.pm (server, bind DN, pw, etc.)
+* use ViperConfig.pm (server, bind DN, pw, etc.). Actually, let's just come
+ to the stage where users are added to the directory and Viper checks
+ credentials on bind (just simple password for start)
 
 * allow rewriting of requested search attrs to return
 
@@ -63,8 +69,6 @@ in the host entry
  is most probably incomplete (in some cases its hidden, but do it in 100% of
  cases)
 
-* configure local bind9 so it resolves according to dhcp leases
-
 * putting value together after overlay work would break if evaluation result matches
  name of some overlay?
 
@@ -77,6 +81,9 @@ in the host entry
 
 * don't tie host extra info to puppetClient, tie to extraInfo, configInfo,
  configData or so
+
+* Do not modify any schema elements in spinlock.schema, override with
+ viperELEM_NAME and corresponding OID
 
 - some trigger, that could run arbitrary things, like ipcalc to conver .255 -> /32 etc.
 
@@ -129,8 +136,6 @@ so that they can easily spot the mistake
 * resolve file XXXs
 
 * ldapsearch -x, why returns limit 500 results even on -z0 -l0
-
-* Syntax for load:   load   TMPFILE    s/x/y/g....
 
 * Make Viper its own package, with slap* version of tools -> vipercat, viperadd etc.
 

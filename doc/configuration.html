@@ -331,10 +331,10 @@ difference -- with "exp", you generally know where the entry and attribute
 to expand to are located. With "find", you generally don't, so you perform
 a search to find them.
 </p>
-<h4>load FILE</h4>
+<h4>load FILE [PATTERN REPLACEMENT ...]</h4>
 <p>
-Load and process configuration stack from FILE. FILE is always relative to
-suffix base directory.
+Load and process configuration stack from FILE.
+FILE is always relative to suffix base directory.
 </p>
 <p>
 To ease writing slapd.conf configuration, Viper supports saving
@@ -345,8 +345,15 @@ Once saved, the stack can be loaded by subsequently-defined suffixes to
 import configuration blocks.
 </p>
 <p>
-Stacks may contain variables that expand to proper values in the context
-of each suffix that is using them.
+It is possible to specify a list of PATTERN/REPLACEMENTs that
+are applied to every line loaded before it is sent to the config
+processor.
+</p>
+<p>
+Also, stacks may contain variables that will expand to proper values
+in the context of each suffix that is using them.
+(Not particularly important, but note that this will happen in the
+config processor call, not during PATTERN/REPLACEMENT preprocessing.)
 </p>
 <h4>message TEXT</h4>
 <p>

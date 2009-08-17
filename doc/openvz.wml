@@ -237,7 +237,7 @@ apt-get update
 
 apt-get install openssh-{client,server} vim less locales
 
-dpkg-reconfigure locales
+dpkg-reconfigure locales tzdata
 </pre>
 
 <h2>Installing Viper</h2>
