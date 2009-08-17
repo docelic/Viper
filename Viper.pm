@@ -1,5 +1,5 @@
 package Viper;
-$Viper::VERSION= '.1p210'; # Fri Aug  7 19:50:58 CEST 2009
+$Viper::VERSION= '.1p410'; # Mon Aug 17 11:15:45 UTC 2009
 #
 # vim: se ts=2 sts=2 sw=2 ai
 #
@@ -299,14 +299,14 @@ use Text::CSV_XS        qw//;
 use Memoize::Expire     qw//;
 use List::MoreUtils     qw/any firstidx/;
 
-use subs                qw/p pd pc/;
+use subs                qw/p pd pc pcd/;
 
 # To make use of DEBUG, server must run in foreground mode. Something like:
 # su -c 'LD_PRELOAD=/usr/lib/libperl.so.5.10 /usr/sbin/slapd -d 256'
-use constant DEBUG    => 0; # General debug output
+use constant DEBUG    => 0; # General debug?
+use constant DEBUG_OVL=> 0; # Overlays debug?
+use constant DEBUG_CCH=> 0; # Cache debug?
 use constant DEBUG_DTL=> 0; #  Detailed debug?
-use constant DEBUG_OVL=> 0; #  Overlays-related debug output?
-use constant DEBUG_CCH=> 0; #  Cache debug?
 
 use constant CFG_STACK=> 1; # Allow save/reset/load config file routines
 use constant CFG_DUMP => 1; # Allow savedump/loaddump config file routines
@@ -464,6 +464,8 @@ sub new {
 		level          => 0,       # Loop/depth count. Usually 1
 		ovl_cache      => {},	     # Will contain queues with cached ovl values
 		dn2leaf_cache  => {},	     # Will contain queues with cached dn2leaf values
+
+		op_cache_validity=> {},    # Num-ops cache validity
 	};
 
 	# Must be done here as schema parser already has to be present
@@ -1294,7 +1296,7 @@ sub run_overlays {
 					# Ok, we know overlay is configured with at least one line in
 					# slapd.conf and that line matches our attribute name.
 
-					DEBUG and DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
+					DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
 
 					# XXX this can be moved in the for( $a) loop, and there
 					# we can skip processing if there's no '$' in any of the
@@ -1499,7 +1501,8 @@ sub run_overlays {
 										# XXX add this check to other ovls too?
 										if( !defined $comp or !length $comp) {
 											warn "ExpandVal of $attr for ".
-												($dn|| 'local entry'). "is empty\n";
+												($dn|| 'local entry'). " is empty. ".
+												"Wrong server schemas and/or schema.ldif file?\n";
 										}
 
 									# OVERLAY FIND / SUBSEARCH
@@ -1642,8 +1645,29 @@ sub run_overlays {
 
 									# OVERLAY PERLEVAL
 									} elsif( $ovl eq 'perl') {
+
+										my $key;
+										if( $opts{cacheref}) {
+											$key= $comp;
+
+											if( exists $opts{cacheref}{$key}) {
+												pc "Using cache value for PERL '$key'";
+												$comp= $opts{cacheref}{$key};
+												goto PERL_DONE
+											}
+										}
+
 										# XXX Eval error handling, sandbox
 										$comp= eval $comp;
+
+										# If cacheref exists and $key is there, time for
+										# us to save key to cache.
+										if( $opts{cacheref} and $key) {
+											pc "Rebuilding cache value for PERL '$key'";
+											$opts{cacheref}{$key}= $comp
+										}
+
+										PERL_DONE:
 									}
 
 								} elsif( $comp=~ /^$ovl\b/) {
@@ -2132,6 +2156,7 @@ sub dn2leaf {
 sub p { if( DEBUG) { print {*STDERR} '### ', join( ' ', @_), "\n"}}
 sub pd{ if( DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
 sub pc{ if( DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
+sub pcd{ if( DEBUG_DTL and DEBUG_CCH){print {*STDERR} '+++ ',join(' ',@_),"\n"}}
 
 # Subroutine that appends the entry with attributes from other entries
 # according to 'entryappend' config directive. This has become a quite
@@ -2922,22 +2947,25 @@ sub ovl_options {
 			# separate hash for each cache option).
 			# Note also that queues are per-overlay and per-spec, not just per-spec,
 			# so it's not possible that overlays confuse their cached values.
-			my $qname= $ovl. '_'. $n;
 
-			pc "Parsed cache spec '$spec' to '$nparm $n' ".
-				"(queue $qprefix, $qname)";
+			pcd "Parsed cache spec '$spec' to '$nparm $n' ".
+				"(queue $qprefix, ovl $ovl)";
 
 			# Create queue if it doesn't exist yet.
-			if( not exists $this->{ovl_cache}{$qprefix}{$qname}) {
+			if( not defined $this->{ovl_cache}{$qprefix}{$ovl}{$n}) {
 				if( $qprefix ne 'op') {
 					# Time and use queues are tied, operation count queue is not
-					tie %{ $this->{ovl_cache}{$qprefix}{$qname}} =>
+					tie %{ $this->{ovl_cache}{$qprefix}{$ovl}{$n}} =>
 						'Memoize::Expire', $nparm => $n;
 				} else {
 					# This is op-qeueue, realized without Tie.
-					%{ $this->{ovl_cache}{$qprefix}{$qname}}= ();
+					%{ $this->{ovl_cache}{$qprefix}{$ovl}{$n}}= ();
+
+					# Register initial and current (same as initial) validity period.
+					$this->{op_cache_validity}{$ovl}{$n}= $n;
 				}
-				p "Created cache queue $qprefix-$qname ($nparm $n)";
+
+				p "Created cache queue $qprefix-$ovl-$n ($nparm $n)";
 			}
 
 			# Onto @newopts, add cacheref which is a direct pointer to the queue
@@ -2947,7 +2975,7 @@ sub ovl_options {
 			# would override our values dereived here. The override will elegantly
 			# happen when @newopts is turned to a hash on the receiver end,
 			# i.e. %opts= $this->ovl_options( $optspec).
-			unshift @newopts, 'cacheref', $this->{ovl_cache}{$qprefix}{$qname};
+			unshift @newopts, 'cacheref', $this->{ovl_cache}{$qprefix}{$ovl}{$n};
 
 			# Push could be done outside of per-option block, but the way we do it
 			# here, we can achieve the option to be ignored if the top if() doesn't
@@ -2994,8 +3022,16 @@ sub check_state {
 		$this->{level}++;
 	} else{
 		$this->{level}= 1;
-		$this->{ovl_cache}{op}= undef; # Clear per-op ovl cache
 		$this->{dn2leaf_cache}= undef; # Clear per-op dn2leaf cache
+
+		while( my ($ovl, $ovlref)= each %{ $this->{op_cache_validity}}) {
+			for my $n( keys %{ $ovlref}) {
+				if( --$ovlref->{$n}< 1) {
+					$this->{ovl_cache}{op}{$ovl}{$n}= undef;
+					$ovlref->{$n}= $n;
+				}
+			}
+		}
 	}
 }
 
