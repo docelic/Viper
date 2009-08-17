@@ -49,7 +49,7 @@ objectClass: dhcpOptions
 ipNetmaskNumber: 255.255.255.0
 ipBroadcastNumber: 10.0.1.255
 ipNetworkNumber: 10.0.1.0
-router: 10.0.1.254
+router: 10.0.1.1
 configServer: 10.0.1.1
 nameServer: 192.168.1.254
 dhcpNetMask: 24
