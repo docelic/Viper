@@ -47,7 +47,7 @@ ou: networks
 dn: cn=10.0.2.0, ou=networks, o=cstp.hr,ou=clients
 cn: 10.0.2.0
 objectClass: top
-objectClass: ipNetwork
+objectClass: x-ipNetwork
 objectClass: dhcpSubnet
 objectClass: dhcpOptions
 ipNetmaskNumber: 255.255.255.0
@@ -62,7 +62,7 @@ dhcpNetMask: 24
 dn: cn=default, ou=networks, o=cstp.hr,ou=clients
 cn: default
 objectClass: top
-objectClass: ipNetwork
+objectClass: x-ipNetwork
 objectClass: dhcpSubnet
 objectClass: dhcpOptions
 seeAlso: cn=10.0.2.0, ou=networks, o=cstp.hr,ou=clients
@@ -112,7 +112,7 @@ objectClass: device
 objectClass: dhcpHost
 objectClass: ipHost
 objectClass: ieee802Device
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: h1
 ipHostNumber: 10.0.2.2
 macAddress: 00:22:64:23:04:05
@@ -125,7 +125,7 @@ objectClass: device
 objectClass: dhcpHost
 objectClass: ipHost
 objectClass: ieee802Device
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: l1
 ipHostNumber: 10.0.2.3
 macAddress: 00:25:b3:46:16:7c
@@ -137,7 +137,7 @@ objectClass: device
 objectClass: dhcpHost
 objectClass: ipHost
 objectClass: ieee802Device
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: h2
 ipHostNumber: 10.0.2.4
 macAddress: 00:22:64:c0:c2:81
@@ -149,7 +149,7 @@ objectClass: device
 objectClass: dhcpHost
 objectClass: ipHost
 objectClass: ieee802Device
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: h3
 ipHostNumber: 10.0.2.5
 macAddress: 00:22:64:be:fe:7d
@@ -161,7 +161,7 @@ objectClass: device
 objectClass: dhcpHost
 objectClass: ipHost
 objectClass: ieee802Device
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: l2
 ipHostNumber: 10.0.2.6
 macAddress: 00:25:b3:49:ff:8c
