@@ -759,8 +759,7 @@ sub config {
 			for my $file( glob $glob) {
 				p "Unlinking tmp stack file '$file'";
 				unless( unlink $file) {
-					# XXX $! not getting filled in here on error
-					warn "Can't unlink tmp stack file '$file'\n";
+					warn "Can't unlink tmp stack file '$file' ($!)\n";
 					return LDAP_OPERATIONS_ERROR
 				}
 			}
@@ -849,7 +848,8 @@ sub add {
 
 	DEBUG and p "ADD '$dn': " . ( Dumper \$ldif);
 
-	# XXX Check for validity of attrs in entry
+	# XXX Check for validity of attrs in entry. (Well, I think
+	# slapd does that, no worries, all we get here is valid)
 
 	$ret= $this->save( $dn, $entry);
 	return $ret unless $ret== LDAP_SUCCESS;
@@ -1430,7 +1430,6 @@ sub run_overlays {
 											}
 										}
 
-										# XXX remove this
 										p 'FILE: will read dir='.  $this->{directory}.
 											', file='.  $file.
 											', spec='.  ( $spec|| '');
@@ -1559,11 +1558,6 @@ sub run_overlays {
 										# first level search (direct entry).
 										next if $this->{level}> 1;
 
-										# XXX see if condition applies. Problems: due to how
-										# ovl options are parsed, one can't specify multiple
-										# ifs. But alright, this simple implementation still
-										# does some good work - makes the whole value ignored
-										# if the condition does not apply.
 										if( $opts{if}) {
 											my( $k, $v)= @{ $opts{if}};
 											# Set up initial condition. If key begins with !,
@@ -1615,8 +1609,8 @@ sub run_overlays {
 										if( @f== 10) { $gvalx= pop @f}
 										if( @f== 9)  { $valx=  pop @f}
 										if( @f!= 8)  {
-											# XXX improve errmsg
-											warn "Invalid syntax for findVal overlay.\n";
+											warn "Must specify 10 options for findVal overlay ".
+												"(have @f).\n";
 											return LDAP_INVALID_SYNTAX
 										}
 
@@ -2162,7 +2156,10 @@ sub dn2leaf {
 
 		if( $ldif->error) {
 			warn 'LDIF Load Error: '.$ldif->error.': '.$ldif->error_lines;
-			flock $fh, LOCK_UN; # XXX Need error ck like below?
+
+			unless( flock $fh, LOCK_UN) {
+				warn "Can't flock_UN '$file' ($!)\n";
+			}
 			return LDAP_OPERATIONS_ERROR
 		}
 
@@ -2292,7 +2289,9 @@ sub run_appender {
 			# Attribute containing attrs from seeAlso to add (often 'seeAlsoAttr')
 			# If no attrs found through seeAlsoAttr spec, then assume all attrs
 			# from lookup DN are expected to be added (if just allowed by schema).
-			push @lookup_attrs, $e->get_value( $$rule[$i+2]); # XXX undef/'' slips in?
+			my @lattrs= $e->get_value( $$rule[$i+2]);
+			push @lookup_attrs, @lattrs if @lattrs;
+
 			my $add_entry_attrs;
 			$add_entry_attrs= 1 if not @lookup_attrs;
 
