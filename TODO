@@ -11,7 +11,13 @@
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
 
-* $this->{start} must be keyed to the $level as well
+* $this->{start} must be keyed to the $level as well, the check should
+ be time > global time or time > level time.
+
+* Support for specifying which OS/distro should be installed, having
+ debconf keys that understand it
+
+* local mirror with imported signing key
 
 * check if multiple 'if' options to an overlay work properly
 
