@@ -50,62 +50,46 @@
 </ul>
 				</div>
 				<div id="content">
-<h1>Viper - Custom Perl backend for use with the OpenLDAP server.<br>
-</h1>
-LDAP can be enormously successful in configuration management, but its
-flat data structure, absence of any kind of dynamic behavior, and heaps
-of duplicated data make it a mediocre tool.
-<h2>Quick introduction to Viper backend<br>
-</h2>
-To build on LDAP's great
-strengths while solving the deficiencies, a custom Perl-based OpenLDAP
-backend has been implemented. It's called Viper.<br>
-<br>
-A "rapid fire" list of significant new features
-includes:
-search rewriting (subst), default entries (fallbacks), default
-attributes (append), dynamic values, expansion to values of other fields or
-files, sub-searching, entry relocation, caching of computed values, smart ADD
-and MODIFY handling and server-side Debconf prompting.<br>
-<br>
-The implemented set of features allows LDAP to act as a powerful
-central data store, without any data duplication or need for batch
-scripts that would periodically re-generate config files. All data
-needs to be added only once, all components contact LDAP on the fly,
-and all data served by LDAP is current.<br>
-<br>
-Having a custom backend also brings one other crucial benefit to the
-picture -- the ability to make provisions for existing components and
-their use of LDAP (DHCP server, puppet, Debconf) without requiring
-modifications to their source code.<br>
-<br>
-Here's a quick overview of typical components that are accessing LDAP.
-If access is not enabled directly, but through an interface script,
-script name is also listed.<br>
-<br>
-<br>
-<div style="text-align: center;"><img
- style="width: 883px; height: 500px;"
- alt="Components using Viper LDAP backend" src="users.png" width="883" height="500"></div>
-<br>
-<h2>More introduction</h2>
-The Viper backend implements regular LDAP functionality and can be used
-in general-purpose LDAP scenarios where you want quick results on a
-platform that already has extra features (default entries, query
-rewriting, dynamic values, etc.), and also lends itself to further
-custom functionality.<br>
+<h1>Viper - OpenLDAP backend</h1>
+<p>
+Viper implements a custom backend for the OpenLDAP server, and aims to
+build on LDAP's great strenghts while introducing a number of features
+to solve its deficiencies when it comes to configuration management.
+</p>
+<p>
+The backend implements regular LDAP functionality and can be used
+in general-purpose scenarios. It can be used in places where you
+want quick results, on a platform that already has extra features
+and also lends itself to further customization.<br>
 <br>
 However, it's main role is serving as the backend for automatic system
 installations and configurations, where the hosts are Debian-based
 systems retrieving configuration data using HTTP preseeding, Debconf
 and its LDAP driver, and in a final stage Puppet. A whole set of
-features has been implemented specifically for this purpose.<br>
-<br>
-Viper backend has a number of specifics, of course; some are coming to
-play in all usage scenarios, and some primarily in automatic install
-scenarios.<br>
+features has been implemented specifically for this purpose.
+</p>
+<p>
+A "rapid fire" list of added features includes:
+search rewriting (subst), default entries (fallbacks), default
+attributes (append), dynamic values, expansion to values of other fields or
+files, sub-searching, entry relocation, caching of computed values, smart ADD
+and MODIFY handling and server-side Debconf prompting.
+</p><p>
+The implemented set of features allows LDAP to act as a powerful
+central data store, without any data duplication or need for batch
+scripts that would periodically re-generate config files. All data
+needs to be added only once, all components contact LDAP on the fly,
+and all data served by LDAP is current.
+</p><p>
+Having a custom backend also brings one other crucial benefit to the
+picture -- the ability to make provisions for existing components and
+their use of LDAP (DHCP server, puppet, Debconf) without requiring
+modifications to their source code.
+</p>
 <h2>Summary of features</h2>
+<p>
 Here's the summary of Viper features, grouped by category:<br>
+</p>
 <h4>General</h4>
 Server data is kept in form of LDIF files in the filesystem (<span
  style="font-style: italic;">/var/lib/ldap/viper/</span>), where each
