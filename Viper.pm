@@ -240,7 +240,7 @@ sub new {
 		dn2leaf_cache  => {},	     # Will contain queues with cached dn2leaf values
 		op_cache_valid => {},      # Num-ops cache validity
 
-		'time'         => undef,   # Time (epoch seconds) of search start
+		'start'        => [],      # Time of search start (array ID= search level)
 	};
 
 	# Must be done here as schema parser already has to be present
@@ -762,7 +762,7 @@ sub search {
 	# slapd expects results in LDIF, but our internal subinvocations basically
 	# always want entry results, not LDIF. So, in a direct call from slapd,
 	# $as_ldif will be true, otherwise false (implying we want entry objects).
-	my $as_ldif= $this->{level}== 1? 1: 0;
+	my $as_ldif= $this->{level}== 0? 1: 0;
 
 	# First entry is always the base, if -s base or -s sub was specified
 	# for search scope.
@@ -784,10 +784,11 @@ sub search {
 			DEBUG and p 'SEARCH MATCH:', $entry->dn;
 			unshift @matches, $as_ldif? $ldif: $entry;
 
-			goto SEARCH_DONE if @matches> $req{size};
+			goto SIZE_LIMIT if @matches> $req{size};
 		}
 
-		goto SEARCH_DONE if time- $this->{start}> $req{time};
+		my $time= time;
+		goto TIME_LIMIT if any { $time- $_> $req{time}} @{ $this->{start}}
 	}
 
 	# Further entries may follow unless only base was specifically
@@ -820,31 +821,38 @@ sub search {
 						DEBUG and p 'SEARCH MATCH:', $entry->dn;
 						unshift @matches, $as_ldif? $ldif : $entry;
 
-						goto SEARCH_DONE if @matches> $req{size};
+						goto SIZE_LIMIT if @matches> $req{size};
 					}
 
-					goto SEARCH_DONE if time- $this->{start}> $req{time};
+					my $time= time;
+					goto TIME_LIMIT if any { $time- $_> $req{time}} @{ $this->{start}}
 			} )
 			->maxdepth( $md)
 			->readable
 			->in( $dir)
 	}
 
+	$ret= LDAP_SUCCESS;
+	goto SEARCH_DONE;
+
+	TIME_LIMIT:
+	$ret= LDAP_TIMELIMIT_EXCEEDED;
+	goto SEARCH_DONE;
+
+	SIZE_LIMIT:
+	$ret= LDAP_SIZELIMIT_EXCEEDED;
+
 	SEARCH_DONE:
 
-	if( my $count= @matches) {
-		p 'SEARCH TOTAL:', scalar @matches,
-			'matches (time='. ( time- $this->{start}). "/$req{time}, ".
-			"size=$count/$req{size})"
-	}
+	my ( $level, $start)= ( $this->{level}, $this->{start}[ $this->{level}]);
+
+	p 'SEARCH TOTAL:', scalar @matches, 'matches ('.
+		"level $level, time=". ( time- $start). "/$req{time}, ".
+		"size=". ( scalar @matches). "/$req{size})";
 
 	$this->{level}-= 1;
 
-	# Return should be 0 (LDAP_SUCCESS) if no limits were hit.
-	$ret= LDAP_SUCCESS;
-	$ret= LDAP_SIZELIMIT_EXCEEDED if @matches> $req{'size'};
-	$ret= LDAP_TIMELIMIT_EXCEEDED if time- $this->{start}> $req{'time'};
-
+	# $ret will be 0 (LDAP_SUCCESS) if no limits were hit.
 	( $ret, @matches)
 }
 
@@ -1329,7 +1337,7 @@ sub run_overlays {
 									
 										# Do not operate on the attribute if this is not the
 										# first level search (direct entry).
-										next if $this->{level}> 1;
+										next if $this->{level}> 0;
 
 										if( $opts{if}) {
 											my( $k, $v)= @{ $opts{if}};
@@ -2842,9 +2850,7 @@ sub check_state {
 
 	# If here, means we are entering a new search from slapd
 	} else{
-		$this->{level}= 1;
-
-		$this->{start}= time;
+		$this->{level}= 0;
 
 		$this->{dn2leaf_cache}= undef; # Clear per-op dn2leaf cache
 
@@ -2857,6 +2863,8 @@ sub check_state {
 			}
 		}
 	}
+
+	$this->{start}[ $this->{level}]= time;
 }
 
 #
