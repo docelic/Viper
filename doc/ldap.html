@@ -24,16 +24,12 @@
 </ul>
 <h2>Guides</h2>
 <ul>
+  <li><a href="ldap.html">Viper backend overview</a></li>
+  <li><a href="configuration.html">Configuration file reference</a><br>
+  <li><a href="viper.html">Value syntax reference</a><br><br>
   <li><a href="client.html">Adding clients and hosts</a><br>
   <li><a href="values.html">Adding configuration values</a><br><br>
-  <li><a href="configuration.html">Configuration file reference</a><br>
-  <li><a href="viper.html">Viper syntax reference</a><br>
-</ul>
-<h2>Overviews<br>
-</h2>
-<ul>
-  <li><a href="components.html">Host installation procedure </a></li>
-  <li><a href="ldap.html">Viper OpenLDAP backend</a></li>
+  <li><a href="components.html">Host installation overview</a></li>
   <li><a href="data.html">Viper LDAP data structure</a></li>
 </ul>
 <h2>Misc info</h2>
@@ -50,36 +46,36 @@
 </ul>
 				</div>
 				<div id="content">
-<h1>Viper - OpenLDAP backend</h1>
+<h1>Viper OpenLDAP backend</h1>
 <p>
-Viper implements a custom backend for the OpenLDAP server, and aims to
-build on LDAP's great strenghts while introducing a number of features
-to solve its deficiencies when it comes to configuration management.
+The complete Viper suite is named after its most important component, Viper,
+a custom Perl-based backend for the OpenLDAP server. The backend
+builds on LDAP's great strenghts while introducing a number of features
+to solve deficiencies in LDAP when it comes to configuration management.
 </p>
 <p>
-The backend implements regular LDAP functionality and can be used
+The backend can be used
 in general-purpose scenarios. It can be used in places where you
 want quick results, on a platform that already has extra features
-and also lends itself to further customization.<br>
-<br>
-However, it's main role is serving as the backend for automatic system
+and also lends itself to further customization.
+</p><p>
+However, its main role is serving as the backend for automatic system
 installations and configurations, where the hosts are Debian-based
-systems retrieving configuration data using HTTP preseeding, Debconf
-and its LDAP driver, and in a final stage Puppet. A whole set of
-features has been implemented specifically for this purpose.
+systems retrieving configuration data using various methods, such as HTTP
+preseeding, Debconf, Puppet etc.
 </p>
 <p>
-A "rapid fire" list of added features includes:
-search rewriting (subst), default entries (fallbacks), default
-attributes (append), dynamic values, expansion to values of other fields or
+A "rapid fire" list of Viper features includes
+search rewriting, default entries, default
+attributes, dynamic values, expansion to values of other fields or
 files, sub-searching, entry relocation, caching of computed values, smart ADD
-and MODIFY handling and server-side Debconf prompting.
+and MODIFY handling, and server-side Debconf prompting.
 </p><p>
-The implemented set of features allows LDAP to act as a powerful
+The implemented features allow LDAP to act as a powerful
 central data store, without any data duplication or need for batch
 scripts that would periodically re-generate config files. All data
-needs to be added only once, all components contact LDAP on the fly,
-and all data served by LDAP is current.
+needs to be specified in only one place, all components contact LDAP
+on the fly, and all data served by LDAP is current.
 </p><p>
 Having a custom backend also brings one other crucial benefit to the
 picture -- the ability to make provisions for existing components and
@@ -91,6 +87,7 @@ modifications to their source code.
 Here's the summary of Viper features, grouped by category:<br>
 </p>
 <h4>General</h4>
+<p>
 Server data is kept in form of LDIF files in the filesystem (<span
  style="font-style: italic;">/var/lib/ldap/viper/</span>), where each
 entry is represented by a directory structure (DN components) and a
@@ -98,52 +95,67 @@ single file representing the final entry (leaf).&nbsp; It means that
 internally, on a low level, you can modify LDAP values like a
 filesystem operation (editing files and directories), that you can use
 symlinks and hardlinks, and that you can set file permissions to affect
-reading and writing.&nbsp; Files have a mandatory suffix, so that they
-are distinguishable from their corresponding directories, where the
-subentries are kept. Here's an example of disk structure:<br>
-<pre>s1:/var/lib/ldap/viper# find .<br>.<br>./ou=dhcp.ldif<br>./ou=dhcp<br>./ou=dhcp/ou=eth1.ldif<br>./ou=dhcp/cn=s1.ldif<br>./ou=clients.ldif<br>./ou=defaults<br>./ou=defaults/ou=hosts<br>./ou=defaults/ou=hosts/cn=netcfg.get_domain.ldif<br>./ou=defaults/ou=hosts/cn=partman.confirm.ldif<br>./ou=defaults/ou=hosts/cn=preseed.early_command.ldif<br>./ou=defaults/ou=hosts/cn=console-keymaps-at.keymap.ldif<br>./ou=defaults/ou=hosts/cn=time.zone.ldif<br><br></pre>
+reading and writing.
+</p><p>
+Files have a mandatory suffix, so that they
+are distinguishable from the corresponding directories where the
+subentries are kept. Here's an example of disk structure:
+<pre>s1:/var/lib/ldap/viper# find .
+.
+./ou=dhcp.ldif
+./ou=dhcp
+./ou=dhcp/ou=eth1.ldif
+./ou=dhcp/cn=s1.ldif
+./ou=clients.ldif
+./ou=defaults
+./ou=defaults/ou=hosts
+./ou=defaults/ou=hosts/cn=netcfg.get_domain.ldif
+./ou=defaults/ou=hosts/cn=partman.confirm.ldif
+./ou=defaults/ou=hosts/cn=preseed.early_command.ldif
+./ou=defaults/ou=hosts/cn=console-keymaps-at.keymap.ldif
+./ou=defaults/ou=hosts/cn=time.zone.ldif
+</pre>
+<p>
 Each file is expected to contain only one entry, and so within each
 file, exactly and only the first entry is relevant. Everything in there
-that is either another entry or just invalid data (honoring server's
-schema), be it after or
-within the first entry, is IGNORED.<br>
-<div style="text-align: center;">
-<div style="text-align: left;">
+that is either another entry or just invalid data, after or within the
+first entry, is ignored.
+</p>
 <h4>Adding entries</h4>
+<p>
 There is a config option available to allow ADD operation to overwrite
 existing entries without throwing ALREADY_EXISTS error. See
-'addoverwrites'<br>
-<br>
+'addoverwrites'
+</p><p>
 There is a config option available to allow ADD operation to ignore
-adds on already existing entries without throwing ALREADY_EXISTS
-error.&nbsp; Applicable when addoverwrites=false. See 'addignoredups'<br>
-<br>
-Regarding values normalization, on every ADD we normalize entry DN and
-save it that way. It is not possible to retrieve the DN back in the
-original form submitted. Attribute values (such as ou=Hosts) are left
-as-is and are not modified even if they were normalized within DN.<br>
-<br>
-(Debconf-specific) When entry is added somewhere under Debconf tree
+adds on existing entries without throwing ALREADY_EXISTS
+error. Applicable when addoverwrites=false. See 'addignoredups'
+</p><p>
+When entry is added somewhere under a Debconf tree
 (configurable via a list of regexes), it is possible to check the list
 of entry's variables and see if the entry should be relocated to other
-parts of the tree. This is used to move keys from their host-specific
-location up the tree to become site-wide or global default. See
-'addrelocate'<br>
-This functionality is debconf- and client- or server- specific, and
+parts of the tree. This is used to move keys up from their host-specific
+location, to become site-wide or global default. See
+'addrelocate'<br><br>
+AddRelocate functionality is debconf- and client- or server-specific, and
 requires that Debconf, running on client or server side, asks the
 regular question, and another question about where the answer should be
-saved.&nbsp; This relocation information is passed to Viper over
-viper_location= variable within the entry. Both server-side prompter
+saved. Thanks to Debconf's support for "transactions" and its capable
+frontends, both questions are usually asked on the same screen,
+practically without overhead.
+Both server-side prompter
 and client-side LDAP-enabled backend and
-frontend that implement this described scenario are available.<br>
+frontend that implement this described scenario are available.
+</p>
 <h4>Modifying entries</h4>
+<p>
 When a modify request is issued and the specific entry to modify is
 there, everything goes on as usual. But if the entry is not exactly
 there (i.e.&nbsp; it comes from a fallback), then it's possible to
 either return NO_SUCH_OBJECT (as if the entry was not found at all), or
 to copy &amp; modify the fallback to the expected name, effectively
-creating the target entry in the process. See 'modifycopyonwrite'<br>
-<br>
+creating the target entry in the process. See 'modifycopyonwrite'
+</p><p>
 Some of the entry's attributes may actually not be present in the
 entry, but come from so-called 'appended values' (see 'Searching'
 features below).&nbsp; If a modify request is issued and the
@@ -151,36 +163,38 @@ modification is to be performed on an attribute that does really exist,
 everything goes on as usual. But if it is one of the appended
 attributes, we retrieve its values and add it to the entry as if it was
 there all along. Then we let the modify procedure continue, so the
-attribute gets copied over, modified, and saved directly into the entry.<br>
-<br>
+attribute gets copied over, modified, and saved directly into the entry.
+</p><p>
 There is a config option available to ignore MODIFY requests which do
 not result in a different entry. (Useful with Debconf which treats all
 invoked questions as modified, and submits them back to the directory
 as modifications, even if their value did not change during the
-process).&nbsp; See 'modifysmarts'<br>
+process).&nbsp; See 'modifysmarts'
+</p>
 <h4>Searching</h4>
+<p>
 When a search is made, it is possible to regex match combination of the
 input params (base, scope, deref, size, time, filter, attrOnly), and if
 all of them match a specification, then the params can be arbitrarily
 rewritten, i.e. you could replace search base with another base if
-certain filter is used. See 'searchsubst'<br>
-<br>
+certain filter is used. See 'searchsubst'
+</p><p>
 Search rewriting is completely free-form, and it is possible to rewrite
 searches to a completely different suffix, as long as both are located
 in the same base directory.<br>
 This is a legitimate feature of the rewrite model and is officially
 used to rewrite incoming DHCP search queries to appropriate places with
-appropriate parameters.<br>
-<br>
+appropriate parameters.
+</p><p>
 When a specific search base is requested, and it does not exist in the
 searched location, it is possible to fallback to a chain of default
-entries.&nbsp; See 'searchfallback'<br>
-<br>
+entries.&nbsp; See 'searchfallback'
+</p><p>
 When an entry is found (directly or through fallbacks), it can be
 appended with attributes from other entries. The default entries to
 look up can be specified with the entry's seeAlso attribute, or fixed
-in a config file. See 'entryappend'<br>
-<br>
+in a config file. See 'entryappend'
+</p><p>
 When an entry is read, it is possible to cause attribute value
 expansion into values of other entries' attributes, such as: "result is
 $ exp $ DN ATTR VALX" ===&gt; "result is VALUE". DN is the wished
@@ -189,8 +203,8 @@ either a numerical ID of the value you want, or a string which is used
 to join eventual multiple values in a single string (can use " " or \s
 for space).&nbsp; Shorthand
 notation is also possible: simply ATTR [VALX] implies ATTR in the
-current entry, with selected VALX (or ID 0). See 'expandval'<br>
-<br>
+current entry, with selected VALX (or ID 0). See 'expandval'
+</p><p>
 When an entry is read, it is possible to cause attribute value
 expansion into values of a complete, valid sub-search.&nbsp; "find $
 BASEDN SCOPE DEREF SIZE TIME FILTER ATTRONLY ATTR VALX GVALX" ===&gt;
@@ -203,37 +217,39 @@ different entries* (i.e. valx/gvalx spec of "|" ", " might return
 result such as "e1v1|e1v2, e2v1, e3v1|e3v2|e3v3".&nbsp; VALX or GVALX
 omitted default to 0 (first value). They can also be \s for whitespace
 and \0 for indicating that we want to expand into multiple attribute
-values, not join values into a single string. See 'findval'<br>
-<br>
+values, not join values into a single string. See 'findval'
+</p><p>
 When an entry is read, it is possible to cause attribute value
 expansion into values of on-disk files, ALWAYS relative to server data
 dir, such as: "result is $ file [spec] $ FNAME" ===&gt; "result is
 FILE-DATA". [Spec] is optional and when number, specific line number is
 returned; when string, a line or $1 matching the regex from the file is
-returned; when not present, whole file is returned. See 'fileval'<br>
-<br>
+returned; when not present, whole file is returned. See 'fileval'
+</p><p>
 When an entry is read, it is possible to cause Perl evaluation of
 contents within attributes, such as: "result is $ perl $ 3 + 4" ===&gt;
 "result is 7".&nbsp; ** WARNING ** DANGEROUS ** DISABLED BY DEFAULT **.
-See 'perleval'<br>
-<br>
+See 'perleval'
+</p><p>
 When entries are returned to the host, each entry will contain a DN
 of&nbsp; its actual location on the disk (if the entry is coming from a
 fallback, its DN may be something completely different from what was
 requested).&nbsp; That's more useful (and easier) than changing the DN
 to its would-be value. Experience also shows that the calling programs
 do not care about the DN and are not confused by this, so there are no
-adverse effects to it.<br>
+adverse effects to it.
+</p>
 <h4>Configuration</h4>
+<p>
 All of the above features are tunable from the config file; non-trivial
 options do not have a default and so they must be present in the config
 file to get configured in the first place, otherwise they effectively
-stay disabled.<br>
-<br>
+stay disabled.
+</p><p>
 Some config directives have short names, but you can call them using
 any longer form. For example, directive 'exp' can be, for clarity,
-written as 'expand' or 'expandVal'.<br>
-<br>
+written as 'expand' or 'expandVal'.
+</p><p>
 All directives from the config file are registered on the stack. The
 stack can be saved to file, loaded from file for processing, or
 reset.&nbsp; Saving and loading the stack allows for quicker and less
@@ -241,25 +257,27 @@ error-prone approach in repetitive blocks, especially if they repeat
 for each suffix you configure. (Different suffixes can load each
 other's files as long as they're configured with the same base
 directory).&nbsp; 'Clean' can be called on purpose to remove all
-on-disk stack files.<br>
+on-disk stack files.
+</p>
 <h4>Other</h4>
+<p>
 OpenLDAP locking is such that only one Viper function may be executing
 at a time (even if you have multiple Perl suffixes configured, only one
 is executing at a time), so no custom locking is necessary. But we
 still do manual flocks where necessary to keep things under control and
-cover scenarios with multiple LDAP servers in the same tree.<br>
-<br>
+cover scenarios with multiple LDAP servers in the same tree.
+</p><p>
 Viper backend is called from OpenLDAP's back_perl handler, which is
 severely limited when it comes to user and access control. If you need
 any bind control beyond bind DN and password, or any further access
-control, chances are you'll have to extend back_perl.c.<br>
-<br>
+control, chances are you'll have to extend back_perl.c.
+</p><p>
 Using scripts/viper.pl (or anything else that resembles the approach
 shown there) allows Viper to run standalone, directly under the Perl
 interpreter, yet producing the exact same results as if it was running
 under slapd. This feature is best suited for running Viper under perl
-profiler or debugger, but can come handy in other slick scenarios.<br>
-<br>
+profiler or debugger, but can come handy in other slick scenarios.
+</p><p>
 Some of the dynamically produced values might take a long time to
 compute. Viper supports a generic cache mechanism which allows caching
 of any overlay's result, with variable validity period, specified as
@@ -271,17 +289,26 @@ giving you cached value 19 times. To specify expiry in number of LDAP
 operations, use specifier 'o', such as 1o. Expiry setting of 1o is by
 far best overall setting that minimizes or eliminates risk of stale
 data getting served, while still showing massive performance
-improvement (multiple times).&nbsp; See 'overlayconfig'<br>
-<br>
+improvement (multiple times).&nbsp; See 'overlayconfig'
+</p><p>
 Similar to the above, it's also possible to cache LDAP entry reads from
 disk. Cache specifications and explanation are the same as we just
 discussed, except that the performance gains are modest compared to the
-overlay cache (just in the &lt;= 20% range). See 'cacheopen'<br>
+overlay cache (just in the &lt;= 20% range). See 'cacheopen'
+</p>
 <h3>License &amp; copyright</h3>
-<pre>Spinlock Solutions --<br>  Advanced GNU/Linux networks in commercial and education sectors.<br><br>Copyright 2008-2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/<br>                    Davor Ocelic, docelic@spinlocksolutions.com<br><br>http://www.spinlocksolutions.com/<br>http://techpubs.spinlocksolutions.com/<br><br>Released under GPL v3 or later.<br></pre>
-<br>
-</div>
-</div>
+<pre>Spinlock Solutions --
+  Advanced GNU/Linux networks in commercial and education sectors.
+
+Copyright 2008-2009
+    SPINLOCK d.o.o., http://www.spinlocksolutions.com/
+    Davor Ocelic, docelic@spinlocksolutions.com
+
+http://www.spinlocksolutions.com/
+http://techpubs.spinlocksolutions.com/
+
+Released under GPL v3 or later.
+</pre>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>

@@ -28,17 +28,14 @@
 </ul>
 <h2>Guides</h2>
 <ul>
+  <li><a href="ldap.html">Viper backend overview</a></li>
+  <li><a href="configuration.html">Configuration file reference</a><br>
+  <li><a href="viper.html">Value syntax reference</a><br><br>
+
   <li><a href="client.html">Adding clients and hosts</a><br>
   <li><a href="values.html">Adding configuration values</a><br><br>
-  <li><a href="configuration.html">Configuration file reference</a><br>
-  <li><a href="viper.html">Viper syntax reference</a><br>
-</ul>
 
-<h2>Overviews<br>
-</h2>
-<ul>
-  <li><a href="components.html">Host installation procedure </a></li>
-  <li><a href="ldap.html">Viper OpenLDAP backend</a></li>
+  <li><a href="components.html">Host installation overview</a></li>
   <li><a href="data.html">Viper LDAP data structure</a></li>
 </ul>
 
