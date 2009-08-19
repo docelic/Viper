@@ -364,7 +364,7 @@ sub bind {
 
 	# See if any userPassword (can be multi-value) matches
 	# the provided password
-	if( ( firstidx { "$pw" eq "$_" } @pws)!= -1) {
+	if( any { "$pw" eq "$_" } @pws) {
 		return LDAP_SUCCESS
 	}
 
@@ -1339,7 +1339,7 @@ sub run_overlays {
 											# used to always do the right thing regardless of !.
 											my $passed= $k=~ s/^!//;
 											my @vals= $e->get_value( $k);
-											if( ( firstidx { $_=~ /$v/} @vals)> -1 ) {
+											if( any { $_=~ /$v/} @vals) {
 												$passed= !$passed;
 											}
 											if( not $passed) {
