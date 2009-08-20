@@ -1089,6 +1089,14 @@ sub run_overlays {
 
 		for my $ovl ( @OVERLAYS) {
 
+			my @v= $e->get_value( $a);
+			# Skip all overlays processing if none of the values have '$'
+			# in there. XXX for step 2, here grep out all attrs that do
+			# have it (and register their positions in the array), so the
+			# below loop can only work on those, and splice them into 
+			# appropriate places in final array of values.
+			next if !any{ index( $_, '$')> -1} @v;
+
 			for my $cond( @{ $this->{$ovl}}) {
 				if( $a =~ /$$cond[0]/ and $a !~ /$$cond[1]/ ){
 					# Ok, we know overlay is configured with at least one line in
@@ -1096,10 +1104,6 @@ sub run_overlays {
 
 					DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
 
-					# XXX this can be moved in the for( $a) loop, and there
-					# we can skip processing if there's no '$' in any of the
-					# values.
-					my @v= $e->get_value( $a);
 					my @v2;
 
 					# Implemented via while( defined( shift @v) and not using
