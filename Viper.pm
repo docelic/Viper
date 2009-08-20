@@ -633,7 +633,7 @@ sub add {
 	return $ret unless $ret== LDAP_SUCCESS;
 
 	#
-	# See if there's work for client-side relocator.
+	# See if there's work for relocator.
 	#
 
 	if( RELOCATOR) {
@@ -642,7 +642,7 @@ sub add {
 	}
 
 	#
-	# See if there's work for server-side relocator.
+	# See if there's work for server-side prompter.
 	#
 
 	if( PROMPTER) {
@@ -692,9 +692,6 @@ sub search {
 	# on the params.
 	#
 
-	# XXX At one point in time, this function MIGHT be combined with 
-	# basically the same algorithm operating on entryappend, possibly
-	# by passing a specific inner block to execute in an otherwise same thing.
 	my( $id, $i, $ok, $k, $v, $r, @stack)= ( 0);
 	for my $rule( @{ $this->{searchsubst}}) {
 		$id++;
@@ -810,7 +807,7 @@ sub search {
 		# Use File::Find::Rule to traverse the directory tree selectively
 		# and scoop out what we want.
 		File::Find::Rule->file()
-			->name( '*'.$this->{extension})
+			->name( '*'. $this->{extension})
 			->extras({ follow => 1})
 			->exec( sub {
 					# Note that here we don't pass origdn onto load(). If a specific
@@ -983,7 +980,8 @@ sub modify {
 	$changed= 0 if $this->{modifysmarts} and $this->dequal( $entry, $orig);
 	$entry->dn( $newdn);
 
-	# If changed (true if we have real change or modifySmarts== 0)
+	# If changed (true if we have (1) any request, or (2) modifySmarts== 1
+	# and real change has been detected.)
 	if( $changed) {
 
 		# If entry existed already, no probs.
@@ -1070,46 +1068,11 @@ sub delete {
 # Overlays have been put together in a single function for excellent
 # efficiency, but here are their individual descriptions, in order
 # of execution, soonest-first:
-
-# File expansion overlay. Usage:
-# $ file $ /path/to [spec] $
-# Path is always treated relative to $this->{directory} (data dir) 
-# and any double dots are replaced by a single dot. Spec is optional
-# and either a line number or regex (regex returns first matching line)
-
-# Values expansion overlay. Usage:
-# $ exp $ ENTRY_DN ATTRIBUTE VALX $
-# Entry_DN can end in dots to fill in that many components from the original
-# entry's DN. (i.e. ... fills in last 3 components).
-# Attribute is attribute whose value you want to insert.
-# Val_x is value number if there are multiple values, defaulting to first.
-#  Val_x can also be a non-number (such as \s) in which case it is treated
-#  as a joiner to be used in joining all existing values.
-
-# Find (subsearch) overlay. Usage:
-# $ find $ BASE_DN SCOPE DEREF SIZE TIME FILTER ATTR_ONLY ATTR VALX GVALX $
-# The find feature allows one to invoke the toplevel search() within
-# backend itself. Find accepts all exact arguments as if it was a search called
-# directly from slapd, it performs a search, and pushes entries onto temporary
-# stack. For each entry found (entries on stack), specific attribute value is
-# taken (possibly joined on valx). Then, the values are joined on gvalx and
-# substituted for final result.
-# BASE_DN can end in dots to fill in that many components from the original
-# entry's DN. (i.e. ... fills in last 3 components).
-# SCOPE, DEREF etc. options are explained under search().
-# ATTR is attribute whose value you want to insert.
-# Val_x is value number if there are multiple values, defaulting to first.
-#  Val_x can also be a non-number (such as \s) in which case it is treated
-#  as a joiner to be used in joining individual attribute values.
-# GVal_x is value number if there are multiple values, defaulting to first.
-#  GVal_x can also be a non-number (such as \s) in which case it is treated
-#  as a joiner to be used in joining all existing values.
-# Note that Val_x is per-entry-found, and GVal_x is per-returned-set. In other
-# words val_x="|" gval_x=", " might result in final value like:
-#  e1v1|e1v2, e2v1|e2v2|e2v3, e3v1
-
-# Perl evaluation overlay. (*DANGEROUS*, so disabled by default).
-# $ perl $ 3 + 4 $
+#
+#  - File expansion overlay.
+#  - Values expansion overlay.
+#  - Find (subsearch) overlay.
+#  - Perl evaluation overlay (*DANGEROUS*, so disabled by default).
 
 # Ok, here's the all-in-one overlay sub. It's a bit nested so hang on
 # in there. Each overlay's code is only a few lines in the innermost
@@ -1117,6 +1080,8 @@ sub delete {
 sub run_overlays {
 	my( $this, $e, $odn)= @_;
 
+	# Original DN requested. Used in replacing dots (".") at the end of
+	# attribute value's DN spec with components from the original entry.
 	$odn||= $e->dn;
 
 	for my $a( $e->attributes) {

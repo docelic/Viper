@@ -461,6 +461,11 @@ import configuration blocks.
 Stacks may contain variables that expand to proper values in the context
 of each suffix that is using them.
 </p>
+<p>
+Stack and dump functions itself are not part of the stack, so they do
+not end up saved or loaded from stack files. They need to be specified
+explicitly in each suffix that wants to use them.
+</p>
 <h4>searchFallback PATTERN REPLACEMENT</h4>
 <p>
 Specify search fallback rule, effectively implementing default entries.
