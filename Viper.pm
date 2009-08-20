@@ -1,5 +1,5 @@
 package Viper;
-$Viper::VERSION= '.1p410'; # Mon Aug 17 11:15:45 UTC 2009
+$Viper::VERSION= '.1p610'; # Thu Aug 20 01:57:28 CEST 2009
 #
 # vim: se ts=2 sts=2 sw=2 ai
 #
@@ -77,9 +77,9 @@ use subs                qw/p pd pc pcd/;
 # To make use of DEBUG, server must run in foreground mode. Something like:
 # su -c 'LD_PRELOAD=/usr/lib/libperl.so.5.10 /usr/sbin/slapd -d 256'
 use constant DEBUG    => 0; # General debug?
+use constant DEBUG_DTL=> 0; # Detailed debug?
 use constant DEBUG_OVL=> 0; # Overlays debug?
 use constant DEBUG_CCH=> 0; # Cache debug?
-use constant DEBUG_DTL=> 0; #  Detailed debug?
 
 use constant CFG_STACK=> 1; # Allow save/reset/load config file routines
 use constant CFG_DUMP => 1; # Allow savedump/loaddump config file routines
@@ -89,7 +89,7 @@ use constant APPENDER => 1; # Enable appending with other entries' attributes.
 use constant FILEVAL  => 1; # Enable value expansion by reading files.
 use constant EXPANDVAL=> 1; # Enable value expansion by loading DN attrs.
 use constant FINDVAL  => 1; # Enable re-searching and returning certain attr.
-use constant PERLEVAL => 1; # Enable Perl evaluation of values. *DANGEROUS*
+use constant PERLEVAL => 0; # Enable Perl evaluation of values. *DANGEROUS*
 
 use constant RELOCATOR=> 0; # Enable relocation of Debconf keys from client.
 use constant PROMPTER => 0; # Enable relocation of Debconf keys from server.
@@ -136,7 +136,7 @@ our %S2L= (
 # overlay is enabled. Name here should match the name of overlay's
 # config array (see sub new()'s $this object) and in turn it is also
 # name by which overlay will be recognized by run_overlays() within
-# attribute's values. (If it doesn't make sense to you yet, skip it.)
+# attribute's values.
 our @OVERLAYS= ( grep { defined $_ } (
 	FILEVAL    ? 'file'   : undef,
 	EXPANDVAL  ? 'exp'    : undef,
@@ -162,7 +162,7 @@ sub new {
 	# even if their value is '' or 0. (Do not use undef if you expect to
 	# set it from the config file because it will implicitly make the
 	# option invalid).
-	# Arrays get values pushed, scalars get values assigned.
+	# Scalars get values assigned, arrays pushed, hashes arrayref'd.
 	my $this= {
 		treesuffix     => q{},     # Suffix (too bad we're not called with it),
 		                           # and 'suffix' directive can only be specified
@@ -392,8 +392,13 @@ sub config {
 			if( @keys== 1) { # Great, uniquely found the right key
 				p "Resolved config key '$key' to '$keys[0]'";
 				$key= $keys[0];
-			} else {
-				warn "Invalid or ambiguous config directive '$key'";
+
+			} elsif( @keys> 1) {
+				warn "Ambiguous config directive '$key' (@keys)\n";
+				return LDAP_PARAM_ERROR
+
+			} elsif( @keys== 0) {
+				warn "Unknown config directive '$key'\n";
 				return LDAP_PARAM_ERROR
 			}
 		}
@@ -574,7 +579,7 @@ sub config {
 
 		} elsif( ref $this->{$key} eq 'HASH') {
 			my $locname= shift @val;
-			$this->{$key}->{$locname}= [ @val];
+			$this->{$key}{$locname}= [ @val];
 
 		} else {
 			$this->{$key}= join ' ', @val
