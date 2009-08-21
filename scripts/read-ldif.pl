@@ -17,7 +17,7 @@
 #
 # read-ldif <ldif-file>
 #
-# Optionally, entry dump can be displayed if invoked appropriately,
+# Optionally, entry dump can be displayed if invoked appropriately.
 #
 # read-ldif <ldif-file> verbose
 
@@ -43,5 +43,5 @@ while( not $ldif->eof ( ) ) {
 		print Dumper \$entry if $verbose;
 	}
 }
-$ldif->done ( );
+$ldif->done;
 

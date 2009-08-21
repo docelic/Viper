@@ -2,8 +2,8 @@
 #
 # Retrieve key from LDAP and print to STDOUT.
 # Simple script with little value, besides for testing. Also, if a
-# value is base64 encoded and is not readable offhand with ldapsearch,
-# with this tool it will be ($entry->dump decodes it before display).
+# value is base64-encoded and is not readable offhand with ldapsearch,
+# with this tool it will be, because ($entry->dump decodes it before display).
 #
 # Usage: perl scripts/get-key.pl FULL-DN
 #
@@ -21,18 +21,18 @@
 
 use Net::LDAP;
 
-$ldap = Net::LDAP->new( 'localhost' ) or die "$@";
+$ldap = Net::LDAP->new( 'localhost') or die "$@\n";
 
 $mesg = $ldap->bind ;    # an anonymous bind
 
 $mesg = $ldap->search( # perform a search
 		base   => $ARGV[0] ||
-			"cn=netcfg/get_hostname,cn=h2,ou=hosts,o=c1,ou=clients",
+			"cn=netcfg/get_hostname,cn=h2,ou=hosts,o=c1.com,ou=clients",
 		filter => '(objectclass=debconfDbEntry)',
 		scope => 'base',
 		);
 
 $mesg->code and die $mesg->error;
 
-foreach $entry ($mesg->entries) { $entry->dump; }
+foreach $entry ($mesg->entries) { $entry->dump }
 
