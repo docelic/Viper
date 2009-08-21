@@ -60,6 +60,6 @@ objectclass ( 1.3.6.1.4.1.30977.1.1.2.2.2 NAME 'x-ipNetwork'
 	MAY ( ipNetworkNumber $ ipNetmaskNumber $ ipBroadcastNumber $
 	  router $ nameServer $ configServer $ l $ description $ manager ) )
 
-objectclass ( 1.3.6.1.4.1.30977.1.1.2.2.3 NAME 'x-puppetClient' SUP top AUXILIARY
+objectclass ( 1.3.6.1.4.1.30977.1.1.2.2.4 NAME 'x-puppetClient' SUP top AUXILIARY
 	DESC 'Puppet Client host node'
 	MAY ( puppetclass $ parentnode $ environment $ puppetvar $ domainName $ hostName $ clientName $ ipNetworkNumber $ ipNetmaskNumber $ ipBroadcastNumber ))
