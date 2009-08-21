@@ -4,7 +4,7 @@
 # Check if the bug is fixed in your version:
 # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938
 #
-# If not, apply this patch -p0 < support/FilterMatch.pm.patch
+# If not, apply this patch with: patch -p0 < support/FilterMatch.pm.patch
 #
 
 /usr/share/perl5/Net/LDAP/FilterMatch.pm
