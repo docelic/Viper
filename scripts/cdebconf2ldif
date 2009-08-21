@@ -3,6 +3,10 @@
 # Open cdebconf database and output it in LDIF format. If a list of questions
 # is passed on STDIN, only those questions from the whole set are output.
 #
+# Instead of, or in addition to the cdebconf databases in default locations
+# (/var/log/installer/cdebconf/...), preseed file can be specified with
+# option -k, to pull values from there.
+#
 # This is intended to provide initial default values for preseeding and/or
 # configuring Debian installations using the Viper system.
 #
@@ -15,29 +19,30 @@
 #
 # Common use:
 #
-# - For adding questions to global tree ou=defaults:
+# - For adding questions from preseed file to global tree ou=defaults:
 #
 #     cdebconf2ldif -k lenny-preseed.txt
 #
-# - For adding questions to client tree dc=cli,dc=com,ou=clients,
-#   templates still to global tree:
+# - For adding questions from preseed file to client tree dc=c1.com,ou=clients:
 #
-#     cdebconf2ldif -d dc=c1,dc=com,ou=clients -k lenny-preseed.txt
+#     cdebconf2ldif -d dc=c1.com,ou=clients -k lenny-preseed.txt
 #
-# When adding questions to local tree, you might want to indicate that
-# some should go to the global tree. The way to do this is:
+# While adding questions from preseed file to the client tree, you might wish
+# to specify that some of the questions should go to the global level.
+# The way to do this is:
 #
-# 1) Specify client domain as usual, i.e. -d dc=c1,dc=com,ou=clients
-# 2) In preseed file (must use it for this), write # DOMAIN=0 to begin block
-#    of questions that should have no domain appended
+# 1) Specify client domain as usual, i.e. -d o=c1.com,ou=clients, as if
+#    it is a standard client-tree thing.
+# 2) In preseed file, write "# DOMAIN=0" to begin block of questions that
+#    should have no domain appended (and so go to global tree ou=defaults)
 # 3) Use # DOMAIN=1 to switch back to default behavior
 #
-# (Note '#' above must be at beginning of line, like a comment).
+# (Note: '# DOMAIN=' spec must be at the beginning of line in preseed file).
 #
 #
 # Options (in order of decreasing "oftenness" of use):
 #
-# --domain         -d <D> domain for use in LDIF output (dc=example, dc=com)
+# --domain         -d <D> domain for use in LDIF output (o=c1.com,ou=clients)
 # --keys-file      -k <F> File ('-' for stdin) of keys to output instead of all.
 #                       This can also be an existing preseed file, and key
 #                       names will be extracted from it.
@@ -50,7 +55,7 @@
 # --templates-file    <F> Installer's cdebconf templates logfile (/var/log/ins.)
 # --questions-file    <F> Installer's cdebconf questions logfile (/var/log/ins.)
 #
-# --flag <F>   add 'flags: <F>' to all items output (default 'flags: preseed')
+# --flag <F,...>   add 'flags: <F>' to all entries (default 'flags: preseed')
 # --[no-]diff  print items not present in all groups (inconsistency detector)
 #
 
@@ -106,7 +111,7 @@ for my $section( qw/templates questions/) {
 	my $ckey= $section.'_file';
 	open $open{$section}, $options{$ckey} or
 		warn "Can't rdopen '$options{$ckey}' ($!). Continuing without it ".
-			"(but make sure --keys-file is there).\n";
+			"(but then make sure --keys-file is there).\n";
 
 	while( my ($name, $entry)= Debconf::Format::822::read( '', $open{$section})) {
 		$data{$section}{$name}= $entry
@@ -167,11 +172,11 @@ if( $options{diff}) {
 
 my %filter;
 
-# Should the domain be appended to DN? Default yes. Turn off with
-# "DOMAIN=0/1" in preseed file.
+# Should the domain be appended to DN? Default yes. Turn off/on with
+# "# DOMAIN=0/1" on its own line in preseed file.
 # Questions with domain appended are added to client tree, others
-# go to global. (Provided that some domain is specified -d, otherwise
-# the flag is a no-op. Also, the whole thing is possible because we
+# go to global (Well, provided that some domain is specified -d, otherwise
+# DOMAIN= is a no-op. Also, the whole thing is possible because we
 # count on global and local location have the same relative DN structure).
 my $with_domain= 1;
 
@@ -289,7 +294,7 @@ for my $key( sort keys %filter) {
 
 	$qe->add( cn          => $key);
 
-	$qe->add( flags       => [ keys %{$$q{flags}}, $options{flag}])
+	$qe->add( flags       => [ keys %{$$q{flags}}, split(',', $options{flag})])
 		if keys %{$$q{flags}} or $options{flag};
 
 	#print STDERR "1) $key ", keys %{$$q{owners}}, "\n";
