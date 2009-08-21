@@ -1084,18 +1084,17 @@ sub run_overlays {
 	# attribute value's DN spec with components from the original entry.
 	$odn||= $e->dn;
 
-	for my $a( $e->attributes) {
+	# Find attributes with at least one value that's a candidate
+	# for overlays run.
+	my @candidates=
+		grep{ any{ index( $_, '$')> -1} $e->get_value( $_)} $e->attributes;
+
+	for my $a( @candidates) {
 		next if $a =~ qr/$RAW/o; # Skip attribute if raw/binary
 
 		for my $ovl ( @OVERLAYS) {
 
 			my @v= $e->get_value( $a);
-			# Skip all overlays processing if none of the values have '$'
-			# in there. XXX for step 2, here grep out all attrs that do
-			# have it (and register their positions in the array), so the
-			# below loop can only work on those, and splice them into 
-			# appropriate places in final array of values.
-			next if !any{ index( $_, '$')> -1} @v;
 
 			for my $cond( @{ $this->{$ovl}}) {
 				if( $a =~ /$$cond[0]/ and $a !~ /$$cond[1]/ ){
@@ -1114,15 +1113,9 @@ sub run_overlays {
 
 						my @vstack;
 
-						# (Note that we cannot move index() check up to reorganize
-						# this, because the code is currently designed that each overlay
-						# operates on all attributes and values before moving onto
-						# the next.
-						# XXX I'm not sure if that's really needed in practice. Even
-						# if it is, we can probably save on splitting/putting back
-						# the value after each overlay run if we kept the components
-						# in an array ad operated on the array. Something to think about
-						# for later.
+						# XXX use if() and not 'next unless...' because we might
+						# once want to do s/if/while/ to get some extra features.
+						# (Nothing that I have in mind right now, though).
 						if( index( $v, '$') != -1) {
 							# Ok, there are at least two components in this 
 							# attribute's value, so it makes sense for us to run.
