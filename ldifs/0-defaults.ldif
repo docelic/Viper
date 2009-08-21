@@ -7,32 +7,41 @@ objectClass: top
 objectClass: organizationalUnit
 ou: defaults
 
-# Level 2
-
+# Tree for debconf keys. Since this is the ou=defaults suffix, we don't
+# use cn=HOSTNAME,... hierarchy under it, but cn=DEBCONF/KEY,... directly.
 dn: ou=hosts,ou=defaults
 objectClass: top
 objectClass: organizationalUnit
 ou: config
 
+# Debconf templates corresponding to keys. Mostly not used directly, but
+# only as a side effect of saving cn=DEBCONF/KEY,ou=hosts,ou=defaults.
 dn: ou=templates,ou=defaults
 objectClass: top
 objectClass: organizationalUnit
 ou: templates
 
+# Tree for default attributes of certain objectClasses
 dn: ou=objectClasses,ou=defaults
 objectClass: top
 objectClass: organizationalUnit
 ou: objectClasses
 
+# Tree for partman-auto partitioning recipes
 dn: ou=partitioning,ou=defaults
 objectClass: top
 objectClass: organizationalUnit
 ou: partitioning
 
 #
-# objectClass eppends
+# objectClass appends
 #
 
+# Append DHCP host with DHCP info (need to specify everything, because
+# we use hosts with specific HWaddresses for DHCP, and when the address is
+# not coming from a pool but from a specific Host/HW entry, DHCP by itself
+# only sends info found in the host entry, it does not expand it with options
+# defined under the corresponding subnet).
 dn: cn=dhcpHost,ou=objectClasses,ou=Defaults
 objectClass: top
 objectClass: dhcpHost
@@ -51,6 +60,7 @@ dhcpOption: broadcast-address $ exp $ cn=default,ou=networks.. ipBroadcastNumber
 dhcpStatements: filename "http://$ exp $ cn=default,ou=networks.. configServer $/cgi-bin/preseed.cfg"
 dhcpNetMask: 24
 
+# Append DHCP subnet with subnet info
 dn: cn=dhcpSubnet,ou=objectClasses,ou=Defaults
 objectClass: top
 objectClass: dhcpSubnet
@@ -75,7 +85,6 @@ dhcpNetMask: 24
 # noting).
 # Also, note that variables are case sensitive, so LDAP's 'hostName' does not
 # interfere with Facter's 'hostname'.
-# 
 dn: cn=puppetClient,ou=objectClasses,ou=Defaults
 objectClass: top
 objectClass: x-puppetClient
