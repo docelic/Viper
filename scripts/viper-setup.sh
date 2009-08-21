@@ -45,16 +45,16 @@ LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 #LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 
 # Adjust local server name in dhcp.ldif:
-# - Replace "s1" in ldifs/dhcp.ldif with the name of local server
-# - Replace eth1 with name of local physical interface
+# - Replace "viper" in ldifs/dhcp.ldif with the name of local server
+# - Replace 'sharedNetwork' with name of local physical interface
 # (NOTE: we don't have to do below block any more, as slapd.conf contains
 # a rewrite that rewrites all searches to default host cn=viper, and ethX
 # shared network has simply been replaced with another, generic string.
 # So this is by default a no-op, but if a person specifies ethX and hostname
 # on the command line, the replacement will be real, not no-op).
 cd /etc/ldap/viper/ldifs
-perl -pi -e "\$h= '$HOST'; chomp \$h; s/s1/\$h/g" 1-dhcp.ldif
-perl -pi -e "s/eth1/$ETH_IF/g" 1-dhcp.ldif
+perl -pi -e "\$h= '$HOST'; chomp \$h; s/viper/\$h/g" 1-dhcp.ldif
+perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 
 # Load LDIF data into LDAP (NOTE: 'make' deletes all Viper data from LDAP
 # and then loads all *ldif files, so if you want to use this approach, do not
