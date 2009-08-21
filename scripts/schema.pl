@@ -18,7 +18,7 @@
 # This is just a basic script that assumes unauthenticated schema
 # retrieve will work.
 #
-# perl schema.pl <ldap-srv>
+# perl schema.pl [hostname]
 #
 # Example:
 #
@@ -30,9 +30,9 @@ use strict;
 use Net::LDAP qw//;
 use Net::LDAP::Schema qw//;
 
-my $server= $ARGV[0] || 'localhost';
+my $server= $ARGV[0]|| 'localhost';
 
-my $ldap = Net::LDAP->new ( $server );
+my $ldap = Net::LDAP->new ( $server);
 $ldap->bind or die "Can't bind\n";
 
 my $schema = $ldap->schema or die "Can't get schema\n";

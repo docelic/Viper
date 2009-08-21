@@ -10,15 +10,17 @@
 #
 # Released under GPL v3 or later.
 #
+# ******************************************************************
+# *                                                                *
+# ** THIS SCRIPT CREATES OUT OF DATE TREE STRUCTURE, DON'T USE IT **
+# *                                                                *
+# *  The script is obsolete in favor of cdebconf2ldif, use that.   *
+# *                                                                *
+# ******************************************************************
 #
 # Very simple script for turning a preseed file into LDIF format. This
 # script does not load question's template into LDIF, it uses the necessary
 # info contained in the preseed file. So, it works but is pretty crude.
-#
-# ** IT CREATES OUT OF DATE TREE STRUCTURE, DON'T USE IT **
-#
-# The script is mostly obsolete in favor of cdebconf2ldif which
-# does everything the way you'd want it.
 #
 # preseed2ldif < preseed-file.txt
 #
