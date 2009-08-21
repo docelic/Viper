@@ -1,9 +1,9 @@
                                  *** VIPER ***
-           Fully Automated Debian GNU Installation and Configuration
+     Fully Automated Debian GNU Installation, Configuration and Monitoring
 
-Viper is a system for completely automated installation and configuration of Debian GNU based systems.
+Viper is a system for completely automated installation, configuration and monitoring of Debian GNU based systems.
 
-Viper uses a modern approach (debian-installer, puppet etc.), works with existing Debian packages, and does not require any custom patching of either install media, client or server.
+Viper uses a modern approach (debian-installer, Puppet etc.), works with existing Debian packages, and does not require any custom patching of either install media, client or server.
 
 The basis of the whole system is a LDAP server, containing all configuration data.
 
