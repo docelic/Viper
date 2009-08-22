@@ -1,5 +1,5 @@
 package Viper;
-$Viper::VERSION= '.1p610'; # Thu Aug 20 01:57:28 CEST 2009
+$Viper::VERSION= '.1p640'; # Sat Aug 22 18:37:13 CEST 2009
 #
 # vim: se ts=2 sts=2 sw=2 ai
 #
@@ -137,7 +137,7 @@ our %S2L= (
 # config array (see sub new()'s $this object) and in turn it is also
 # name by which overlay will be recognized by run_overlays() within
 # attribute's values.
-our @OVERLAYS= ( grep { defined $_ } (
+our @OVERLAYS= ( grep{ defined} (
 	FILEVAL    ? 'file'   : undef,
 	EXPANDVAL  ? 'exp'    : undef,
 	FINDVAL    ? 'find'   : undef,
@@ -355,7 +355,7 @@ sub bind {
 
 	$this->normalize( \$dn);
 
-	p "BIND $dn"; # Do not show $pw in log.
+	p "BIND $dn"; # Print bind DN only, don't show $pw in log.
 
 	my ( $ret, undef, undef, $entry)= $this->load( $dn);
 	return LDAP_INVALID_CREDENTIALS unless $ret== LDAP_SUCCESS;
@@ -397,7 +397,7 @@ sub config {
 				warn "Ambiguous config directive '$key' (@keys)\n";
 				return LDAP_PARAM_ERROR
 
-			} elsif( @keys== 0) {
+			} else { #elsif( @keys== 0) {
 				warn "Unknown config directive '$key'\n";
 				return LDAP_PARAM_ERROR
 			}
@@ -689,10 +689,9 @@ sub search {
 	p "SEARCH ($this->{level}) @_";
 
 	#
-	# Let's see if we have to do any substitution on input params. Substitution
-	# via subst allows one to match arbitrary parameters of the search
-	# request, and if all of them satisfy, then perform specified substitutions
-	# on the params.
+	# Let's see if we have to do any substitution on input params. SearchSubst
+	# allows one to match arbitrary parameters of the search request, and if
+	# all of them satisfy, then perform arbitrary substitutions on the params.
 	#
 
 	my( $id, $i, $ok, $k, $v, $r, @stack)= ( 0);
@@ -793,7 +792,7 @@ sub search {
 		}
 
 		my $time= time;
-		goto TIME_LIMIT if any { $time- $_> $req{time}} @{ $this->{start}}
+		goto TIME_LIMIT if any{ $time- $_> $req{time}} @{ $this->{start}}
 	}
 
 	# Further entries may follow unless only base was specifically
@@ -812,7 +811,7 @@ sub search {
 		File::Find::Rule->file()
 			->name( '*'. $this->{extension})
 			->extras({ follow => 1})
-			->exec( sub {
+			->exec( sub{
 					# Note that here we don't pass origdn onto load(). If a specific
 					# search base is known and requested, we take that as origdn
 					# (such as shown above). But if we go into tree subsearch,
@@ -1063,23 +1062,27 @@ sub delete {
 	LDAP_SUCCESS
 }
 
-
 #
-# Our vision of overlays
+# Ok, at this point we're done with direct-entry functions from slapd.
+# The next thing we'll cover are overlays.
 #
 
-# Overlays have been put together in a single function for excellent
-# efficiency, but here are their individual descriptions, in order
-# of execution, soonest-first:
-#
-#  - File expansion overlay.
-#  - Values expansion overlay.
-#  - Find (subsearch) overlay.
-#  - Perl evaluation overlay (*DANGEROUS*, so disabled by default).
+# Viper supports overlays that are similar to slapd overlays in effect,
+# but have nothing to do with slapd -- they're implemented in Viper
+# entirely, and use a different set of configuration directives to enable.
 
-# Ok, here's the all-in-one overlay sub. It's a bit nested so hang on
-# in there. Each overlay's code is only a few lines in the innermost
-# block.
+# All overlays have been put together in a single function for efficiency;
+# here are their individual descriptions, in order of execution,
+# soonest-first:
+#
+#  1. File expansion overlay.
+#  2. Values expansion overlay.
+#  3. Find (subsearch) overlay.
+#  4. Perl evaluation overlay (*DANGEROUS*, so disabled by default).
+
+# So here's the all-in-one overlay sub. It's a bit nested, so hang on
+# in there. Most of the work in it is generic, overlay specific code is
+# usually a few lines in the innermost block.
 sub run_overlays {
 	my( $this, $e, $odn)= @_;
 
@@ -1095,7 +1098,7 @@ sub run_overlays {
 	for my $a( @candidates) {
 		next if $a=~ qr/$RAW/o; # Skip attribute if raw/binary
 
-		for my $ovl ( @OVERLAYS) {
+		for my $ovl( @OVERLAYS) {
 
 			my @v= $e->get_value( $a);
 
@@ -1158,8 +1161,8 @@ sub run_overlays {
 										# We want to include file contents
 										my( $file, $spec)= split /\s+/, $comp, 2;
 
-										if( $opts{prefix}) {
-											$file= $opts{prefix}. $file;
+										if( my $prefix= $opts{prefix}) {
+											$file= $prefix. $file;
 										}
 
 										my $key= join( '|', $file, $spec||'');
@@ -1173,10 +1176,11 @@ sub run_overlays {
 										# NOTE: We do it only when another DN should be looked up-
 										#  for cases where lookup is in the entry itself, we just
 										#  do it, don't take that from cache.
-										if( $opts{cacheref}) {
-											if( exists $opts{cacheref}{$key}) {
+										my $cacheref= $opts{cacheref};
+										if( $cacheref) {
+											if( exists $cacheref->{$key}) {
 												pc "Using cache value for FILE '$key'";
-												$comp= $opts{cacheref}{$key};
+												$comp= $cacheref->{$key};
 												goto FILE_DONE
 											}
 										}
@@ -1201,9 +1205,9 @@ sub run_overlays {
 
 										# If cacheref exists and $key is there, time for
 										# us to save key to cache.
-										if( $opts{cacheref} and $key) {
+										if( $cacheref and $key) {
 											pc "Rebuilding cache value for FILE '$key'";
-											$opts{cacheref}{$key}= $comp
+											$cacheref->{$key}= $comp
 										}
 
 										FILE_DONE:
@@ -1317,7 +1321,7 @@ sub run_overlays {
 											# used to always do the right thing regardless of !.
 											my $passed= $k=~ s/^!//;
 											my @vals= $e->get_value( $k);
-											if( any { $_=~ /$v/} @vals) {
+											if( any{ $_=~ /$v/} @vals) {
 												$passed= !$passed;
 											}
 											if( not $passed) {
@@ -1535,7 +1539,7 @@ sub run_overlays {
 							# took me good half a day of battling to barrel through.
 							#
 
-							my $refidx= firstidx { ref} @comps; # Any comp with arrayref?
+							my $refidx= firstidx{ ref} @comps; # Any comp with arrayref?
 							my @compstack;
 
 							# If we have an arrayref in the @comps list (meaning that we'll
@@ -1946,10 +1950,10 @@ sub dn2leaf {
 }
 
 # Quick debug print. p(...)
-sub p { if( DEBUG) { print {*STDERR} '### ', join( ' ', @_), "\n"}}
+sub p{  if( DEBUG) { print {*STDERR} '### ', join( ' ', @_), "\n"}}
 sub pd{ if( DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
 sub pc{ if( DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
-sub pcd{ if( DEBUG_DTL and DEBUG_CCH){print {*STDERR} '+++ ',join(' ',@_),"\n"}}
+sub pcd{if( DEBUG_DTL and DEBUG_CCH){print {*STDERR} '+++ ',join(' ',@_),"\n"}}
 
 # Subroutine that appends the entry with attributes from other entries
 # according to 'entryappend' config directive. This has become a quite
@@ -2062,7 +2066,7 @@ sub run_appender {
 				push @lookup_attrs, $ae->attributes if $add_entry_attrs;
 
 				# "uniq" the array elements
-				my %lookup_attrs= map { $_ => 1} @lookup_attrs;
+				my %lookup_attrs= map{ $_ => 1} @lookup_attrs;
 				@lookup_attrs= keys %lookup_attrs;
 
 				# Expand objectClasses list
@@ -2127,7 +2131,7 @@ sub run_appender {
 			push @lookup_attrs, $ae->attributes if $add_entry_attrs;
 
 			# "uniq" the array elements
-			my %lookup_attrs= map { $_ => 1} @lookup_attrs;
+			my %lookup_attrs= map{ $_ => 1} @lookup_attrs;
 			@lookup_attrs= keys %lookup_attrs;
 
 			# Expand objectClasses list

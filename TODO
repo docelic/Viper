@@ -5,6 +5,8 @@
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
+* s/\s+/\s/g in ovl opts
+
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
