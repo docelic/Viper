@@ -408,7 +408,7 @@ sub config {
 		# (Note: but not if it's one of the save/load/reset/etc commands).
 		push @{ $this->{stack}}, [ $key, @val] if
 			$key ne 'save' and $key ne 'reset' and $key ne 'load' and
-			$key!~ qr/dump$/o;
+				$key!~ qr/dump$/o;
 
 		# Apply generic changes/replacements we do for every line and
 		# field. (Basically just a series of convenience helpers).
@@ -787,7 +787,7 @@ sub search {
 		# We unshift because on return from Perl to ldap, data is read
 		# in reverse order.
 		if( $filter->match( $entry)) {
-			DEBUG and p 'SEARCH MATCH:', $entry->dn;
+			DEBUG and p "SEARCH ($this->{level}) MATCH:", $entry->dn;
 			unshift @matches, $as_ldif? $ldif: $entry;
 
 			goto SIZE_LIMIT if @matches> $req{size};
@@ -824,7 +824,7 @@ sub search {
 
 					return $ret unless $ret== LDAP_SUCCESS;
 					if( $filter->match( $entry)) {
-						DEBUG and p 'SEARCH MATCH:', $entry->dn;
+						DEBUG and p "SEARCH ($this->{level}) MATCH:", $entry->dn;
 						unshift @matches, $as_ldif? $ldif : $entry;
 
 						goto SIZE_LIMIT if @matches> $req{size};
@@ -852,8 +852,8 @@ sub search {
 
 	my ( $level, $start)= ( $this->{level}, $this->{start}[ $this->{level}]);
 
-	p 'SEARCH TOTAL:', scalar @matches, 'matches ('.
-		"level $level, time=". ( time- $start). "/$req{time}, ".
+	p "SEARCH ($this->{level}) TOTAL:", scalar @matches, 'matches ('.
+		"time=". ( time- $start). "/$req{time}, ".
 		"size=". ( scalar @matches). "/$req{size})";
 
 	$this->{level}-= 1;
@@ -1762,9 +1762,9 @@ sub dn2leaf {
 		pc "Using cache value for DN2LEAF '$key'";
 
 		#( $file, $directory, $entry)= @{ $this->{cache}{read}{$key}};
-		$file= ${ $this->{dnl_cacheref}{$key}}[0];
-		$directory= ${ $this->{dnl_cacheref}{$key}}[1];
-		$entry= ${ $this->{dnl_cacheref}{$key}}[2]->clone;
+		$file= $this->{dnl_cacheref}{$key}[0];
+		$directory= $this->{dnl_cacheref}{$key}[1];
+		$entry= $this->{dnl_cacheref}{$key}[2]->clone;
 
 		goto DN2LEAF_DONE
 	}
@@ -2802,11 +2802,11 @@ sub parse_cache_opt {
 			# This is op-qeueue, realized without Tie.
 			%{ $this->{cache}{$qprefix}{$ovl}{$n}}= ();
 
-			# Register initial and current (same as initial) validity period.
+			# Register initial and current validity period.
 			$this->{'op_'. $cache_type. '_valid'}{$ovl}{$n}= $n;
 		}
 
-		p "Created $cache_type queue $qprefix-$ovl-$n ($nparm $n)";
+		pc "Created $cache_type queue $qprefix-$ovl-$n ($nparm $n)";
 	}
 
 	if( $cache_type eq 'dnl_cache') {
@@ -2836,23 +2836,15 @@ sub check_state {
 		$this->{level}= 0;
 
 		# Trim ovl cache when needed
-		while( my( $ovl, $ovlref)= each %{ $this->{op_ovl_cache_valid}}) {
-			next if $ovl eq 'read';
+		while( my( $ovl, $ovlref)=
+			each %{ $this->{op_ovl_cache_valid}},
+			each %{ $this->{op_ovl_cache_valid}}) {
 
 			for my $n( keys %{ $ovlref}) {
 				if( --$ovlref->{$n}< 1) {
 					$this->{cache}{op}{$ovl}{$n}= undef;
 					$ovlref->{$n}= $n;
 				}
-			}
-		}
-
-		# Trim read cache when needed
-		my( $ovl, $ovlref)= ( 'read', $this->{op_dnl_cache_valid}{read});
-		for my $n( keys %{ $ovlref}) {
-			if( --$ovlref->{$n}< 1) {
-				$this->{dnl_cacheref}= undef;
-				$ovlref->{$n}= $n;
 			}
 		}
 	}
