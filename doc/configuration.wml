@@ -131,7 +131,7 @@ For more information on where exactly the site-wide and global defaults
 would be located, see <a href="data.html">LDAP data structure</a>.
 </p>
 
-<h4>cacheOpen SPEC</h4>
+<h4>cacheRead SPEC</h4>
 <p>
 Specify how (and how long) to cache LDIF reads from disk. No specification
 implies no cache.
@@ -144,16 +144,17 @@ and number of LDAP operations, 20o.
 </p>
 <p>
 Overall best value, one that minimizes or eliminates the risk of
-serving stale data while still reaching high percentage of total possible
-performance increase, is 1 operation, specified as 1o.
+serving stale data while still reaching a noticeable optimization
+(up to 25%), is 1 operation, specified as 1o.
 </p>
 <p>
-Note that cacheOpen does not achieve multiple-times
-performance advantage as overlayConfig cache does. (Depending on usage, 
-cacheOpen gives 10% to 20% speedup of what overlayConfig cache would give).
+NOTE: due to deficiencies in Memoize::Expire module, time- and
+uses-based methods of expiry do not work correctly when caching non-scalar
+values (such as multiple values for an attribute). It is therefore suggested
+to always use the number-of-operations cache (like 1o).
 </p>
 <p>
-CacheOpen and overlayConfig cache can be used separately or together,
+CacheRead and 'overlayConfig' cache can be used separately, or together,
 summing the effect.
 </p>
 
@@ -376,8 +377,13 @@ OPTION can be "cache", "prefix" or "if".
 	<br><br>
 	In such cases, operations of complexity O(n) are reduced to O(1) level.
 	<br><br>
-	Syntax is the same as listed under "cacheOpen", and 1o is again the
+	Syntax is the same as listed under "cacheRead", and 1o is again the
 	overall best setting.
+	<br><br>
+	NOTE: due to deficiencies in Memoize::Expire module, time- and
+	uses-based methods of expiry do not work correctly when caching non-scalar
+	values (such as multiple values for an attribute). It is therefore suggested
+	to always use the number-of-operations cache (like 1o).
 	<br><br>
 	Example: cache 1o
 	<br><br>&nbsp;

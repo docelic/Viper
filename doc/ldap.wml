@@ -273,7 +273,7 @@ improvement (multiple times).&nbsp; See 'overlayconfig'
 Similar to the above, it's also possible to cache LDAP entry reads from
 disk. Cache specifications and explanation are the same as we just
 discussed, except that the performance gains are modest compared to the
-overlay cache (just in the &lt;= 20% range). See 'cacheopen'
+overlay cache (just in the &lt;= 20% range). See 'cacheread'
 </p>
 
 <h3>License &amp; copyright</h3>
