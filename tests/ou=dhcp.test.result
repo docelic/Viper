@@ -1,0 +1,51 @@
+# extended LDIF
+#
+# LDAPv3
+# base <ou=dhcp> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# dhcp
+dn: ou=dhcp
+cn: dhcp
+objectClass: top
+objectClass: dhcpService
+objectClass: dhcpSharedNetwork
+dhcpPrimaryDN: cn=viper,ou=dhcp
+dhcpStatements: ddns-update-style none
+dhcpStatements: default-lease-time 600
+dhcpStatements: max-lease-time 7200
+description: This is the DHCP subtree. Note that a simple search in this suffi
+ x will not reveal much information. The purpose of this suffix is to display 
+ dynamic behavior in response to certain combinations of search parameters. Ta
+ ke a look at slapd.conf, suffix ou=dhcp, for a list of the conditions that tr
+ igger this behavior. By default, the suffix in slapd.conf is prepared for acc
+ esses from ISC DHCP3 LDAP-enabled server, but the same combinations can be tr
+ iggered manually (and response observed) with ldapsearch.
+
+# sharednetwork, dhcp
+dn: ou=sharednetwork,ou=dhcp
+ou: sharedNetwork
+objectClass: top
+
+# dhcpd, dhcp
+dn: cn=dhcpd,ou=dhcp
+objectClass: top
+objectClass: simpleSecurityObject
+cn: dhcpd
+userPassword:: bmV2YWlyYmU=
+
+# viper, dhcp
+dn: cn=viper,ou=dhcp
+objectClass: top
+objectClass: dhcpServer
+cn: viper
+dhcpServiceDN: ou=dhcp
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 5
+# numEntries: 4
