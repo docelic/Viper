@@ -2,8 +2,6 @@
 
 * Test if server side prompter works after changes
 
-* make cacheOpen understand cache specs
-
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
 
@@ -13,6 +11,8 @@
 
 * Support for specifying which OS/distro should be installed, having
  debconf keys that understand it
+
+* Check if hash key is deleted if it expires and memoize returns 0 on ->exists()
 
 * local mirror with imported signing key
 

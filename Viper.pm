@@ -203,7 +203,7 @@ sub new {
 		'find'         => [],      # Match/No-Match regex list for findval
 
 		overlayconfig  => {},      # default overlay opts ('OVLNAME|default SPEC')
-		cacheopen      => '',      # cache spec for dn2leaf's results
+		cacheread      => '',      # cache spec for dn2leaf's results
 
 		schemaldif     => [],      # Schema in LDIF format (to be aware of schema).
 		                           # To produce schema file, start server, then use
@@ -236,16 +236,17 @@ sub new {
 
 		standard_parse => undef,   # Text::CSV_XS obj. for parsing various input
 		level          => 0,       # Loop/depth count. Usually 1
-		ovl_cache      => {},	     # Will contain queues with cached ovl values
-		dn2leaf_cache  => {},	     # Will contain queues with cached dn2leaf values
-		op_cache_valid => {},      # Num-ops cache validity
+		cache          => {},      # $this->{cache}{type}{ovl}{spec}{key}= val
+		op_ovl_cache_valid => {},  # Num-ops cache validity (overlays)
+		op_dnl_cache_valid => {},  # Num-ops cache validity (cacheRead)
+		dnl_cacheref   => {},      # Ptr to cacheread store
 
 		'start'        => [],      # Time of search start (array ID= search level)
 	};
 
 	# Must be done here as schema parser already has to be present
 	# during config parsing step.
-	$this->{schema}= new Net::LDAP::Schema;
+	$this->{schema}= Net::LDAP::Schema->new;
 
 	bless $this, $class
 }
@@ -364,7 +365,7 @@ sub bind {
 
 	# See if any userPassword (can be multi-value) matches
 	# the provided password
-	if( any { "$pw" eq "$_" } @pws) {
+	if( any{ "$pw" eq "$_"} @pws) {
 		return LDAP_SUCCESS
 	}
 
@@ -453,6 +454,9 @@ sub config {
 			for( my $i= 0; $i< @val; $i+= 2) {
 				$this->{var}{$val[$i]}= [ $val[$i+1]];
 			}
+
+		} elsif( $key eq 'cacheread') {             # DISKREAD CACHE
+			$this->parse_cache_opt( 'read', $val[0]);
 
 		} elsif( $key eq 'reset' and CFG_STACK) {   # RESET STACK
 			$this->{stack}= undef
@@ -726,7 +730,7 @@ sub search {
 			$v=~ s/(?<!\\)\$\[(\d+)\]\[(\d+)\]/$stack[$1][$2]/g;
 			$r=~ s/(?<!\\)\$\[(\d+)\]\[(\d+)\]/$stack[$1][$2]/g;
 
-			$req{ $k}=~ s/$v/$r/; # <- substs performed here (/g needed?)
+			$req{ $k}=~ s/$v/$r/; # <- substs performed here (XXX /g needed?)
 
 			p "SEARCH SUBST #$id action $k=~ s/$v/$r/ RESULT $req{ $k}";
 
@@ -1090,14 +1094,14 @@ sub run_overlays {
 		grep{ any{ index( $_, '$')> -1} $e->get_value( $_)} $e->attributes;
 
 	for my $a( @candidates) {
-		next if $a =~ qr/$RAW/o; # Skip attribute if raw/binary
+		next if $a=~ qr/$RAW/o; # Skip attribute if raw/binary
 
 		for my $ovl ( @OVERLAYS) {
 
 			my @v= $e->get_value( $a);
 
 			for my $cond( @{ $this->{$ovl}}) {
-				if( $a =~ /$$cond[0]/ and $a !~ /$$cond[1]/ ){
+				if( $a=~ /$$cond[0]/ and $a!~ /$$cond[1]/ ){
 					# Ok, we know overlay is configured with at least one line in
 					# slapd.conf and that line matches our attribute name.
 
@@ -1128,7 +1132,7 @@ sub run_overlays {
 							# later re-construction of components that we did not
 							# modify and for inserting appropriate space before/after
 							# the processed components).
-							while ( $v =~ qr/(\s*)\$(\s*)/o) {
+							while ( $v=~ qr/(\s*)\$(\s*)/o) {
 								my( $pre, $post)= (
 									(defined $1 ? $1 : q{}),
 									(defined $2 ? $2 : q{}),
@@ -1754,17 +1758,15 @@ sub dn2leaf {
 	my $key= join( '|', $dn, %opts);
 
 	# Check if we're in cache. Excellent how we can cut right in here.
-	if( $this->{cacheopen}) {
-		if( exists $this->{dn2leaf_cache}{$key}) {
-			pc "Using cache value for DN2LEAF '$key'";
+	if( exists $this->{dnl_cacheref}{$key}) {
+		pc "Using cache value for DN2LEAF '$key'";
 
-			#( $file, $directory, $entry)= @{ $this->{dn2leaf_cache}{$key}};
-			$file= ${ $this->{dn2leaf_cache}{$key}}[0];
-			$directory= ${ $this->{dn2leaf_cache}{$key}}[1];
-			$entry= ${ $this->{dn2leaf_cache}{$key}}[2]->clone;
+		#( $file, $directory, $entry)= @{ $this->{cache}{read}{$key}};
+		$file= ${ $this->{dnl_cacheref}{$key}}[0];
+		$directory= ${ $this->{dnl_cacheref}{$key}}[1];
+		$entry= ${ $this->{dnl_cacheref}{$key}}[2]->clone;
 
-			goto DN2LEAF_DONE
-		}
+		goto DN2LEAF_DONE
 	}
 
 	# Preserve original value of openfh. openfh gets modified during run, but
@@ -1928,13 +1930,13 @@ sub dn2leaf {
 		}
 	}
 
-	# If here, cache result. Caching enabled with cacheOpen directive
-	if( $this->{cacheopen} and $entry and
+	# If here, cache result. Caching enabled with cacheRead directive
+	if( $this->{cacheread} and $entry and
 	 !$opts{orig_openfh} and !$opts{writeop}) {
 
 		pc "Rebuilding cache value for DN2LEAF '$key'";
 
-		$this->{dn2leaf_cache}{$key}= [ $file, $directory, $entry->clone];
+		$this->{dnl_cacheref}{$key}= [ $file, $directory, $entry->clone];
 	}
 
 	DN2LEAF_DONE:
@@ -2225,7 +2227,7 @@ sub read_file {
 	# is specified, the specific line number or $1 from the first
 	# line matching the regex is returned. If not found, empty string
 	# is returned.
-	if( defined $spec and $spec =~ qr/^\d+$/o) {
+	if( defined $spec and $spec=~ qr/^\d+$/o) {
 
 		@data= ();
 		@data= $data[$spec] if defined $data[$spec];
@@ -2246,8 +2248,8 @@ sub read_file {
 sub write_file {
 	my( $this, $directory, $file, $data) = @_;
 
-	$file =~ s/^[\/\.]+//;
-	$file =~ s/\.\./\./g;
+	$file=~ s/^[\/\.]+//;
+	$file=~ s/\.\./\./g;
 	$file= join( '/', $directory, $file);
 
 	DEBUG and p "WRITE FILE '$file'";
@@ -2666,7 +2668,7 @@ sub relocate {
 		my( $a, $b)= @{$this->{addrelocate}->{$loc}};
 
 		unless( $newdn=~ s/$a/$b/) {
-			warn sprintf("Regex for '%s' does not apply (%s =~ s/%s/%s/), skipping relocation\n", $loc, $dn, $a, $b);
+			warn sprintf("Regex for '%s' does not apply (%s=~ s/%s/%s/), skipping relocation\n", $loc, $dn, $a, $b);
 			return LDAP_SUCCESS
 		}
 	}
@@ -2708,59 +2710,7 @@ sub ovl_options {
 		# named, and that it exists (create if not).
 		if( CACHE and $opt eq 'cache') {
 			my $spec= shift @opts;
-			my( $n, $dur)= ( $spec=~ m/^(\d+)(\w+)?$/);
-
-			next if not defined $n; # XXX no errmsg report here
-			next if $n== 0; # Skip if person cancelled cache
-
-			my( $qprefix, $nparm)= ( 'time', 'LIFETIME');
-
-			goto SPEC_DONE unless $dur;
-			my $unit= substr $dur, 0, 1;
-
-			if( $unit eq 'm') {
-				$n *= 60;
-			} elsif( $unit eq 'h') {
-				$n *= 60 * 60;
-			} elsif( $unit eq 'd') {
-				$n *= 24 * 60 * 60;
-			} elsif( $unit eq 'w') {
-				$n *= 7 * 24 * 60 * 60;
-			} elsif( $unit eq 'u') {
-				$qprefix= 'use';
-				$nparm= 'NUM_USES';
-			} elsif( $unit eq 'o') {
-				$qprefix= 'op';
-				$nparm= 'NUM_OPS (non-Tie)';
-			}
-
-			SPEC_DONE:
-			# Now that cache spec has been parsed, based on it we need to determine
-			# the queue that will cache the object (need to do it because
-			# Memoize::Expire cache rules are per hash, not per key, so we need
-			# separate hash for each cache option).
-			# Note also that queues are per-overlay and per-spec, not just per-spec,
-			# so it's not possible that overlays confuse their cached values.
-
-			pcd "Parsed cache spec '$spec' to '$nparm $n' ".
-				"(queue $qprefix, ovl $ovl)";
-
-			# Create queue if it doesn't exist yet.
-			if( not defined $this->{ovl_cache}{$qprefix}{$ovl}{$n}) {
-				if( $qprefix ne 'op') {
-					# Time and use queues are tied, operation count queue is not
-					tie %{ $this->{ovl_cache}{$qprefix}{$ovl}{$n}} =>
-						'Memoize::Expire', $nparm => $n;
-				} else {
-					# This is op-qeueue, realized without Tie.
-					%{ $this->{ovl_cache}{$qprefix}{$ovl}{$n}}= ();
-
-					# Register initial and current (same as initial) validity period.
-					$this->{op_cache_valid}{$ovl}{$n}= $n;
-				}
-
-				p "Created cache queue $qprefix-$ovl-$n ($nparm $n)";
-			}
+			my( $qprefix, $n)= $this->parse_cache_opt( $ovl, $spec);
 
 			# Onto @newopts, add cacheref which is a direct pointer to the queue
 			# in question that the caller can query to see if the cached value
@@ -2769,7 +2719,7 @@ sub ovl_options {
 			# would override our values dereived here. The override will elegantly
 			# happen when @newopts is turned to a hash on the receiver end,
 			# i.e. %opts= $this->ovl_options( $optspec).
-			unshift @newopts, 'cacheref', $this->{ovl_cache}{$qprefix}{$ovl}{$n};
+			unshift @newopts, 'cacheref', $this->{cache}{$qprefix}{$ovl}{$n};
 
 			# Push could be done outside of per-option block, but the way we do it
 			# here, we can achieve the option to be ignored if the top if() doesn't
@@ -2800,6 +2750,72 @@ sub ovl_options {
 	@newopts
 }
 
+sub parse_cache_opt {
+	my( $this, $ovl, $spec)= @_;
+
+	my $cache_type= $ovl ne 'read'? 'ovl_cache': 'dnl_cache';
+
+	my( $n, $dur)= ( $spec=~ m/^(\d+)(\w+)?$/);
+
+	next if not defined $n; # XXX no errmsg report here
+	next if $n== 0; # Skip if person cancelled cache
+
+	my( $qprefix, $nparm)= ( 'time', 'LIFETIME');
+
+	goto SPEC_DONE unless $dur;
+	my $unit= substr $dur, 0, 1;
+
+	if( $unit eq 'm') {
+		$n *= 60;
+	} elsif( $unit eq 'h') {
+		$n *= 60 * 60;
+	} elsif( $unit eq 'd') {
+		$n *= 24 * 60 * 60;
+	} elsif( $unit eq 'w') {
+		$n *= 7 * 24 * 60 * 60;
+	} elsif( $unit eq 'u') {
+		$qprefix= 'use';
+		$nparm= 'NUM_USES';
+	} elsif( $unit eq 'o') {
+		$qprefix= 'op';
+		$nparm= 'NUM_OPS (non-Tie)';
+	}
+
+	SPEC_DONE:
+	# Now that cache spec has been parsed, based on it we need to determine
+	# the queue that will cache the object (need to do it because
+	# Memoize::Expire cache rules are per hash, not per key, so we need
+	# separate hash for each cache option).
+	# Note also that queues are per-overlay and per-spec, not just per-spec,
+	# so it's not possible that overlays confuse their cached values.
+
+	pcd "Parsed cache spec '$spec' to '$nparm $n' ".
+		"(queue $qprefix, ovl $ovl)";
+
+	# Create queue if it doesn't exist yet.
+	if( not defined $this->{cache}{$qprefix}{$ovl}{$n}) {
+		if( $qprefix ne 'op') {
+			# Time and use queues are tied, operation count queue is not
+			tie %{ $this->{cache}{$qprefix}{$ovl}{$n}} =>
+				'Memoize::Expire', $nparm => $n;
+		} else {
+			# This is op-qeueue, realized without Tie.
+			%{ $this->{cache}{$qprefix}{$ovl}{$n}}= ();
+
+			# Register initial and current (same as initial) validity period.
+			$this->{'op_'. $cache_type. '_valid'}{$ovl}{$n}= $n;
+		}
+
+		p "Created $cache_type queue $qprefix-$ovl-$n ($nparm $n)";
+	}
+
+	if( $cache_type eq 'dnl_cache') {
+		$this->{dnl_cacheref}= $this->{cache}{$qprefix}{$ovl}{$n};
+	}
+
+	( $qprefix, $n)
+}
+
 # This function became necessary when it became possible for direct-entry
 # functions (sub search, sub modify etc.) to result in calling each other
 # iteratively (we needed to control looping depth), and later, it was also
@@ -2819,14 +2835,24 @@ sub check_state {
 	} else{
 		$this->{level}= 0;
 
-		$this->{dn2leaf_cache}= undef; # Clear per-op dn2leaf cache
+		# Trim ovl cache when needed
+		while( my( $ovl, $ovlref)= each %{ $this->{op_ovl_cache_valid}}) {
+			next if $ovl eq 'read';
 
-		while( my ($ovl, $ovlref)= each %{ $this->{op_cache_valid}}) {
 			for my $n( keys %{ $ovlref}) {
 				if( --$ovlref->{$n}< 1) {
-					$this->{ovl_cache}{op}{$ovl}{$n}= undef;
+					$this->{cache}{op}{$ovl}{$n}= undef;
 					$ovlref->{$n}= $n;
 				}
+			}
+		}
+
+		# Trim read cache when needed
+		my( $ovl, $ovlref)= ( 'read', $this->{op_dnl_cache_valid}{read});
+		for my $n( keys %{ $ovlref}) {
+			if( --$ovlref->{$n}< 1) {
+				$this->{dnl_cacheref}= undef;
+				$ovlref->{$n}= $n;
 			}
 		}
 	}
@@ -2924,9 +2950,9 @@ sub compare {
     my( $dn, $avaStr)= @_;
     my $rc= 5;    # LDAP_COMPARE_FALSE
 
-    $avaStr =~ s/=/: /m;
+    $avaStr=~ s/=/: /m;
 
-    if( $this->{$dn} =~ /$avaStr/im) {
+    if( $this->{$dn}=~ /$avaStr/im) {
         $rc= 6;    # LDAP_COMPARE_TRUE
     }
 
