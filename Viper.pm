@@ -79,7 +79,7 @@ use subs                qw/p pd pc pcd/;
 use constant DEBUG    => 0; # General debug?
 use constant DEBUG_DTL=> 0; # Detailed debug?
 use constant DEBUG_OVL=> 0; # Overlays debug?
-use constant DEBUG_CCH=> 0; # Cache debug?
+use constant DEBUG_CCH=> 1; # Cache debug?
 
 use constant CFG_STACK=> 1; # Allow save/reset/load config file routines
 use constant CFG_DUMP => 1; # Allow savedump/loaddump config file routines
@@ -93,7 +93,7 @@ use constant PERLEVAL => 0; # Enable Perl evaluation of values. *DANGEROUS*
 
 use constant RELOCATOR=> 0; # Enable relocation of Debconf keys from client.
 use constant PROMPTER => 0; # Enable relocation of Debconf keys from server.
-use constant CACHE    => 1; # Enable specifying cache parms for overlay values?
+use constant CACHE    => 1; # Enable honoring cache parms for overlay values?
 
 # Search scope defines
 use constant BASE     => 0;
@@ -388,7 +388,7 @@ sub config {
 		if(!( defined $this->{$key})) {
 			my @keys;
 			for my $cfgkey( keys %$this) {
-				push @keys, $cfgkey if $key =~ /^$cfgkey/
+				push @keys, $cfgkey if $key=~ /^$cfgkey/
 			}
 			if( @keys== 1) { # Great, uniquely found the right key
 				p "Resolved config key '$key' to '$keys[0]'";
@@ -682,7 +682,7 @@ sub search {
 	# SIZELIMIT: nr. entries limit. 0 -unlimited, max - max
 	# FILTER: dfl (objectClass=*)
 	# ATTRONLY - attributes only, no values
-	# @ATTRS list of attrs to return, special: */null = all, + = operational
+	# @ATTRS list of attrs to return, special: */null= all, += operational
 
 	# Normalize base DN
 	$this->normalize( \$req{base});
@@ -825,13 +825,13 @@ sub search {
 					return $ret unless $ret== LDAP_SUCCESS;
 					if( $filter->match( $entry)) {
 						DEBUG and p "SEARCH ($this->{level}) MATCH:", $entry->dn;
-						unshift @matches, $as_ldif? $ldif : $entry;
+						unshift @matches, $as_ldif? $ldif: $entry;
 
 						goto SIZE_LIMIT if @matches> $req{size};
 					}
 
 					my $time= time;
-					goto TIME_LIMIT if any { $time- $_> $req{time}} @{ $this->{start}}
+					goto TIME_LIMIT if any{ $time- $_> $req{time}} @{ $this->{start}}
 			} )
 			->maxdepth( $md)
 			->readable
@@ -873,7 +873,7 @@ sub modify {
 	# Normalize DN
 	$this->normalize( \$dn);
 
-	DEBUG and p "MODIFY '$dn': " . ( Dumper \@list);
+	DEBUG and p "MODIFY '$dn': ". ( Dumper \@list);
 
 	my( $ret, $newdn, %ret, $fh, $entry, $orig);
 
@@ -907,11 +907,11 @@ sub modify {
 	my $entry2;
 
 	# Perform changes on the in-memory entry
-  while ( @list > 0) {
+  while( @list > 0) {
 		my( $action, $key)= ( shift @list, shift @list);
 
 		my @values;
-		while ( @list) {
+		while( @list) {
 			# Ignore undefined values. If a key had only one value and it was
 			# undefined, it'll get deleted due to if( scalar @values) check below.
 			if( defined $list[0]) {
@@ -1586,7 +1586,7 @@ sub run_overlays {
 										# XXX Can be undef if value begins with some sort of
 										# expansion right away. See why its happening since we
 										# already do have a provision above for $1|| ''
-										$v.= defined( local $_ = $splits[$i][0]) ? $_ : '';
+										$v.= defined( local $_= $splits[$i][0]) ? $_ : '';
 										$skip= 2
 									} elsif( $skip== 2) {
 										$v.= $comp;
@@ -1696,7 +1696,7 @@ sub load {
 # Resolve DN->file.ldif. Takes into account fallbacks and everything else.
 # No dynamic operations happen (no appending or overlays).
 sub resolve {
-	my( $this, $obase, $oret, %opts) = @_;
+	my( $this, $obase, $oret, %opts)= @_;
 
 	DEBUG and pd "RESOLVE '$obase', opts:", join( ' ', %opts);
 
@@ -1711,7 +1711,7 @@ sub resolve {
 		return LDAP_OTHER if $opts{dnasfile};
 
 		for( @{ $this->{searchfallback}}) {
-			my $base = $obase;
+			my $base= $obase;
 			# If substitution from config file is successful
 			if( $base=~ s/$$_[0]/$$_[1]/) {
 				p "RESOLVE FALLBACK TO '$base'";
@@ -1803,10 +1803,10 @@ sub dn2leaf {
 	if( $opts{writeop}) {
 		my $currdir= $this->{directory};
 		my @i= @paths;
-		while ( my $comp = shift @i) {
+		while ( my $comp= shift @i) {
 
 			$currdir .= '/'.$comp;
-			my $currfile = $currdir . $this->{extension};
+			my $currfile= $currdir . $this->{extension};
 
 			if( ! -r $currfile) {
 				p "DN2LEAF -r '$currfile': $!\n";
@@ -2002,7 +2002,7 @@ sub run_appender {
 			my @cond;
 
 			if( $k eq 'dn') { @cond= $e->dn }
-			else{ @cond= $e->get_value( $k) }
+			else { @cond= $e->get_value( $k) }
 
 			my $local_ok= 0;
 			for my $cond( @cond) {
@@ -2156,7 +2156,7 @@ sub run_appender {
 						$this->{schema}->may( $oc), $this->{schema}->must( $oc));
 				}
 
-				unless( any {/^$a$/} @can) {
+				unless( any{ /^$a$/} @can) {
 					#p "testing for $a: YES";
 				#} else {
 					#p "testing for $a: NO";
@@ -2179,15 +2179,15 @@ sub run_appender {
 
 # Deep comparison of arbitrary structures
 sub dequal {
-  my( $this, $a_ref, $b_ref) = @_;
-  local $Storable::canonical = 1;
+  my( $this, $a_ref, $b_ref)= @_;
+  local $Storable::canonical= 1;
   return freeze( $a_ref) eq freeze( $b_ref)
 }
 
 # Function able to read a file and return it all, or according to $spec
 # which is a specific linenumber or line matching a regex
 sub read_file {
-	my( $this, $directory, $file, $spec) = @_;
+	my( $this, $directory, $file, $spec)= @_;
 
 	unless( $directory and length $directory) {
 		warn "read_file( '$file') attempted before 'directory' has been set\n";
@@ -2246,7 +2246,7 @@ sub read_file {
 # steps, locking and error messages. (Writing regular files, for
 # LDIF data see save() below)
 sub write_file {
-	my( $this, $directory, $file, $data) = @_;
+	my( $this, $directory, $file, $data)= @_;
 
 	$file=~ s/^[\/\.]+//;
 	$file=~ s/\.\./\./g;
@@ -2302,11 +2302,11 @@ sub save {
 	#  addoverwrites= 1/0  -- overwrite existing entry with new ADD?
 	#  addignoredups= 0/1  -- if overwrite=0, do we complain or ignore the ADD?
 	$ret= $this->dn2leaf( $dn, \%ret,
-		qw/writeop 1/, 'overwrite', $this->{addoverwrites},
-		%opts);
+		qw/writeop 1/, 'overwrite', $this->{addoverwrites}, %opts);
+
 	if( $ret!= LDAP_SUCCESS and !$opts{modify}) {
-		return LDAP_SUCCESS if
-			$ret== LDAP_ALREADY_EXISTS and $this->{addignoredups};
+		return LDAP_SUCCESS if $ret== LDAP_ALREADY_EXISTS and
+			$this->{addignoredups};
 		return $ret
 	}
 
@@ -2477,13 +2477,13 @@ sub check_relocation {
 # display, which is most suitable on local LANs where firewall rules or
 # NAT won't make the display unreachable from the server side.
 sub check_prompter {
-	my ($this, $entry, $where)= @_;
+	my( $this, $entry, $where)= @_;
 
 	my $dn= $entry->dn;
 
 	# Extract priority that would be used to ask the question. To have the
 	# question asked, priority must be set.
-	my $priority = exists $entry->{attrs}->{priority} ?
+	my $priority= exists $entry->{attrs}->{priority} ?
 		${$entry->{attrs}->{priority}}[0] : 0;
 	
 	return LDAP_SUCCESS unless $priority;
@@ -2832,13 +2832,13 @@ sub check_state {
 		$this->{level}++;
 
 	# If here, means we are entering a new search from slapd
-	} else{
+	} else {
 		$this->{level}= 0;
 
 		# Trim ovl cache when needed
 		while( my( $ovl, $ovlref)=
 			each %{ $this->{op_ovl_cache_valid}},
-			each %{ $this->{op_ovl_cache_valid}}) {
+			each %{ $this->{op_dnl_cache_valid}}) {
 
 			for my $n( keys %{ $ovlref}) {
 				if( --$ovlref->{$n}< 1) {
@@ -2921,8 +2921,8 @@ Description: Specify value save location:
 	# Okay, power it up
 	Debconf::Db->load;
 
-	$dc = Debconf::DbDriver->driver( Debconf::Config->config);
-	$dt = Debconf::DbDriver->driver( Debconf::Config->templates);
+	$dc= Debconf::DbDriver->driver( Debconf::Config->config);
+	$dt= Debconf::DbDriver->driver( Debconf::Config->templates);
 
 	$df= Debconf::AutoSelect::make_frontend();
 
