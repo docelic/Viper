@@ -2746,6 +2746,8 @@ sub ovl_options {
 		}
 	}
 
+	# We return an array, but it is required that the caller 
+	# takes it as a hash.
 	@newopts
 }
 
