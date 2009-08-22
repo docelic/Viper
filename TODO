@@ -12,19 +12,17 @@
 * Support for specifying which OS/distro should be installed, having
  debconf keys that understand it
 
-* Check if hash key is deleted if it expires and memoize returns 0 on ->exists()
+* Check if hash key is deleted if it expires and memoize returns 0 on ->exists(). It's not, so this effectively means in worst-case scenario, when using time/uses based expiry, once could have whole set of ldap data in memory
 
 * local mirror with imported signing key
 
 * check if multiple 'if' options to an overlay work properly
 
-* streamline common work in verlays (put stuff to functions), 
+* streamline common work in overlays (put stuff to functions), 
  uniform debug log printing from them etc.
 
 * For every attr that is defined as containing a DN in schema, support
  expansion of dots (".") to components
-
-* check if proper order of values is preserved even when overlays run
 
 * udpkg -i partman_auto_raid in ubuntu 8.04 early_command
 

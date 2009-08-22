@@ -2840,7 +2840,6 @@ sub check_state {
 
 			for my $n( keys %{ $ovlref}) {
 				if( --$ovlref->{$n}< 1) {
-					warn "WILL RESET $ovl / $n\n";
 					$this->{cache}{op}{$ovl}{$n}= undef;
 					$ovlref->{$n}= $n;
 				}

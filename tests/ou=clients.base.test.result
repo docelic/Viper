@@ -1,0 +1,20 @@
+# extended LDIF
+#
+# LDAPv3
+# base <ou=clients> with scope baseObject
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# clients
+dn: ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: clients
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 2
+# numEntries: 1
