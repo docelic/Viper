@@ -79,7 +79,7 @@ use subs                qw/p pd pc pcd/;
 use constant DEBUG    => 0; # General debug?
 use constant DEBUG_DTL=> 0; # Detailed debug?
 use constant DEBUG_OVL=> 0; # Overlays debug?
-use constant DEBUG_CCH=> 1; # Cache debug?
+use constant DEBUG_CCH=> 0; # Cache debug?
 
 use constant CFG_STACK=> 1; # Allow save/reset/load config file routines
 use constant CFG_DUMP => 1; # Allow savedump/loaddump config file routines
@@ -237,8 +237,7 @@ sub new {
 		standard_parse => undef,   # Text::CSV_XS obj. for parsing various input
 		level          => 0,       # Loop/depth count. Usually 1
 		cache          => {},      # $this->{cache}{type}{ovl}{spec}{key}= val
-		op_ovl_cache_valid => {},  # Num-ops cache validity (overlays)
-		op_dnl_cache_valid => {},  # Num-ops cache validity (cacheRead)
+		op_cache_valid => {},      # Num-ops cache validity (overlays)
 		dnl_cacheref   => {},      # Ptr to cacheread store
 
 		'start'        => [],      # Time of search start (array ID= search level)
@@ -2753,8 +2752,6 @@ sub ovl_options {
 sub parse_cache_opt {
 	my( $this, $ovl, $spec)= @_;
 
-	my $cache_type= $ovl ne 'read'? 'ovl_cache': 'dnl_cache';
-
 	my( $n, $dur)= ( $spec=~ m/^(\d+)(\w+)?$/);
 
 	next if not defined $n; # XXX no errmsg report here
@@ -2803,13 +2800,13 @@ sub parse_cache_opt {
 			%{ $this->{cache}{$qprefix}{$ovl}{$n}}= ();
 
 			# Register initial and current validity period.
-			$this->{'op_'. $cache_type. '_valid'}{$ovl}{$n}= $n;
+			$this->{'op_cache_valid'}{$ovl}{$n}= $n;
 		}
 
-		pc "Created $cache_type queue $qprefix-$ovl-$n ($nparm $n)";
+		pc "Created cache queue $qprefix-$ovl-$n ($nparm $n)";
 	}
 
-	if( $cache_type eq 'dnl_cache') {
+	if( $ovl eq 'read') {
 		$this->{dnl_cacheref}= $this->{cache}{$qprefix}{$ovl}{$n};
 	}
 
@@ -2837,11 +2834,11 @@ sub check_state {
 
 		# Trim ovl cache when needed
 		while( my( $ovl, $ovlref)=
-			each %{ $this->{op_ovl_cache_valid}},
-			each %{ $this->{op_dnl_cache_valid}}) {
+			each %{ $this->{op_cache_valid}}) {
 
 			for my $n( keys %{ $ovlref}) {
 				if( --$ovlref->{$n}< 1) {
+					warn "WILL RESET $ovl / $n\n";
 					$this->{cache}{op}{$ovl}{$n}= undef;
 					$ovlref->{$n}= $n;
 				}
