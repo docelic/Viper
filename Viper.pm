@@ -255,7 +255,12 @@ sub new {
 sub init {
 	my( $this)= @_;
 
-	p "INIT @_ $this->{treesuffix}";
+	# Standard practice: to save on hash key lookups, load hash keys
+	# that will be used more than once inside the subroutine to a
+	# local variable of the same name, with first char uppercase.
+	my( $Treesuffix)= @$this->{qw/treesuffix/};
+
+	p "INIT @_ $Treesuffix";
 
 	# Let's do some checking.
 
@@ -273,7 +278,7 @@ sub init {
 	# Actually, for now, just verify the paths are there, if not, throw
 	# warning.
 
-	my $dn= $this->{treesuffix};
+	my $dn= $Treesuffix;
 
 	$dn=~ s/^.+?,\s*//; # Reduce DN to part of the path that needs to be there
 	
@@ -288,7 +293,7 @@ sub init {
 	# suffixes with a single component (such as ou=defaults)
 	if( $dn=~ qr/,/o and not -e $ret{file}) {
 		warn 'Components leading up to the tree suffix '.
-		"for $this->{treesuffix} are missing; ".
+		"for $Treesuffix are missing; ".
 			"create them and restart slapd.\n";
 		return LDAP_OPERATIONS_ERROR
 	}
@@ -384,7 +389,7 @@ sub config {
 		# clarity. Internally, we use short names. I.e. a config line of 
 		# "expandval opt1 opt2" is translated to "exp" internally.
 		# (But you can also specify 'exp' directly (or anything in between)).
-		if(!( defined $this->{$key})) {
+		if( !defined $this->{$key}) {
 			my @keys;
 			for my $cfgkey( keys %$this) {
 				push @keys, $cfgkey if $key=~ /^$cfgkey/
@@ -430,6 +435,8 @@ sub config {
 		# Now handle config directives that call for immediate work as soon
 		# as they're encountered:
 
+		my $Tmpdir= $this->{tmpdir};
+
 		if( $key eq 'message') {                    # MESSAGE
 			warn 'Message: ', join( ' ', @val), "\n"
 
@@ -467,8 +474,7 @@ sub config {
 
 				# XXX idea: generic write routine that knows how to write
 				# plain file, entry, and ldif
-				my $ret= $this->write_file(
-					$this->{tmpdir}, $_, Dumper $this->{stack});
+				my $ret= $this->write_file( $Tmpdir, $_, Dumper $this->{stack});
 				return $ret unless $ret== LDAP_SUCCESS;
 			}
 
@@ -491,7 +497,7 @@ sub config {
 			my $edata;
 			{
 				use vars qw/$VAR1/;
-				my( $ret, @data)= $this->read_file( $this->{tmpdir}, $_);
+				my( $ret, @data)= $this->read_file( $Tmpdir, $_);
 				return $ret unless $ret== LDAP_SUCCESS;
 
 				my $data= join q{}, @data;
@@ -531,12 +537,12 @@ sub config {
 
 		} elsif( $key eq 'clean' and CFG_STACK) {   # DELETE OLD STACK FILES
 
-			unless( $this->{tmpdir}) {
+			unless( $Tmpdir) {
 				warn "Called 'clean' before 'directory' has been set\n";
 				return LDAP_OPERATIONS_ERROR
 			}
 			
-			my $glob= join '/', $this->{tmpdir}, '*';
+			my $glob= join '/', $Tmpdir, '*';
 			for my $file( glob $glob) {
 				p "Unlinking tmp stack file '$file'";
 				unless( unlink $file) {
@@ -547,7 +553,7 @@ sub config {
 
 		} elsif( $key eq 'savedump' and CFG_DUMP) { # SAVE DUMP
 			for( $val[0]) {
-				if( not my $ret= nstore $this, $this->{tmpdir}. '/'. $_) {
+				if( not my $ret= nstore $this, $Tmpdir. '/'. $_) {
 					return $ret unless $ret== LDAP_SUCCESS;
 				}
 			}
@@ -556,7 +562,7 @@ sub config {
 			my $ret;
 
 			for( $val[0]) {
-				if( not $ret= retrieve $this->{tmpdir}. '/'. $_) {
+				if( not $ret= retrieve $Tmpdir. '/'. $_) {
 					return $ret unless $ret== LDAP_SUCCESS;
 				}
 
@@ -577,15 +583,17 @@ sub config {
 		# If key is defined as arrayref, push [a, b, ...] onto it;
 		# If key is defined as hashref, do name= [a, b, ...];
 		# Otherwise, perform regular scalar assignment.
-		if( ref $this->{$key} eq 'ARRAY') {
-			push @{ $this->{$key}}, [ @val]
+		my $Key= $this->{$key};
 
-		} elsif( ref $this->{$key} eq 'HASH') {
+		if( ref $Key eq 'ARRAY') {
+			push @{ $Key}, [ @val]
+
+		} elsif( ref $Key eq 'HASH') {
 			my $locname= shift @val;
-			$this->{$key}{$locname}= [ @val];
+			$Key->{$locname}= [ @val];
 
 		} else {
-			$this->{$key}= join ' ', @val
+			$Key= $this->{$key}= join ' ', @val
 		}
 
 		# Now post-handling of options:
@@ -593,11 +601,11 @@ sub config {
 		# When directory is defined, create tmp/ inside of it to use
 		# as a temporary directory store for save/load commands.
 		if( $key eq 'directory') {
-			$this->{tmpdir}= join '/', $this->{directory}, 'tmp';
+			$Tmpdir= $this->{tmpdir}= join '/', $this->{directory}, 'tmp';
 
-			if( ! -e $this->{tmpdir} or ! -d $this->{tmpdir}) {
-				unless( mkdir $this->{tmpdir}) {
-					warn "Can't mkdir '$this->{tmpdir}' ($!)\n";
+			if( !-e $Tmpdir or !-d $Tmpdir) {
+				unless( mkdir $Tmpdir) {
+					warn "Can't mkdir '$Tmpdir' ($!)\n";
 					return LDAP_OPERATIONS_ERROR
 				}
 			}
@@ -627,7 +635,7 @@ sub add {
 
 	my $dn= $entry->dn;
 
-	DEBUG and p "ADD '$dn': " . ( Dumper \$ldif);
+	DEBUG and p "ADD '$dn': ". ( Dumper \$ldif);
 
 	# XXX Check for validity of attrs in entry. (Well, I think
 	# slapd does that, no worries, all we get here is valid)
@@ -661,7 +669,12 @@ sub add {
 sub search {
 	my $this= shift;
 
-	$this->check_state( \@_);
+	$this->setup_state( \@_);
+
+	my( $Level, $Start)= ( @$this->{qw/level start/});
+	my( $start)= ( $this->{start}[$Level]);
+
+	p "SEARCH ($Level) @_";
 
 	my( %req, @attrs); 
 	( @req{qw/base scope deref size time filter attrOnly/}, @attrs)=@_;
@@ -686,7 +699,7 @@ sub search {
 	# Normalize base DN
 	$this->normalize( \$req{base});
 
-	p "SEARCH ($this->{level}) @_";
+	my( $base, $scope)= @req{qw/base scope/};
 
 	#
 	# Let's see if we have to do any substitution on input params. SearchSubst
@@ -745,7 +758,7 @@ sub search {
 	# Save original requested base. (Need to have it, unmodified, for proper
 	# expansion of "." (dots) in DN specifications). Note that this is the
 	# base AFTER rewriting.
-	$req{origbase}= $req{base};
+	$req{origbase}= $base;
 
 	# We were letting OpenLDAP handle filtering with filterSearchResults
 	# directive, but that wasn't optimal because we weren't able to modify
@@ -753,7 +766,7 @@ sub search {
 	# anything we want anywhere we want (with filter and all other search
 	# params), producing only final results for passing back onto slapd.
 	my $filter;
-	unless( $filter= Net::LDAP::Filter->new( $req{ filter})) {
+	unless( $filter= Net::LDAP::Filter->new( $req{filter})) {
 		warn "Invalid filter '$req{ filter}'\n";
 		return LDAP_FILTER_ERROR
 	}
@@ -766,45 +779,46 @@ sub search {
 	# slapd expects results in LDIF, but our internal subinvocations basically
 	# always want entry results, not LDIF. So, in a direct call from slapd,
 	# $as_ldif will be true, otherwise false (implying we want entry objects).
-	my $as_ldif= $this->{level}== 0? 1: 0;
+	my $as_ldif= $Level== 0? 1: 0;
 
 	# First entry is always the base, if -s base or -s sub was specified
 	# for search scope.
-	if( $req{scope}== BASE or $req{scope}== SUB) {
+	if( $scope== BASE or $scope== SUB) {
 
 		# origdn is the original DN, which will be used for "." (dots" expansion
 		# in DN specs (i.e. cn=abc...)
 		( $ret, $newbase, $ldif, $entry)=
-			$this->load( $req{base}, qw/entry 1 ldif 1/, 'origdn', $req{origbase});
+			$this->load( $base, qw/entry 1 ldif 1/, 'origdn', $req{origbase});
 		return $ret unless $ret== LDAP_SUCCESS;
 
 		# If original search base was found, this is a no-op. Otherwise
 		# $newbase is some fallback base found and we "switch" to it.
-		$req{base}= $newbase;
+		$base= $req{base}= $newbase;
 
 		# We unshift because on return from Perl to ldap, data is read
 		# in reverse order.
 		if( $filter->match( $entry)) {
-			DEBUG and p "SEARCH ($this->{level}) MATCH:", $entry->dn;
+			DEBUG and p "SEARCH ($Level) MATCH:", $entry->dn;
 			unshift @matches, $as_ldif? $ldif: $entry;
 
 			goto SIZE_LIMIT if @matches> $req{size};
 		}
 
 		my $time= time;
-		goto TIME_LIMIT if any{ $time- $_> $req{time}} @{ $this->{start}}
+		goto TIME_LIMIT if any{ $time- $_> $req{time}} @{ $Start}
 	}
 
 	# Further entries may follow unless only base was specifically
 	# requested with -s base
-	if( $req{scope}!= BASE){
+	if( $scope!= BASE){
 		my $level= 0;
 
-		( $ret, $req{base})= $this->resolve( $req{base}, \%ret, qw/leaf 0/);
+		( $ret, $base)= $this->resolve( $base, \%ret, qw/leaf 0/);
+		$req{base}= $base;
 		return $ret unless $ret== LDAP_SUCCESS;
 
 		my $dir= $ret{directory};
-		my $md= $S2L{$req{scope}};
+		my $md= $S2L{$scope};
 
 		# Use File::Find::Rule to traverse the directory tree selectively
 		# and scoop out what we want.
@@ -822,14 +836,14 @@ sub search {
 
 					return $ret unless $ret== LDAP_SUCCESS;
 					if( $filter->match( $entry)) {
-						DEBUG and p "SEARCH ($this->{level}) MATCH:", $entry->dn;
+						DEBUG and p "SEARCH ($Level) MATCH:", $entry->dn;
 						unshift @matches, $as_ldif? $ldif: $entry;
 
 						goto SIZE_LIMIT if @matches> $req{size};
 					}
 
 					my $time= time;
-					goto TIME_LIMIT if any{ $time- $_> $req{time}} @{ $this->{start}}
+					goto TIME_LIMIT if any{ $time- $_> $req{time}} @{ $Start}
 			} )
 			->maxdepth( $md)
 			->readable
@@ -848,13 +862,11 @@ sub search {
 
 	SEARCH_DONE:
 
-	my ( $level, $start)= ( $this->{level}, $this->{start}[ $this->{level}]);
-
-	p "SEARCH ($this->{level}) TOTAL:", scalar @matches, 'matches ('.
+	p "SEARCH ($Level) TOTAL:", scalar @matches, 'matches ('.
 		"time=". ( time- $start). "/$req{time}, ".
 		"size=". ( scalar @matches). "/$req{size})";
 
-	$this->{level}-= 1;
+	$Level= $this->{level}-= 1;
 
 	# $ret will be 0 (LDAP_SUCCESS) if no limits were hit.
 	( $ret, @matches)
@@ -866,7 +878,7 @@ sub modify {
   my( $this, $dn, @list)= @_;
 	my $ldif;
 
-	$this->check_state( \@_);
+	$this->setup_state( \@_);
 
 	# Normalize DN
 	$this->normalize( \$dn);
@@ -1090,6 +1102,8 @@ sub run_overlays {
 	# attribute value's DN spec with components from the original entry.
 	$odn||= $e->dn;
 
+	my( $Level, $Directory)= @$this->{qw/level directory/};
+
 	# Find attributes with at least one value that's a candidate
 	# for overlays run.
 	my @candidates=
@@ -1185,13 +1199,13 @@ sub run_overlays {
 											}
 										}
 
-										p 'FILE: will read dir='.  $this->{directory}.
-											', file='.  $file.
-											', spec='.  ( $spec|| '');
+										p 'FILE: will read dir='. $Directory.
+											', file='. $file.
+											', spec='. ( $spec|| '');
 
 										# Load file contents, end if reading wasn't successful
 										my( $ret, @comp)= $this->read_file(
-											$this->{directory}, $file, $spec);
+											$Directory, $file, $spec);
 
 										# Comment this if you want even unsuccessful attempts
 										# to be cached (empty value).
@@ -1311,7 +1325,7 @@ sub run_overlays {
 									
 										# Do not operate on the attribute if this is not the
 										# first level search (direct entry).
-										next if $this->{level}> 0;
+										next if $Level> 0;
 
 										if( $opts{if}) {
 											my( $k, $v)= @{ $opts{if}};
@@ -2821,10 +2835,10 @@ sub parse_cache_opt {
 
 # This function became necessary when it became possible for direct-entry
 # functions (sub search, sub modify etc.) to result in calling each other
-# iteratively (we needed to control looping depth), and later, it was also
+# recursively (we needed to control looping depth), and later, it was also
 # necessary for the functions to know if they're direct entry or not, so that
 # they can clean or keep per-operation cache.
-sub check_state {
+sub setup_state {
 	my( $this, $arg)= @_;
 
 	# hashref as last arg identifies we're re-invoking search from backend,

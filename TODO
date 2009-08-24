@@ -14,6 +14,11 @@
 * Support for specifying which OS/distro should be installed, having
  debconf keys that understand it
 
+* Option inside {} to sub search, to specify whether expansion (overlays,
+ appender) should be performed. Massive timesaver for things like ntp-servers
+ query where you know the entry should already be there and does not need to
+ be expanded in any way for the query to operate on it well.
+
 * Check if hash key is deleted if it expires and memoize returns 0 on ->exists(). It's not, so this effectively means in worst-case scenario, when using time/uses based expiry, once could have whole set of ldap data in memory
 
 * local mirror with imported signing key
