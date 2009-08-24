@@ -1513,7 +1513,7 @@ sub run_overlays {
 							# This is achieved by the innermost for() block -- 
 							#   for( my $i=0; $i < @comps; $i++) { ..... }
 							#
-							# However, this approach does not allow the overlay to create
+							# However, this approach did not allow the overlay to create
 							# new attribute values -- expansion can happen only in-place,
 							# within the string. This means that you were not able to get
 							# say, the list of NTP servers via 'find' overlay as an array.
@@ -1544,10 +1544,10 @@ sub run_overlays {
 							# viper_ntp_server: IP2
 							# viper_ntp_server: IP3
 							#
-							# But ok anyway, to make the expansion to multiple attributes,
-							# overlay first returns an arrayref instead of a scalar.
-							# Then, this code right below detects there are arrayrefs in
-							# the list, and expands them into multiple attribute values.
+							# But ok, anyway, to make the expansion to multiple attributes,
+							# overlay should first return an arrayref instead of a scalar.
+							# Then, this code right below detects are arrayrefs in the list,
+							# and expands them into multiple attribute values.
 							#
 							# This support for expanding into multiple attribute values
 							# took me good half a day of battling to barrel through.
@@ -1562,6 +1562,8 @@ sub run_overlays {
 								# Push [@comps] onto @compstack, expanding array values (i.e.
 								# arrayref with 4 values results in 4 [@comps] pushed onto
 								# compstack, each with one value from the arrayref).
+								# XXX Do we need to do this in a loop until all arrayrefs
+								# are expanded?
 								for ( @{ $comps[$refidx]}) {
 									push @compstack, [ @comps];
 									$compstack[ $#compstack][$refidx]= $_;
