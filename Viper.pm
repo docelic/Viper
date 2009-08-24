@@ -258,7 +258,7 @@ sub init {
 	# Standard practice: to save on hash key lookups, load hash keys
 	# that will be used more than once inside the subroutine to a
 	# local variable of the same name, with first char uppercase.
-	my( $Treesuffix)= @$this->{qw/treesuffix/};
+	my( $Treesuffix)= @$this{qw/treesuffix/};
 
 	p "INIT @_ $Treesuffix";
 
@@ -671,7 +671,7 @@ sub search {
 
 	$this->setup_state( \@_);
 
-	my( $Level, $Start)= ( @$this->{qw/level start/});
+	my( $Level, $Start)= ( @$this{qw/level start/});
 	my( $start)= ( $this->{start}[$Level]);
 
 	p "SEARCH ($Level) @_";
@@ -1102,7 +1102,7 @@ sub run_overlays {
 	# attribute value's DN spec with components from the original entry.
 	$odn||= $e->dn;
 
-	my( $Level, $Directory)= @$this->{qw/level directory/};
+	my( $Level, $Directory)= @$this{qw/level directory/};
 
 	# Find attributes with at least one value that's a candidate
 	# for overlays run.
