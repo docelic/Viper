@@ -1498,7 +1498,7 @@ sub run_overlays {
 							#
 							# Here comes the part with some complicated elements. This is
 							# the part of code that combines components (that were split
-							# on \$ and overlay-processed) back to the processed value.
+							# on \$) back to the processed value.
 							#
 							# The code is written in such a way that it remembers
 							# the whitespace that was surrounding the $ ovl $ parms $ block,
@@ -1508,9 +1508,9 @@ sub run_overlays {
 							#
 							# For example, spec of "before  $ exp $ ..... $after" would be
 							# processed (on 'exp' overlay's turn) into this exact value:
-							# "before  VALUEafter" (notice paying attention to whitespace).
+							# "before  VALUEafter".
 							#
-							# This is done by the innermost for() block -- 
+							# This is achieved by the innermost for() block -- 
 							#   for( my $i=0; $i < @comps; $i++) { ..... }
 							#
 							# However, this approach does not allow the overlay to create
