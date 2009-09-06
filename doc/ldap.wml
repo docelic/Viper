@@ -1,7 +1,7 @@
 <h1>Viper OpenLDAP backend</h1>
 
 <p>
-The complete Viper suite is named after its most important component, Viper,
+The complete Viper suite is named after its most important component -- Viper,
 a custom Perl-based backend for the OpenLDAP server. The backend
 builds on LDAP's great strenghts while introducing a number of features
 to solve deficiencies in LDAP when it comes to configuration management.
@@ -12,8 +12,8 @@ to solve deficiencies in LDAP when it comes to configuration management.
 #LDAP's deficiencies when it comes to configuration management.
 #</p>
 <p>
-The backend can be used
-in general-purpose scenarios. It can be used in places where you
+Generally speaking, the backend can be used
+in regular LDAP scenarios, in places where you 
 want quick results, on a platform that already has extra features
 and also lends itself to further customization.
 </p><p>
@@ -33,7 +33,7 @@ and MODIFY handling, and server-side Debconf prompting.
 </p><p>
 The implemented features allow LDAP to act as a powerful
 central data store, without any data duplication or need for batch
-scripts that would periodically re-generate config files. All data
+scripts that would periodically re-generate config files -- all data
 needs to be specified in only one place, all components contact LDAP
 on the fly, and all data served by LDAP is current.
 </p><p>
@@ -53,7 +53,7 @@ modifications to their source code.
 
 <h2>Summary of features</h2>
 <p>
-Here's the summary of Viper features, grouped by category:<br>
+Here's a more elaborate listing of Viper features, grouped by category:<br>
 </p>
 <h4>General</h4>
 <p>
@@ -275,17 +275,3 @@ disk. Cache specifications and explanation are the same as we just
 discussed, except that the performance gains are modest compared to the
 overlay cache (just in the &lt;= 20% range). See 'cacheread'
 </p>
-
-<h3>License &amp; copyright</h3>
-<pre>Spinlock Solutions --
-  Advanced GNU/Linux networks in commercial and education sectors.
-
-Copyright 2008-2009
-    SPINLOCK d.o.o., http://www.spinlocksolutions.com/
-    Davor Ocelic, docelic@spinlocksolutions.com
-
-http://www.spinlocksolutions.com/
-http://techpubs.spinlocksolutions.com/
-
-Released under GPL v3 or later.
-</pre>
