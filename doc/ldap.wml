@@ -177,8 +177,8 @@ expansion into values of other entries' attributes, such as: "result is
 $ exp $ DN ATTR VALX" ===&gt; "result is VALUE". DN is the wished
 entry's DN, ATTR is its attribute you want to expand to, and VALX is
 either a numerical ID of the value you want, or a string which is used
-to join eventual multiple values in a single string (can use " " or \s
-for space).&nbsp; Shorthand
+to join eventual multiple values in a single string (can use " " for
+space, or any hex char, i.e. \x20 is also space).&nbsp; Shorthand
 notation is also possible: simply ATTR [VALX] implies ATTR in the
 current entry, with selected VALX (or ID 0). See 'expandval'
 </p><p>
@@ -192,9 +192,9 @@ to join eventual multiple values *of individual entry* in a single
 string. GVALX is the same as VALX, but specifying joiner for values *of
 different entries* (i.e. valx/gvalx spec of "|" ", " might return
 result such as "e1v1|e1v2, e2v1, e3v1|e3v2|e3v3".&nbsp; VALX or GVALX
-omitted default to 0 (first value). They can also be \s for whitespace
-and \0 for indicating that we want to expand into multiple attribute
-values, not join values into a single string. See 'findval'
+omitted default to 0 (first value). They can also be any hex char, such as
+\x20 for whitespace, and \x00 for indicating that we want to expand into
+multiple attribute values, not join values into a single string. See 'findval'
 </p><p>
 When an entry is read, it is possible to cause attribute value
 expansion into values of on-disk files, ALWAYS relative to server data

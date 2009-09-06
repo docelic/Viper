@@ -120,7 +120,8 @@ fill in that many DN components from the current entry.
 	<b>VALX</b> - value to extract from multi-valued attributes. When
 	unspecified, defaults to the first value. When a number,
 	specifies the value ID. When a string, specifies the joiner on which
-	to join all values (\s can be used for space).
+	to join all values (\x20 can be used for space, but also all other
+	hex chars are supported).
 </p>
 <p>
 Examples:
@@ -207,24 +208,26 @@ fill in that many DN components from the current entry.
 <p>
 	<b>VALX</b> - either a numerical ID of the value you want, or a string
 	which is used to join eventual multiple values <b>of each individual entry</b>
-	in a single string. When omitted, defaults to 0 (first value). When \s,
-	joins values in a single string with whitespace. When \0, does not join
+	in a single string. When omitted, defaults to 0 (first value). When \x20,
+	joins values in a single string with whitespace (but also any other hex
+	char can be used). When \x0, does not join
 	the values but takes them as multiple values for an attribute.
 </p>
 <p>
 	<b>GVALX</b> - either a numerical ID of the value you want, or a string
 	which is used to join values <b>from all entries found</b> in
-	a single string. When omitted, defaults to 0 (first value). When \s,
-	joins values in a single string with whitespace. When \0, does not join
+	a single string. When omitted, defaults to 0 (first value). When \x20,
+	joins values in a single string with whitespace (but also any other hex
+	  char can be used). When \x0, does not join
 	the values but takes them as multiple values.
 	<br><br>
 	Note that joining on GVALX operates after joining on VALX, so any combination
 	of joins is possible. For example, you may join values from each individual
 	entry in a single string using say, a pipe ("|"), but leave all strings
-	as multiple values (valx=|, gvalx=\0).<br>
+	as multiple values (valx=|, gvalx=\x0).<br>
 	Or, you may choose to leave all values from individual entries
 	as multiple values, then join them all together in a big string
-	using say, a pipe (VALX=\0, GVALX=|).<br>
+	using say, a pipe (VALX=\x0, GVALX=|).<br>
 	Or for example, with valx="|" and gvalx=", ", one might get a result
 	     such as "e1v1|e1v2, e2v1, e3v1|e3v2|e3v3".
 </p>
@@ -232,7 +235,7 @@ fill in that many DN components from the current entry.
 Examples:
 </p>
 <pre>
-<b>find $ ... 2 0 0 0 (puppetClass=ntp::server*) 0 ipHostNumber \0 \0</b>
+<b>find $ ... 2 0 0 0 (puppetClass=ntp::server*) 0 ipHostNumber \x0 \x0</b>
 10.0.0.7
 10.0.0.8
 10.0.0.9
