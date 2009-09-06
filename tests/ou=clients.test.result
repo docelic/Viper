@@ -1,0 +1,674 @@
+# extended LDIF
+#
+# LDAPv3
+# base <ou=clients> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# clients
+dn: ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: clients
+
+# c1.com, clients
+dn: o=c1.com,ou=clients
+objectClass: top
+objectClass: organization
+domainName: c1.com
+o: c1.com
+
+# spinlock, clients
+dn: o=spinlock,ou=clients
+objectClass: top
+objectClass: organization
+domainName: spinlock
+o: SPINLOCK d.o.o.
+
+# cstp.hr, clients
+dn: o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organization
+domainName: cstp.hr
+o: cstp.hr
+
+# accounts, c1.com, clients
+dn: cn=accounts,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalRole
+cn: accounts
+
+# defaults, c1.com, clients
+dn: ou=defaults,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Defaults
+
+# networks, c1.com, clients
+dn: ou=networks,o=c1.com,ou=clients
+objectClass: top
+ou: networks
+
+# groups, c1.com, clients
+dn: ou=groups,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+# templates, c1.com, clients
+dn: ou=templates,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Templates
+
+# people, c1.com, clients
+dn: ou=people,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+# hosts, c1.com, clients
+dn: ou=hosts,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Hosts
+
+# 1000, accounts, c1.com, clients
+dn: uidNumber=1000,cn=accounts,o=c1.com,ou=clients
+objectClass: organizationalRole
+objectClass: posixAccount
+cn: docelic
+uid: docelic
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/docelic
+loginShell: /bin/bash
+roleOccupant: employeeNumber=1000,ou=people,o=c1.com,ou=clients
+userPassword:: YWJj
+
+# 1000, groups, c1.com, clients
+dn: gidNumber=1000,ou=groups,o=c1.com,ou=clients
+objectClass: posixGroup
+cn: docelic
+gidNumber: 1000
+
+# default, networks, c1.com, clients
+dn: cn=default,ou=networks,o=c1.com,ou=clients
+cn: default
+objectClass: top
+objectClass: x-ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+seeAlso: cn=10.0.1.0,ou=networks,o=c1.com,ou=clients
+dhcpNetMask: 24
+dhcpOption: routers 10.0.1.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "c1.com"
+dhcpOption: domain-name "c1.com"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.1.255
+router: 10.0.1.1
+ipNetmaskNumber: 255.255.255.0
+configServer: 10.0.1.1
+ipNetworkNumber: 10.0.1.0
+ipBroadcastNumber: 10.0.1.255
+nameServer: 192.168.1.254
+
+# 10.0.1.0, networks, c1.com, clients
+dn: cn=10.0.1.0,ou=networks,o=c1.com,ou=clients
+cn: 10.0.1.0
+objectClass: top
+objectClass: x-ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+ipNetmaskNumber: 255.255.255.0
+ipBroadcastNumber: 10.0.1.255
+ipNetworkNumber: 10.0.1.0
+router: 10.0.1.1
+configServer: 10.0.1.1
+nameServer: 192.168.1.254
+dhcpNetMask: 24
+dhcpOption: routers 10.0.1.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "c1.com"
+dhcpOption: domain-name "c1.com"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.1.255
+
+# h2, templates, c1.com, clients
+dn: cn=h2,ou=templates,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+cn: h2
+
+# h1, templates, c1.com, clients
+dn: cn=h1,ou=templates,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+cn: h1
+
+# h3, templates, c1.com, clients
+dn: cn=h3,ou=templates,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+cn: h3
+
+# h2, hosts, c1.com, clients
+dn: cn=h2,ou=hosts,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: h2
+ipHostNumber: 10.0.1.8
+macAddress: 00:11:6b:34:ae:8d
+puppetclass: test
+puppetclass: ntp::server
+dhcpHWAddress: ethernet 00:11:6b:34:ae:8d
+dhcpOption: host-name "h2"
+dhcpOption: routers 10.0.1.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "c1.com"
+dhcpOption: domain-name "c1.com"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.1.255
+dhcpStatements: fixed-address 10.0.1.8
+dhcpStatements: filename "http://10.0.1.1/cgi-bin/preseed.cfg"
+hostName: h2
+ipNetmaskNumber: 255.255.255.0
+clientName: c1.com
+ipNetworkNumber: 10.0.1.0
+ipBroadcastNumber: 10.0.1.255
+domainName: c1.com
+
+# h1, hosts, c1.com, clients
+dn: cn=h1,ou=hosts,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: h1
+ipHostNumber: 10.0.1.9
+macAddress: 00:11:6b:34:ae:8e
+puppetclass: ntp::server
+dhcpHWAddress: ethernet 00:11:6b:34:ae:8e
+dhcpOption: host-name "h1"
+dhcpOption: routers 10.0.1.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "c1.com"
+dhcpOption: domain-name "c1.com"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.1.255
+dhcpStatements: fixed-address 10.0.1.9
+dhcpStatements: filename "http://10.0.1.1/cgi-bin/preseed.cfg"
+hostName: h1
+ipNetmaskNumber: 255.255.255.0
+clientName: c1.com
+ipNetworkNumber: 10.0.1.0
+ipBroadcastNumber: 10.0.1.255
+domainName: c1.com
+
+# h3, hosts, c1.com, clients
+dn: cn=h3,ou=hosts,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: h3
+ipHostNumber: 10.0.1.10
+macAddress: 00:0b:6a:8e:31:ff
+puppetclass: ntp::server
+description: 10.0.1.10
+description: 10.0.1.9
+description: 10.0.1.8
+dhcpHWAddress: ethernet 00:0b:6a:8e:31:ff
+dhcpOption: host-name "h3"
+dhcpOption: routers 10.0.1.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "c1.com"
+dhcpOption: domain-name "c1.com"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.1.255
+dhcpStatements: fixed-address 10.0.1.10
+dhcpStatements: filename "http://10.0.1.1/cgi-bin/preseed.cfg"
+hostName: h3
+ipNetmaskNumber: 255.255.255.0
+clientName: c1.com
+ipNetworkNumber: 10.0.1.0
+ipBroadcastNumber: 10.0.1.255
+domainName: c1.com
+
+# templates, defaults, c1.com, clients
+dn: ou=templates,ou=defaults,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: templates
+
+# hosts, defaults, c1.com, clients
+dn: ou=hosts,ou=defaults,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: hosts
+
+# objectclasses, defaults, c1.com, clients
+dn: ou=objectclasses,ou=defaults,o=c1.com,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: objectClasses
+
+# 1000, people, c1.com, clients
+dn: employeeNumber=1000,ou=people,o=c1.com,ou=clients
+objectClass: inetOrgPerson
+cn: Davor Ocelic
+givenName: Davor
+sn: Ocelic
+displayName: Davor Ocelic
+employeeNumber: 1000
+mobile: +385-91-444-4040
+mail: docelic@spinlocksolutions.com
+
+# accounts, spinlock, clients
+dn: cn=accounts,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalRole
+cn: accounts
+
+# defaults, spinlock, clients
+dn: ou=defaults,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Defaults
+
+# networks, spinlock, clients
+dn: ou=networks,o=spinlock,ou=clients
+objectClass: top
+ou: networks
+
+# groups, spinlock, clients
+dn: ou=groups,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+# templates, spinlock, clients
+dn: ou=templates,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Templates
+
+# people, spinlock, clients
+dn: ou=people,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+# hosts, spinlock, clients
+dn: ou=hosts,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Hosts
+
+# 1000, accounts, spinlock, clients
+dn: uidNumber=1000,cn=accounts,o=spinlock,ou=clients
+objectClass: organizationalRole
+objectClass: posixAccount
+cn: docelic
+uid: docelic
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/docelic
+loginShell: /bin/bash
+roleOccupant: employeeNumber=1000,ou=people,o=spinlock,ou=clients
+userPassword:: YWJj
+
+# 1000, groups, spinlock, clients
+dn: gidNumber=1000,ou=groups,o=spinlock,ou=clients
+objectClass: posixGroup
+cn: docelic
+gidNumber: 1000
+
+# 10.0.4.0, networks, spinlock, clients
+dn: cn=10.0.4.0,ou=networks,o=spinlock,ou=clients
+cn: 10.0.4.0
+objectClass: top
+objectClass: x-ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+ipNetmaskNumber: 255.255.255.0
+ipBroadcastNumber: 10.0.4.255
+ipNetworkNumber: 10.0.4.0
+router: 10.0.4.1
+configServer: 10.0.4.1
+nameServer: 192.168.1.254
+dhcpNetMask: 24
+dhcpOption: routers 10.0.4.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "spinlock"
+dhcpOption: domain-name "spinlock"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.4.255
+
+# default, networks, spinlock, clients
+dn: cn=default,ou=networks,o=spinlock,ou=clients
+cn: default
+objectClass: top
+objectClass: x-ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+seeAlso: cn=10.0.4.0,ou=networks,o=spinlock,ou=clients
+dhcpNetMask: 24
+dhcpOption: routers 10.0.4.1
+dhcpOption: domain-name-servers 192.168.1.254
+dhcpOption: nis-domain "spinlock"
+dhcpOption: domain-name "spinlock"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.4.255
+router: 10.0.4.1
+ipNetmaskNumber: 255.255.255.0
+configServer: 10.0.4.1
+ipNetworkNumber: 10.0.4.0
+ipBroadcastNumber: 10.0.4.255
+nameServer: 192.168.1.254
+
+# h2, templates, spinlock, clients
+dn: cn=h2,ou=templates,o=spinlock,ou=clients
+objectClass: top
+objectClass: device
+cn: h2
+
+# h1, templates, spinlock, clients
+dn: cn=h1,ou=templates,o=spinlock,ou=clients
+objectClass: top
+objectClass: device
+cn: h1
+
+# h3, templates, spinlock, clients
+dn: cn=h3,ou=templates,o=spinlock,ou=clients
+objectClass: top
+objectClass: device
+cn: h3
+
+# templates, defaults, spinlock, clients
+dn: ou=templates,ou=defaults,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: templates
+
+# hosts, defaults, spinlock, clients
+dn: ou=hosts,ou=defaults,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: hosts
+
+# objectclasses, defaults, spinlock, clients
+dn: ou=objectclasses,ou=defaults,o=spinlock,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: objectClasses
+
+# 1000, people, spinlock, clients
+dn: employeeNumber=1000,ou=people,o=spinlock,ou=clients
+objectClass: inetOrgPerson
+cn: Davor Ocelic
+givenName: Davor
+sn: Ocelic
+displayName: Davor Ocelic
+employeeNumber: 1000
+mobile: +385-91-444-4040
+mail: docelic@spinlocksolutions.com
+
+# defaults, cstp.hr, clients
+dn: ou=defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Defaults
+
+# networks, cstp.hr, clients
+dn: ou=networks,o=cstp.hr,ou=clients
+objectClass: top
+ou: networks
+
+# templates, cstp.hr, clients
+dn: ou=templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Templates
+
+# hosts, cstp.hr, clients
+dn: ou=hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: Hosts
+
+# 10.0.2.0, networks, cstp.hr, clients
+dn: cn=10.0.2.0,ou=networks,o=cstp.hr,ou=clients
+cn: 10.0.2.0
+objectClass: top
+objectClass: x-ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+ipNetmaskNumber: 255.255.255.0
+ipBroadcastNumber: 10.0.2.255
+ipNetworkNumber: 10.0.2.0
+router: 10.0.2.1
+configServer: 10.0.2.1
+nameServer: 192.168.43.1
+dhcpNetMask: 24
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+
+# default, networks, cstp.hr, clients
+dn: cn=default,ou=networks,o=cstp.hr,ou=clients
+cn: default
+objectClass: top
+objectClass: x-ipNetwork
+objectClass: dhcpSubnet
+objectClass: dhcpOptions
+seeAlso: cn=10.0.2.0,ou=networks,o=cstp.hr,ou=clients
+dhcpNetMask: 24
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+router: 10.0.2.1
+ipNetmaskNumber: 255.255.255.0
+configServer: 10.0.2.1
+ipNetworkNumber: 10.0.2.0
+ipBroadcastNumber: 10.0.2.255
+nameServer: 192.168.43.1
+
+# h2, templates, cstp.hr, clients
+dn: cn=h2,ou=templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+cn: h2
+
+# h1, templates, cstp.hr, clients
+dn: cn=h1,ou=templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+cn: h1
+
+# h3, templates, cstp.hr, clients
+dn: cn=h3,ou=templates,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+cn: h3
+
+# h2, hosts, cstp.hr, clients
+dn: cn=h2,ou=hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: h2
+ipHostNumber: 10.0.2.4
+macAddress: 00:22:64:c0:c2:81
+dhcpHWAddress: ethernet 00:22:64:c0:c2:81
+dhcpOption: host-name "h2"
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+dhcpStatements: fixed-address 10.0.2.4
+dhcpStatements: filename "http://10.0.2.1/cgi-bin/preseed.cfg"
+hostName: h2
+ipNetmaskNumber: 255.255.255.0
+clientName: cstp.hr
+ipNetworkNumber: 10.0.2.0
+ipBroadcastNumber: 10.0.2.255
+domainName: cstp.hr
+
+# h1, hosts, cstp.hr, clients
+dn: cn=h1,ou=hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: h1
+ipHostNumber: 10.0.2.2
+macAddress: 00:22:64:23:04:05
+dhcpHWAddress: ethernet 00:22:64:23:04:05
+dhcpOption: host-name "h1"
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+dhcpStatements: fixed-address 10.0.2.2
+dhcpStatements: filename "http://10.0.2.1/cgi-bin/preseed.cfg"
+hostName: h1
+ipNetmaskNumber: 255.255.255.0
+clientName: cstp.hr
+ipNetworkNumber: 10.0.2.0
+ipBroadcastNumber: 10.0.2.255
+domainName: cstp.hr
+
+# h3, hosts, cstp.hr, clients
+dn: cn=h3,ou=hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: h3
+ipHostNumber: 10.0.2.5
+macAddress: 00:22:64:be:fe:7d
+dhcpHWAddress: ethernet 00:22:64:be:fe:7d
+dhcpOption: host-name "h3"
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+dhcpStatements: fixed-address 10.0.2.5
+dhcpStatements: filename "http://10.0.2.1/cgi-bin/preseed.cfg"
+hostName: h3
+ipNetmaskNumber: 255.255.255.0
+clientName: cstp.hr
+ipNetworkNumber: 10.0.2.0
+ipBroadcastNumber: 10.0.2.255
+domainName: cstp.hr
+
+# l2, hosts, cstp.hr, clients
+dn: cn=l2,ou=hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: l2
+ipHostNumber: 10.0.2.6
+macAddress: 00:25:b3:49:ff:8c
+dhcpHWAddress: ethernet 00:25:b3:49:ff:8c
+dhcpOption: host-name "l2"
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+dhcpStatements: fixed-address 10.0.2.6
+dhcpStatements: filename "http://10.0.2.1/cgi-bin/preseed.cfg"
+hostName: l2
+ipNetmaskNumber: 255.255.255.0
+clientName: cstp.hr
+ipNetworkNumber: 10.0.2.0
+ipBroadcastNumber: 10.0.2.255
+domainName: cstp.hr
+
+# l1, hosts, cstp.hr, clients
+dn: cn=l1,ou=hosts,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: x-puppetClient
+cn: l1
+ipHostNumber: 10.0.2.3
+macAddress: 00:25:b3:46:16:7c
+dhcpHWAddress: ethernet 00:25:b3:46:16:7c
+dhcpOption: host-name "l1"
+dhcpOption: routers 10.0.2.1
+dhcpOption: domain-name-servers 192.168.43.1
+dhcpOption: nis-domain "cstp.hr"
+dhcpOption: domain-name "cstp.hr"
+dhcpOption: subnet-mask 255.255.255.0
+dhcpOption: broadcast-address 10.0.2.255
+dhcpStatements: fixed-address 10.0.2.3
+dhcpStatements: filename "http://10.0.2.1/cgi-bin/preseed.cfg"
+hostName: l1
+ipNetmaskNumber: 255.255.255.0
+clientName: cstp.hr
+ipNetworkNumber: 10.0.2.0
+ipBroadcastNumber: 10.0.2.255
+domainName: cstp.hr
+
+# templates, defaults, cstp.hr, clients
+dn: ou=templates,ou=defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: templates
+
+# hosts, defaults, cstp.hr, clients
+dn: ou=hosts,ou=defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: hosts
+
+# objectclasses, defaults, cstp.hr, clients
+dn: ou=objectclasses,ou=defaults,o=cstp.hr,ou=clients
+objectClass: top
+objectClass: organizationalUnit
+ou: objectClasses
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 61
+# numEntries: 60
