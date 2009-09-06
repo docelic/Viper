@@ -439,8 +439,6 @@ sub config {
 		if( $key eq 'message') {                    # MESSAGE
 			warn 'Message: ', join( ' ', @val), "\n"
 
-		# XXX instead of specifying schema file, also allow online discovery
-		# and load of schema. (connects to server, retrieves it, loads).
 		} elsif( $key eq 'schemaldif') {            # SCHEMA LDIF
 			my $schema= $this->{schema};
 
@@ -635,9 +633,6 @@ sub add {
 	my $dn= $entry->dn;
 
 	DEBUG and p "ADD '$dn': ". ( Dumper \$ldif);
-
-	# XXX Check for validity of attrs in entry. (Well, I think
-	# slapd does that, no worries, all we get here is valid)
 
 	$ret= $this->save( $dn, $entry);
 	return $ret unless $ret== LDAP_SUCCESS;
@@ -1132,7 +1127,7 @@ sub run_overlays {
 
 						my @vstack;
 
-						# XXX use if() and not 'next unless...' because we might
+						# Use if() and not 'next unless...' here, because we might
 						# once want to do s/if/while/ to get some extra features.
 						# (Nothing that I have in mind right now, though).
 						if( index( $v, '$') != -1) {
@@ -1258,8 +1253,7 @@ sub run_overlays {
 											# Done this way because, with specifying \x20, I wasn't
 											# able to get \x20 back to ' ' (no amount of "$joiner" or
 											# sprintf %s, $joiner seemed to convert it back.
-											# XXX could be done better?
-											$val_joiner= ' ' if $val_joiner eq '\s';
+											$val_joiner=~ s/\\x(\d+)/hex $1/ge;
 
 											$valx= undef;
 										}
@@ -1393,7 +1387,7 @@ sub run_overlays {
 											# Done this way because, with specifying \x20, I wasn't
 											# able to get \x20 back to ' ' (no amount of "$joiner" or
 											# sprintf %s, $joiner seemed to convert it back.
-											$val_joiner= ' ' if $val_joiner eq '\s';
+											$val_joiner=~ s/\\x(\d+)/hex $1/ge;
 
 											$valx= undef;
 										}
@@ -1402,8 +1396,7 @@ sub run_overlays {
 										my $gval_joiner;
 										if( $gvalx=~ qr/\D/o) {
 											$gval_joiner= $gvalx;
-											$gval_joiner= ' ' if $gval_joiner eq '\s';
-											$gval_joiner= "\0" if $gval_joiner eq '\0';
+											$gval_joiner=~ s/\\x(\d+)/hex $1/ge;
 											$gvalx= undef;
 										}
 
@@ -2284,7 +2277,9 @@ sub write_file {
 
 	unless( print {$fh} $data) {
 		warn "Can't write '$file' ($!)\n";
-		flock $fh, LOCK_UN; # XXX Need error ck like below?
+		unless( flock $fh, LOCK_UN) {
+			warn "Can't flock_UN wropened '$file' ($!)\n";
+		}
 		return LDAP_OPERATIONS_ERROR
 	}
 
