@@ -11,6 +11,22 @@
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
 
+* Expiry of attribute values. Set expire $ EPOCH_SECS_TIME adter which
+ the attribute is removed from the entry. Support also date2epoch that
+ converts your date to epoch secs. It runs first, then expire, then the
+ rest of overlays.
+ Actually, modify run_overlays to be able to specify ovl list in the
+ invocation, and first run expire, then appender, then all overlays.
+ That way, attributes from the original entry that are due will be removed
+ before appender runs, and will allow appender to add a fresh copy of
+ the attribute from the default entry.
+ (In other words, expire will expire the attribute in which context it is
+ running... so you can specify expire in default entry, but it'll be evaluated
+ in context of client key).
+ Also, actually, see if expire is basically just a cache spec with initial
+ value, but when cache expires, there's nowhere to restore the value from
+ so it disappears.
+
 * Support for specifying which OS/distro should be installed, having
  debconf keys that understand it
 
