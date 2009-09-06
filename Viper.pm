@@ -145,9 +145,9 @@ our @OVERLAYS= ( grep{ defined} (
 ));
 
 # Necessary variables for Debconf interaction and server-side prompting.
-#  cin/out, tin/out: config DB in/out pipe, templates DB in/out pipe, used
+#  cin/cout, tin/tout: config DB in/out pipe, templates DB in/out pipe, used
 #   for initializing prompter's debconf state.
-#  dc/t/f/m: references to debconf's config/templates/frontend/confmodule.
+#  dc/dt/df/dm: references to debconf's config/templates/frontend/confmodule.
 our ( $cin, $cout, $tin, $tout);
 our ( $dc, $dt, $df, $dm);
 
@@ -160,7 +160,7 @@ sub new {
 
 	# Assign instance defaults. List all allowed options here,
 	# even if their value is '' or 0. (Do not use undef if you expect to
-	# set it from the config file because it will implicitly make the
+	# set it from the config file, because it will implicitly make the
 	# option invalid).
 	# Scalars get values assigned, arrays pushed, hashes arrayref'd.
 	my $this= {
@@ -284,8 +284,8 @@ sub init {
 	
 	my( $ret, %ret);
 
-	# Note: this doesn't bail out on File not found because dn2leaf is called
-	# with namesonly param, so no actual checking is done.
+	# Note: this return doesn't bail out on File not found because dn2leaf
+	# is called with namesonly param, so no actual checking is done.
 	$ret= $this->dn2leaf( "$dn", \%ret, qw/namesonly 1/);
 	return $ret unless $ret== LDAP_SUCCESS;
 
@@ -349,12 +349,11 @@ sub init {
 
 
 # Called to verify bind credentials.
-# Note that this function is called only when it is an
-# authenticated bind AND rootpw for the suffix in slapd.conf
-# is not set. If the bind DN matches rootdn in slapd.conf
-# and rootpw is set, then slapd does the verification itself
-# (matching password against rootpw) and does not trigger
-# this function.
+# Note that if rootdn and rootpw are set in slapd.conf, and you try to
+# authenticate as rootdn, slapd will perform the password check itself,
+# and will not call this function.
+# If you're authenticating as something other than rootdn OR rootpw is
+# not set, then this function will be called as you'd expect.
 sub bind {
 	my( $this, $dn, $pw)= @_;
 
