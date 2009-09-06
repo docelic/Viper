@@ -32,7 +32,7 @@ use Net::LDAP::Schema qw//;
 
 my $server= $ARGV[0]|| 'localhost';
 
-my $ldap = Net::LDAP->new ( $server);
+my $ldap = Net::LDAP->new ( $server) or die "$@\n";
 $ldap->bind or die "Can't bind\n";
 
 my $schema = $ldap->schema or die "Can't get schema\n";
