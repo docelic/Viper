@@ -673,8 +673,6 @@ sub search {
 	my( $Level, $Start)= ( @$this{qw/level start/});
 	my( $start)= ( $this->{start}[$Level]);
 
-	p "SEARCH ($Level) @_";
-
 	my( %req, @attrs); 
 	( @req{qw/base scope deref size time filter attrOnly/}, @attrs)=@_;
 
@@ -697,8 +695,6 @@ sub search {
 
 	# Normalize base DN
 	$this->normalize( \$req{base});
-
-	my( $base, $scope)= @req{qw/base scope/};
 
 	#
 	# Let's see if we have to do any substitution on input params. SearchSubst
@@ -723,7 +719,7 @@ sub search {
 				push @stack, [ $1, $2, $3, $4, $5, $6, $7, $8, $9];
 
 			} else {
-				p "SEARCH SUBST #$id skipped ($k!~ /$v/)";
+				pd "SEARCH SUBST #$id skipped ($k!~ /$v/)";
 				$ok= 0;
 			}
 
@@ -732,7 +728,7 @@ sub search {
 		next if !$ok; # if this rule doesn't match, search further
 
 		# Phase 2: now we know all conditions matched, so perform actual substs
-		p "SEARCH SUBST #$id matched '@$rule'";
+		pd "SEARCH SUBST #$id matched '@$rule'";
 		$i++; # Skip the '->' marker
 
 		do {
@@ -742,7 +738,7 @@ sub search {
 
 			$req{ $k}=~ s/$v/$r/; # <- substs performed here (XXX /g needed?)
 
-			p "SEARCH SUBST #$id action $k=~ s/$v/$r/ RESULT $req{ $k}";
+			pd "SEARCH SUBST #$id action $k=~ s/$v/$r/ RESULT $req{ $k}";
 
 		} while(
 			$i+= 3
@@ -753,6 +749,10 @@ sub search {
 	}
 
 	# Now, continue as normal as if nothing ever happened
+
+	my( $base, $scope)= @req{qw/base scope/};
+
+	p "SEARCH ($Level) @req{qw/base scope deref size time filter attrOnly/} @attrs";
 
 	# Save original requested base. (Need to have it, unmodified, for proper
 	# expansion of "." (dots) in DN specifications). Note that this is the
