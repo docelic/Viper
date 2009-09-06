@@ -1,17 +1,7 @@
 
 <h2>Viper syntax reference</h2>
 <p>
-One large part of the complete Viper setup is the custom,
-Perl-based backend for slapd (slapd is the server component of the OpenLDAP
-suite).
-</p>
-<p>
-The backend was developed to solve a whole set of existing
-LDAP deficiencies (well, deficiencies, at least in the
-context of a configuration management system).
-</p>
-<p>
-This page should be used as a reference on available Viper
+This page should be used as a reference on available Viper backend
 syntax that you can use within LDAP attribute values to
 implement dynamic behavior.
 </p>
@@ -38,7 +28,7 @@ have to have at least one '$' character in its value.
 </p>
 <p>
 When '$' is present in the value, the value is split into "components".
-After split, each component contains one type of data: regular text, name
+After split, each component will contain one type of data: regular text, name
 of the overlay to run, or a parameter for the overlay.
 </p>
 <p>

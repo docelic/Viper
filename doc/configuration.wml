@@ -1,25 +1,14 @@
 
-<h2>Viper configuration reference</h2>
+<h1>Viper configuration reference</h1>
 <p>
-One large part of the complete Viper setup is the custom,
-Perl-based backend for slapd (slapd is the server component of the OpenLDAP
-suite).
-</p>
-<p>
-The backend was developed to solve a whole set of existing
-LDAP deficiencies (well, deficiencies, at least in the
-context of a configuration management system).
-</p>
-<p>
-This page should be used as a reference on available Viper
+This page should be used as a reference on available Viper backend
 configuration directives, to be used in slapd.conf, under
 Viper-enabled suffixes.
-
 </p>
 
 <div class="fineline"></div>
 
-<h3>Configuration directives in slapd.conf</h3>
+<h2>Configuration directives in slapd.conf</h2>
 
 <p>
 Each suffix configured in Viper/LDAP should begin with the following
@@ -47,19 +36,19 @@ sorted alphabetically, with each caption specifying configuration directive
 name and its usage syntax. Where applicable, the first value listed
 indicates the default value.
 
-<h4>addIgnoredups 0|1</h4>
+<h3>addIgnoredups 0|1</h3>
 <p>
 Specify whether LDAP ADD operation should ignore adds on existing entries,
 without throwing LDAP_ALREADY_EXISTS error. Applicable if addoverwrites= 0.
 </p>
 
-<h4>addOverwrites 0|1</h4>
+<h3>addOverwrites 0|1</h3>
 <p>
 Specify whether LDAP ADD operation should overwrite existing entries,
 without throwing LDAP_ALREADY_EXISTS error.
 </p>
 
-<h4>addPrompt SUFFIX PATTERN REPLACEMENT</h4>
+<h3>addPrompt SUFFIX PATTERN REPLACEMENT</h3>
 <p>
 Define SUFFIX under which server-side Debconf prompter should run.
 </p>
@@ -100,7 +89,7 @@ addPrompt  cn=\\S+?,cn=\\w+,ou=templates,o=  ,ou=templates,  ,ou=hosts,
 </pre>
 </p>
 
-<h4>addRelocate LABEL PATTERN REPLACEMENT</h4>
+<h3>addRelocate LABEL PATTERN REPLACEMENT</h3>
 <p>
 Define entry relocation rule.
 </p>
@@ -131,7 +120,7 @@ For more information on where exactly the site-wide and global defaults
 would be located, see <a href="data.html">LDAP data structure</a>.
 </p>
 
-<h4>cacheRead SPEC</h4>
+<h3>cacheRead SPEC</h3>
 <p>
 Specify how (and how long) to cache LDIF reads from disk. No specification
 implies no cache.
@@ -157,8 +146,11 @@ to always use the number-of-operations cache (like 1o).
 CacheRead and 'overlayConfig' cache can be used separately, or together,
 summing the effect.
 </p>
+<p>
+Example: <tt>cacheRead 1o</tt>
+</p>
 
-<h4>clean</h4>
+<h3>clean</h3>
 <p>
 Invoke removal of all saved stack files from disk.
 </p>
@@ -182,7 +174,7 @@ server startup in suffixes that are configured first and make
 them available for suffixes that follow).
 </p>
 
-<h4>deleteTrees 1|0</h4>
+<h3>deleteTrees 1|0</h3>
 <p>
 Specify whether Viper should allow deleting non-leaf elements (deleting
 the entry and everything under it in one go).
@@ -193,7 +185,7 @@ backend, so the client-side option is not honored and deleteTrees is the
 single decision maker.
 </p>
 
-<h4>entryAppend ATTRIBUTE PATTERN -&gt; &lt;attr ATTRIBUTE [ATTRATTR [ATTR...]] | append PATTERN REPLACEMENT [ATTR...]&gt;</h4>
+<h3>entryAppend ATTRIBUTE PATTERN -&gt; &lt;attr ATTRIBUTE [ATTRATTR [ATTR...]] | append PATTERN REPLACEMENT [ATTR...]&gt;</h3>
 <p>
 Specify entryAppend rule, allowing adding extra attributes into an entry
 before returning it to the client.
@@ -247,7 +239,7 @@ entryAppend  dn          "^cn=default,ou=networks"         \
 </protect></pre>
 </p>
 
-<h4>exp MATCH_REGEX NON_MATCH_REGEX</h4>
+<h3>exp MATCH_REGEX NON_MATCH_REGEX</h3>
 <p>
 Specify regexes that each entry DN must and must not match respectively, to have
 overlay "exp" run on its attributes.
@@ -256,8 +248,11 @@ overlay "exp" run on its attributes.
 The "exp" overlay enables expansion into values of other attributes, in the
 current or other entry.
 </p>
+<p>
+Example: <tt>exp  .   ^$</tt>
+</p>
 
-<h4>extension EXT</h4>
+<h3>extension EXT</h3>
 <p>
 Specify file extension to use when storing server data on disk.
 </p>
@@ -274,7 +269,7 @@ from files, and the default value should rarely be changed.
 Default: <tt>.ldif</tt>
 </p>
 
-<h4>file MATCH_REGEX NON_MATCH_REGEX</h4>
+<h3>file MATCH_REGEX NON_MATCH_REGEX</h3>
 <p>
 Specify regexes that each entry DN must and must not match respectively, to have
 overlay "file" run on its attributes.
@@ -283,8 +278,11 @@ overlay "file" run on its attributes.
 The "file" overlay enables expansion into values of on-disk files, always
 relative to the suffix base directory.
 </p>
+<p>
+Example: <tt>file  .   ^$</tt>
+</p>
 
-<h4>find MATCH_REGEX NON_MATCH_REGEX</h4>
+<h3>find MATCH_REGEX NON_MATCH_REGEX</h3>
 <p>
 Specify regexes that each entry DN must and must not match respectively, to have
 overlay "find" run on its attributes.
@@ -299,8 +297,11 @@ difference -- with "exp", you generally know where the entry and attribute
 to expand to are located. With "find", you generally don't, so you perform
 a search to find them.
 </p>
+<p>
+Example: <tt>find  .   ^$</tt>
+</p>
 
-<h4>load FILE [PATTERN REPLACEMENT ...]</h4>
+<h3>load FILE [PATTERN REPLACEMENT ...]</h3>
 <p>
 Load and process configuration stack from FILE.
 FILE is always relative to suffix base directory.
@@ -324,14 +325,21 @@ in the context of each suffix that is using them.
 (Not particularly important, but note that this will happen in the
 config processor call, not during PATTERN/REPLACEMENT preprocessing.)
 </p>
+<p>
+Example: <tt>load default_opts</tt>
+</p>
 
-<h4>message TEXT</h4>
+
+<h3>message TEXT</h3>
 <p>
 Print TEXT to the log. The log will be a console if slapd is started
 with option -d (such as -d 256) to run in the foreground.
 </p>
+<p>
+Example: <tt>message Test</tt>
+</p>
 
-<h4>modifyCopyOnWrite 1|0</h4>
+<h3>modifyCopyOnWrite 1|0</h3>
 <p>
 When a MODIFY request is issued for an entry that does not really exist 
 (i.e. it comes from a fallback), specify whether Viper should copy the
@@ -339,7 +347,7 @@ entry to the expected location and then modify it, or return
 LDAP_NO_SUCH_OBJECT.
 </p>
 
-<h4>modifySmarts 1|0</h4>
+<h3>modifySmarts 1|0</h3>
 <p>
 Specify whether Viper should ignore MODIFY requests that do not result
 in any real change within the entry.
@@ -359,7 +367,7 @@ However, it is still useful to enable it, detect "no-op" modifications and
 avoid writing to disk, preserving meaningful modification timestamps.
 </p>
 
-<h4>overlayConfig OVERLAY OPTION VALUE ...</h4>
+<h3>overlayConfig OVERLAY OPTION VALUE ...</h3>
 <p>
 Specify default overlay options.
 </p>
@@ -398,18 +406,18 @@ OPTION can be "cache", "prefix" or "if".
 	Example: prefix subdir/
 	<br><br>&nbsp;
 	</li>
-	<li>if [!]ATTRIBUTE REGEX - simple conditional. Specify regex that at least
-	one of the attribute values must match to include this value in the entry.
-	<br><br>
-	Attribute can be prepended by "!" to turn "must" into "must not" match.
-	<br><br>
-	Example: if !puppetClass ntp::server.*
-	<br><br>&nbsp;
-	</li>
+#	<li>if [!]ATTRIBUTE REGEX - simple conditional. Specify regex that at least
+#	one of the attribute values must match to include this value in the entry.
+#	<br><br>
+#	Attribute can be prepended by "!" to turn "must" into "must not" match.
+#	<br><br>
+#	Example: if !puppetClass ntp::server.*
+#	<br><br>&nbsp;
+#	</li>
 </ul>
 </p>
 
-<h4>parseVariables 1|0</h4>
+<h3>parseVariables 1|0</h3>
 <p>
 Specify whether in the directives that follow, variable and directive expansion
 should be performed.
@@ -419,7 +427,7 @@ This includes expanding ${variable} to variable values and %{directive} to
 configuration directive values.
 </p>
 
-<h4>perl MATCH_REGEX NON_MATCH_REGEX</h4>
+<h3>perl MATCH_REGEX NON_MATCH_REGEX</h3>
 <p>
 Specify regexes that each entry DN must and must not match respectively, to have
 overlay "perl" run on its attributes.
@@ -429,8 +437,11 @@ By default, Perl overlay is disabled as it is in fact an interface for
 "eval", and is considered dangerous. To activate it, open Viper.pm and
 enable constant PERLEVAL.
 </p>
+<p>
+Example: <tt>perl  .   ^$</tt>
+</p>
 
-<h4>save FILE</h4>
+<h3>save FILE</h3>
 <p>
 Save current stack to FILE, always relative to suffix base directory.
 </p>
@@ -451,8 +462,11 @@ Stack and dump functions itself are not part of the stack, so they do
 not end up saved or loaded from stack files. They need to be specified
 explicitly in each suffix that wants to use them.
 </p>
+<p>
+Example: <tt>save default_opts</tt>
+</p>
 
-<h4>searchFallback PATTERN REPLACEMENT</h4>
+<h3>searchFallback PATTERN REPLACEMENT</h3>
 <p>
 Specify search fallback rule, effectively implementing default entries.
 </p>
@@ -474,7 +488,7 @@ searchFallback  cn=.[^,\\s]+,ou=templates,.+  ou=templates,ou=defaults
 </protect></pre>
 </p>
 
-<h4>searchSubst KEY PATTERN ... -&gt; KEY PATTERN REPLACEMENT ...</h4>
+<h3>searchSubst KEY PATTERN ... -&gt; KEY PATTERN REPLACEMENT ...</h3>
 <p>
 Specify searchSubst rule, allowing rewrite of any part of the search
 request.
@@ -529,7 +543,7 @@ searchSubst  base        "^ou=\\w+,ou=dhcp$"                \
 </protect></pre>
 </p>
 
-<h4>schemaFatal 0|1</h4>
+<h3>schemaFatal 0|1</h3>
 <p>
 Specify whether a missing or inaccessible schemaLDIF file should trigger
 a fatal error.
@@ -556,7 +570,7 @@ have the schema.ldif file, and that its inexistence in your setup is a
 sure indication of an error.
 </p>
 
-<h4>schemaLDIF FILE</h4>
+<h3>schemaLDIF FILE</h3>
 <p>
 Specify location of server's schema in a single file, in LDIF format.
 </p>
@@ -588,8 +602,12 @@ the server. Unless Viper schema is up to date, LDAP results may be be subtly
 incorrect and error basically impossible to trace (unless you remember it
 may be a stale schema file).
 </p>
+<p>
+Example: <tt>schemaLDIF /etc/ldap/schema/schema.ldif</tt>
+</p>
 
-<h4>var VARIABLE "VALUE STRING"</h4>
+
+<h3>var VARIABLE "VALUE STRING"</h3>
 <p>
 Assign "VALUE STRING" to variable VARIABLE. Variables, in this context,
 are visible only within the suffix where they are defined, and their value
@@ -598,7 +616,7 @@ is expanded with ${variable}, if option "parseVariables" is enabled.
 
 <div class="fineline"></div>
 
-<h4>loadDump FILE</h4>
+<h3>loadDump FILE</h3>
 <p> THIS IS A DEBUG OPTION </p>
 <p>
 Load direct Perl Storable dump of configuration hash from FILE, always
@@ -623,7 +641,7 @@ This is almost always needed only when you want to run Viper under the Perl
 interpreter directly, to specify Perl debug or profiling options.
 </p>
 
-<h4>saveDump FILE</h4>
+<h3>saveDump FILE</h3>
 <p> THIS IS A DEBUG OPTION </p>
 <p>
 Save direct Perl Storable dump of configuration hash to FILE, always

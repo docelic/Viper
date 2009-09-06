@@ -6,19 +6,6 @@ This is a practical guide on setting up OpenVZ and creating a container
 <a href="server.html">Setting up a Viper server</a>.
 </p>
 <p>
-Installing Viper under CT can be very useful. For example, I have
-Lenovo's S10e ideapad that I carry around, and its host node
-is set up as regular desktop machine.
-</p>
-<p>
-However, I want to be able to use it as the Viper install server as
-well, without introducing Viper-specific configs to the desktop
-system. 
-</p>
-<p>
-OpenVZ container is the solution.
-</p>
-<p>
 Note that we use the term "host" to refer to any host, physical or virtual.
 When context is relevant, we use the term "physical host" or "CT0" to refer
 to the physical host, and "container", "CT", "CT110" or similar to
@@ -35,29 +22,29 @@ does not become the default kernel).
 apt-get install linux-image-openvz-686
 </pre>
 <p>
-After vz support is installed, we can continue. First, define and load the
-necessary sysctl parameters:
+After vz support is installed and the new kernel has been rebooted into,
+we can continue.
+</p>
+<p>
+First, define and load the necessary sysctl parameters:
 </p>
 <pre>
 sudo sh -c 'echo "net.ipv4.ip_forward=1" &gt;&gt; /etc/sysctl.conf'
 sudo sh -c 'echo "net.ipv4.conf.eth0.proxy_arp=1" &gt;&gt; /etc/sysctl.conf'
-
 sudo sysctl -p
 </pre>
 
 <h2>vzctl</h2>
 <p>
 We need to use vzctl version &gt;= 3.0.23. It is currently in Debian testing
-or unstable. If dpkg -l vzctl shows a lower version, adjust your sources.list
-to also contain testing, do 'apt-get install vzctl' to upgrade vzctl, and then
-remove testing from sources.list.
+or unstable. If dpkg -l vzctl shows a lower version, then:
 </p>
 <pre>
-1) Add testing to sources.list
-2) apt-get update
-3) apt-get install vzctl
+1) Add Debian testing to sources.list
+2) Run apt-get update
+3) Run apt-get install vzctl
 4) Remove testing from sources.list
-5) apt-get update
+5) Run apt-get update
 </pre>
 
 <h2>Installing the container</h2>
@@ -114,7 +101,7 @@ to upgrade your vzctl to at least 3.0.23).
 
 <h2>Bridging setup on the physical host</h2>
 <p>
-The ethX interfaces we have added to the CT are standalone devices that
+The ethX interfaces we have registered with the CT are standalone devices that
 are not linked to host's ethX. To make this link, we'll use bridging.
 </p>
 <p>
@@ -130,18 +117,18 @@ started or stopped.
 <p>
 As the host's eth0 and eth1 interfaces become part
 of bridges vzbr0 and vzbr1, it means you should remove any eth0 and eth1
-configuration in /etc/network/interfaces, then add the following bridge
+configuration in /etc/network/interfaces, then add the below bridge
 configuration, and remember that from now on, the bridges take over
 eth0/eth1, so whatever network operation you want to do on the host, do it on
 vzbr0/vzbr1 instead of ethX devices, and you'll get the expected
 results.
 </p>
 <p>
-Bridge specifications in /etc/network/interfaces (the listing here
-assumes you have two interfaces, eth0 and eth1, where eth0 was a
+Here's the needed bridge specifications in /etc/network/interfaces
+(the listing assumes you have two physical interfaces on the host,
+eth0 and eth1, where eth0 was a
 standard DHCP-configured interface, and eth1 was the device you wanted
-to use for Viper and DHCP, so those two are here replaced with bridged
-equivalents):
+to use for Viper and DHCP):
 </p>
 <pre>
 auto vzbr0
@@ -167,7 +154,8 @@ iface vzbr1 inet static
 <p>
 Apply the new host interfaces configuration like this
 (execute this ONLY locally, DO NOT run over SSH
-as it'll kill your connection and leave machine in the unconfigured state):
+as it'll kill your connection and leave the machine in an
+unconfigured state):
 </p>
 <pre>
 ifconfig eth0 0
@@ -177,7 +165,7 @@ ifup vzbr0
 ifup vzbr1
 </pre>
 <p>
-(Note that bridges autodetect network topology change, and that takes a
+(Note that bridges autodetect network topology change, and that job takes a
 couple of seconds. When configuring vzbr0, its DHCP client will already
 start sending packets before the bridge had autoadjusted itself. This
 is alright and has no unwanted effects, except that the DHCP will
@@ -192,16 +180,14 @@ test -r /etc/vz/vznet.conf || echo '#!/bin/bash' &gt; /etc/vz/vznet.conf
 echo 'EXTERNAL_SCRIPT="/usr/sbin/vznetaddbr"' &gt;&gt; /etc/vz/vznet.conf
 chmod 755 /etc/vz/vznet.conf
 </pre>
+
+<h2>Starting the container, configuring the installation in CT</h2>
 <p>
-Start the CT110:
+Enter from host into the CT:
 </p>
 <pre>
 vzctl start 110
-</pre>
 
-<h2>Starting the container, configuring the installation</h2>
-<pre>
-vzctl start 110
 vzctl enter 110
 </pre>
 
@@ -246,17 +232,17 @@ We can now exit the container shell (Ctrl+d) that we have entered via
 "vzctl enter 110", and try using SSH to login as usual. The 
 connection should succeed because we've installed the SSH server in
 the container, and it should let us in without a password because we
-added the public key to authorized_keys.
-</p>
-<p>
-Just make sure you SSH as the same user whose key you copied (root
-or your regular user account).
+added the public key to authorized_keys:
 </p>
 <pre>
 echo 10.0.1.1 viper &gt;&gt; /etc/hosts
 
 ssh viper
 </pre>
+<p>
+Just make sure you SSH as the same user whose key you copied (root
+or your regular user account).
+</p>
 <p>
 After you've successfully SSH-ed in, you can follow the usual Viper
 installation instructions (<a href="server.html">Setting up a Viper server</a>)
