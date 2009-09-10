@@ -1,0 +1,13 @@
+List of scripts and short descriptions:
+(Further information and usage examples are contained in individual scripts):
+
+cdebconf2ldif   - convert data from 822-formatted files and preseed.cfg to LDIF
+get-key.pl      - retrieve specified key from LDAP and print to STDOUT
+node_data       - generate list of node classes and params for use by Puppet
+preseed         - CGI script to generate preseed.cfg for a host
+preseed2ldif    - obsoleted in favor of cdebconf2ldif
+read-ldif.pl    - load LDIF, verify correctness, print out contained DNs
+schema.pl       - retrieve LDAP server schema and dump in LDIF format
+sprofpp         - Devel::SmallProf equivalent of dprofpp
+viper-setup.sh  - install and set up Viper server on a new host
+viper.pl        - run Viper as a standalone program, outside of slapd
