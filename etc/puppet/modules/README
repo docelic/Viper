@@ -1,0 +1,76 @@
+NTP module
+
+Available classes:
+
+  ntp::client
+	ntp::client::stock
+  ntp::server
+	ntp::server::stock
+
+* INTRODUCTION *
+
+NTP configuration consists of installing ntp and template ntp.conf.
+
+A common ntp.conf is used for both servers and clients -- the only
+difference is in the servers list, which is taken care of by ERB
+templating within the file.
+
+Note that, in the default Debian configuration (and inherited by
+our ntp.conf template), every ntp installation is technically both
+a client and a server (it syncs from a set of servers, and allows
+syncing to it).
+
+However, we do want to differentiate servers and clients, because
+we advise against mixing locally- and upstream-synced servers in
+the same group. All your clients should sync from local servers,
+and all your local servers should sync from upstream (the Internet).
+
+* SERVER / CLIENT *
+
+If a machine is a NTP server, it should be of class ntp::server, and
+nothing else should be done. The template file contains a verbatim
+list of upstream (Internet) servers.
+
+If a machine is a NTP client, it should be of class ntp::client.
+The list of local servers comes from ntp_servers array parameter.
+When module is used with Viper, this param is generated from
+ntp/servers Debconf key.
+
+* STOCK CLASSES *
+
+Stock classes (ntp::server::stock, ntp::client::stock) do not install
+the template ntp.conf, and use the default that comes with the package.
+
+A stock client can automatically update its list of NTP servers if
+the DHCP server sends it an 'option: ntp-servers one,two,three' value. For
+this to work, client's dhclient needs to request ntp-servers field (currently
+not done by default, but Ubuntu dhcp3-client version 3.1.1-5ubuntu8 and above
+do it -- https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/74164).
+
+When using Viper, using this method of auto-configuring NTP is suboptimal,
+because using DHCP-enabled ntp servers list has a brawback of re-starting
+ntp on every dhclient run.
+
+* TODO *
+
+What's left to do in the module is enable authenticated sync
+(ntp-keygen et al.); patches welcome.
+
+------------
+
+SPINLOCK - Advanced GNU/Linux networks in commercial and education sectors
+
+Copyright 2008-2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/
+                    Davor Ocelic, docelic@spinlocksolutions.com
+
+SPINLOCK, http://www.spinlocksolutions.com/
+Viper, http://www.spinlocksolutions.com/viper/
+Techpubs, http://techpubs.spinlocksolutions.com/
+
+Released under GPL v3 or later.
+
+------
+
+Puppet, http://www.reductivelabs.com/products/puppet/
+Reductive Labs, http://www.reductivelabs.com/
+
