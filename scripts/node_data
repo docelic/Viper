@@ -82,7 +82,7 @@ while( @clocs){
 		# retrieve parameters (all attributes listed under host).
 		$m= $l->search(
 			base => $_,
-			filter => "(objectClass=puppetClient)",
+			filter => "(objectClass=*puppetClient)",
 			scope => 'base',
 		);
 		if( $m->code and $m->code!= 32) {
@@ -91,7 +91,7 @@ while( @clocs){
 			die $m->error
 		}
 		
-		for my $e( $m->entries){
+		for my $e( $m->entries) {
 			for my $a( $e->attributes) {
 				my @vals= $e->get_value( $a);
 
