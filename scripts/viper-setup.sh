@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/bin/sh -e
 
-set -e
+VIPER_ROOT="$PWD"
 
-viper_root() {
-  local dir=`dirname $0`
-  echo `cd $dir/.. && pwd`
-}
-
-VIPER_ROOT=`viper_root`
+# Make sure we're running in toplevel dir and not in i.e. scripts/
+if ! test -d "etc"; then
+	echo "The script should be run from Viper root directory (the one"
+	echo "in which you have Viper.pm, README, etc/ and ldifs/)"
+	exit 1
+fi
 
 ETH_IF=$1
 if test -z "$ETH_IF"; then
@@ -59,7 +59,7 @@ LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 # So this is by default a no-op, but if a person specifies ethX and hostname
 # on the command line, the replacement will be real, not no-op).
 cd $VIPER_ROOT/ldifs
-git checkout 1-dhcp.ldif || true
+git checkout 1-dhcp.ldif || true # Load fresh copy of setup script
 perl -pi -e "\$h= '$HOST'; chomp \$h; s/viper/\$h/g" 1-dhcp.ldif
 perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 
