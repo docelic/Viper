@@ -6,7 +6,7 @@ VIPER_ROOT="$PWD"
 if ! test -d "etc"; then
 	echo "The script should be run from Viper root directory (the one"
 	echo "in which you have Viper.pm, README, etc/ and ldifs/)."
-	echo "Run as: sh scripts/viper-setup.sh"
+	echo "From there, run as: sh scripts/viper-setup.sh"
 	exit 1
 fi
 
