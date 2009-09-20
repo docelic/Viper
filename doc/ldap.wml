@@ -173,48 +173,26 @@ look up can be specified with the entry's seeAlso attribute, or fixed
 in a config file. See 'entryappend'
 </p><p>
 When an entry is read, it is possible to cause attribute value
-expansion into values of other entries' attributes, such as: "result is
-$ exp $ DN ATTR VALX" ===&gt; "result is VALUE". DN is the wished
-entry's DN, ATTR is its attribute you want to expand to, and VALX is
-either a numerical ID of the value you want, or a string which is used
-to join eventual multiple values in a single string (can use " " for
-space, or any hex char, i.e. \x20 is also space).&nbsp; Shorthand
-notation is also possible: simply ATTR [VALX] implies ATTR in the
-current entry, with selected VALX (or ID 0). See 'expandval'
+expansion into values of other entries' attributes. See 'exp'
 </p><p>
 When an entry is read, it is possible to cause attribute value
-expansion into values of a complete, valid sub-search.&nbsp; "find $
-BASEDN SCOPE DEREF SIZE TIME FILTER ATTRONLY ATTR VALX GVALX" ===&gt;
-"VALUE".&nbsp; All attributes correspond directly to standard LDAP
-search parameters.&nbsp; ATTR is the attribute to return.&nbsp; VALX is
-either a numerical ID of the value you want, or a string which is used
-to join eventual multiple values *of individual entry* in a single
-string. GVALX is the same as VALX, but specifying joiner for values *of
-different entries* (i.e. valx/gvalx spec of "|" ", " might return
-result such as "e1v1|e1v2, e2v1, e3v1|e3v2|e3v3".&nbsp; VALX or GVALX
-omitted default to 0 (first value). They can also be any hex char, such as
-\x20 for whitespace, and \x00 for indicating that we want to expand into
-multiple attribute values, not join values into a single string. See 'findval'
+expansion into values of a complete, valid sub-search. See 'find'
 </p><p>
 When an entry is read, it is possible to cause attribute value
 expansion into values of on-disk files, ALWAYS relative to server data
-dir, such as: "result is $ file [spec] $ FNAME" ===&gt; "result is
-FILE-DATA". [Spec] is optional and when number, specific line number is
-returned; when string, a line or $1 matching the regex from the file is
-returned; when not present, whole file is returned. See 'fileval'
+dir. See 'file'
 </p><p>
 When an entry is read, it is possible to cause Perl evaluation of
-contents within attributes, such as: "result is $ perl $ 3 + 4" ===&gt;
-"result is 7".&nbsp; ** WARNING ** DANGEROUS ** DISABLED BY DEFAULT **.
-See 'perleval'
+contents within attributes. ** WARNING ** DANGEROUS ** DISABLED BY DEFAULT **.
+See 'perl'
 </p><p>
 When entries are returned to the host, each entry will contain a DN
 of&nbsp; its actual location on the disk (if the entry is coming from a
 fallback, its DN may be something completely different from what was
 requested).&nbsp; That's more useful (and easier) than changing the DN
 to its would-be value. Experience also shows that the calling programs
-do not care about the DN and are not confused by this, so there are no
-adverse effects to it.
+do not care about the DN and are not confused by this, so there are
+only beneficial aspects to it.
 </p>
 
 <h4>Configuration</h4>
