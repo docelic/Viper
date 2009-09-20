@@ -12,7 +12,13 @@ cm="$GIT_COMMITTER_EMAIL"
 cn="Davor Ocelic"
 cm="docelic@spinlocksolutions.com"
  
-export GIT_COMMITTER_NAME=$cn
-export GIT_COMMITTER_EMAIL=$cm
+an="Davor Ocelic"
+am="docelic@spinlocksolutions.com"
+
+ 
+export GIT_AUTHOR_NAME="$an"
+export GIT_AUTHOR_EMAIL="$am"
+export GIT_COMMITTER_NAME="$cn"
+export GIT_COMMITTER_EMAIL="$cm"
 '
 
