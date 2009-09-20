@@ -23,9 +23,17 @@ This is due to AppArmor, which is installed by default on Ubuntu, preventing
 slapd from accessing files in "unauthorized" locations.
 </p>
 <p>
-The simplest fix is <b>invoke-rc.d apparmor stop</b>. If you do not want
-to stop apparmor, edit its config files to allow slaps access to the
-Perl module directories.
+The simplest fix is <b>invoke-rc.d apparmor stop</b>.
+</p>
+<p>
+A proper solution is editing <i>/etc/apparmor.d/usr.sbin.slapd</i> and
+adding the following in there:
+</p>
+<pre><protect>
+&#35;include &lt;abstractions/perl&gt;
+</protect></pre>
+<p>
+And reloading apparmor.
 </p>
 
 <h2>Keeping directory data in LDIF</h2>
