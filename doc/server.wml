@@ -194,12 +194,14 @@ configuration properly. Until I find a proper solution, here's a quick
 fix which you have to run every time after restarting ipmasq:
 </p>
 <pre><protect>
-# Find out how many forward rules there are,
-# subtract 2 to get last rule ID.
-iptables -L FORWARD -v | wc -l  # (in my case, 8 - 2 = 6).
+# Print out how many forward rules there are, then you should
+# subtract 2 from that number to get last rule ID. (i.e. 8 - 2 = 6).
+
+iptables -L FORWARD -v | wc -lr
 
 # Delete last rule (DROP) from forward chain and
 # change policy to accept
+
 iptables -D FORWARD 6
 iptables -P FORWARD ACCEPT
 </protect></pre>
