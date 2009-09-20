@@ -47,6 +47,31 @@
 				</div>
 				<div id="content">
 <h1>Viper - hints, tips, best practices</h1>
+<h2>Viper server on Ubuntu</h2>
+<p>
+Viper server start on Ubuntu may fail with the following error:
+</p>
+<p>
+Starting OpenLDAP: slapd - failed:
+Error Can't locate strict.pm in @INC (@INC contains: /etc/perl
+/usr/local/lib/perl/5.10.0 /usr/local/share/perl/5.10.0 /usr/lib/perl5
+/usr/share/perl5 /usr/lib/perl/5.10 /usr/share/perl/5.10
+/usr/local/lib/site_perl . /etc/ldap/viper) at
+/etc/ldap/viper/Viper.pm line 52.<br>
+BEGIN failed--compilation aborted at /etc/ldap/viper/Viper.pm line 52.
+Compilation failed in require at (eval 2) line 1.<br>
+BEGIN failed--compilation aborted at (eval 2) line 1.<br><br>
+Can't call method "config" on an undefined value.
+</p>
+<p>
+This is due to AppArmor, which is installed by default on Ubuntu, preventing
+slapd from accessing files in "unauthorized" locations.
+</p>
+<p>
+The simplest fix is <b>invoke-rc.d apparmor stop</b>. If you do not want
+to stop apparmor, edit its config files to allow slaps access to the
+Perl module directories.
+</p>
 <h2>Keeping directory data in LDIF</h2>
 <p>
 Modifying or re-loading LDAP data can be inconvenient without a
