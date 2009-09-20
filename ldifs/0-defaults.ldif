@@ -1,5 +1,5 @@
 #
-# Base
+# Base ou=defaults suffix
 #
 
 dn: ou=defaults
@@ -8,14 +8,14 @@ objectClass: organizationalUnit
 ou: defaults
 
 # Tree for debconf keys. Since this is the ou=defaults suffix, we don't
-# use cn=HOSTNAME,... hierarchy under it, but cn=DEBCONF/KEY,... directly.
+# use cn=HOSTNAME,... hierarchy under it, but directly cn=DEBCONF/KEY,...
 dn: ou=hosts,ou=defaults
 objectClass: top
 objectClass: organizationalUnit
 ou: config
 
 # Debconf templates corresponding to keys. Mostly not used directly, but
-# only as a side effect of saving cn=DEBCONF/KEY,ou=hosts,ou=defaults.
+# only as a side effect of saving to cn=DEBCONF/KEY,ou=hosts,ou=defaults.
 dn: ou=templates,ou=defaults
 objectClass: top
 objectClass: organizationalUnit
@@ -38,10 +38,10 @@ ou: partitioning
 #
 
 # Append DHCP host with DHCP info (need to specify everything, because
-# we use hosts with specific HWaddresses for DHCP, and when the address is
-# not coming from a pool but from a specific Host/HW entry, DHCP by itself
-# only sends info found in the host entry, it does not expand it with options
-# defined under the corresponding subnet).
+# we use hosts with specific HWaddresses for DHCP. And ISC DHCP server works
+# so that when IP is not coming from a pool but from a specific Host/HW entry,
+# it only sends info found in the host entry, it does not automatically expand
+# with options defined under the corresponding subnet).
 dn: cn=dhcpHost,ou=objectClasses,ou=Defaults
 objectClass: top
 objectClass: dhcpHost
