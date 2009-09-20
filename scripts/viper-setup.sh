@@ -1,8 +1,17 @@
 #!/bin/sh
 
+set -e
+
+viper_root() {
+  local dir=`dirname $0`
+  echo `cd $dir/.. && pwd`
+}
+
+VIPER_ROOT=`viper_root`
+
 ETH_IF=$1
 if test -z "$ETH_IF"; then
-	ETHH_IF=sharedNetwork
+	ETH_IF=sharedNetwork
 fi
 
 HOST=$2
@@ -13,18 +22,15 @@ fi
 # Install necessary packages
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 puppet
 
-# Install slapd.conf as symlink to Viper's version
-cd /etc/ldap
-mv slapd.conf slapd.conf.orig
-cp -s viper/configs/slapd.conf .
-
-# Copy schemas over
-cd /etc/ldap/schema
-cp -fs ../viper/configs/{*schema,schema.ldif} .
-
 # One-time viper subdirectory creation
-mkdir /var/lib/ldap/viper && \
-  chown openldap:openldap /var/lib/ldap/viper
+mkdir -p /var/lib/ldap/viper
+chown openldap:openldap /var/lib/ldap/viper
+
+# Install all etc files
+# FIXME: make original backup
+cd $VIPER_ROOT
+find etc -type d -exec mkdir -p /{} \;
+find etc -type f -exec cp -sf $VIPER_ROOT/{} /{} \;
 
 # Restart slapd with new configs and all. You MUST use the LD_PRELOAD
 # environment variable, or you'll receive an error like this:
@@ -52,7 +58,8 @@ LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
 # shared network has simply been replaced with another, generic string.
 # So this is by default a no-op, but if a person specifies ethX and hostname
 # on the command line, the replacement will be real, not no-op).
-cd /etc/ldap/viper/ldifs
+cd $VIPER_ROOT/ldifs
+git checkout 1-dhcp.ldif || true
 perl -pi -e "\$h= '$HOST'; chomp \$h; s/viper/\$h/g" 1-dhcp.ldif
 perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 
@@ -60,18 +67,14 @@ perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 # and then loads all *ldif files, so if you want to use this approach, do not
 # modify LDAP entries directly as changes will be lost -- instead, always edit
 # LDIF file and run make)
-cd /etc/ldap/viper/ldifs
 make
 
-# Place new dhcp config file, restart dhcp
-cd /etc/dhcp3
-mv dhcpd.conf dhcpd.conf.orig
-cp -s ../ldap/viper/configs/dhcpd.conf .
+# Restart dhcp
 invoke-rc.d dhcp3-server restart
 
 # Link preseed CGI script to web server's cgi-bin:
 mkdir -p /usr/lib/cgi-bin
-ln -sf /etc/ldap/viper/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
+cp -sf $VIPER_ROOT/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
 
 echo "Viper setup successful."
 
