@@ -12,6 +12,10 @@ already have $ in values as long as ABC in 'ABC $ DEF' does not match name
 of one of the existing overlays (which is almost always). But still, having
 explicit way of escaping $ should exist.
 
+* s/\s+/\s/g in ovl opts
+
+* Support for literal '$' in values
+
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
@@ -44,11 +48,89 @@ explicit way of escaping $ should exist.
 
 * local mirror with imported signing key
 
+* check if multiple 'if' options to an overlay work properly
+
+* streamline common work in overlays (put stuff to functions), 
+ uniform debug log printing from them etc.
+
+* For every attr that is defined as containing a DN in schema, support
+ expansion of dots (".") to components
+
+* udpkg -i partman_auto_raid in ubuntu 8.04 early_command
+
+* entryAppend to be able to say when to append - always, if schema allows,
+ if schema allows but not looking at single/multi value etc. Then, use
+that to apply default dhcpOptions even if one specifies some of them
+in the host entry
+
+* tests/ dir and a suite of test queries diff-ed to expected return values
+ based on client c1.com
+
+* Support fileVal to find all $1 or regex matching within the file, return
+ them as array, then have joiner as usual
+
+* preseed network interface to eth0 always, because interface=auto is crap
+
+* we use orig DN in ... expansion when targetting base entry, and entry DNs when
+ looping thru subentries. This isn't quite alright as it'll break when base DN
+ s coming from fallback (baseDN will be origDN, then on subentries, DN will 
+ be fallbackDN)
+
+* use ViperConfig.pm (server, bind DN, pw, etc.). Actually, let's just come
+ to the stage where users are added to the directory and Viper checks
+ credentials on bind (just simple password for start)
+
+* allow rewriting of requested search attrs to return
+
+* document for config file, ldif, value spec, when do \\ have to be 
+ escaped, when is SPEC a filter and when a regex etc.
+
+* query na host da otkrije keyeve koji postoje zbog defaulta i ukljuci ih u search osnovnog nivoa
+
+* Make viper server also a recursive dns, so can use it as dns instead
+ of 192.168.1.254
+* configure local bind9 so it resolves according to dhcp leases
+
+* Expiry of attribute values. Set expire $ EPOCH_SECS_TIME adter which
+ the attribute is removed from the entry. Support also date2epoch that
+ converts your date to epoch secs. It runs first, then expire, then the
+ rest of overlays.
+ Actually, modify run_overlays to be able to specify ovl list in the
+ invocation, and first run expire, then appender, then all overlays.
+ That way, attributes from the original entry that are due will be removed
+ before appender runs, and will allow appender to add a fresh copy of
+ the attribute from the default entry.
+ (In other words, expire will expire the attribute in which context it is
+ running... so you can specify expire in default entry, but it'll be evaluated
+ in context of client key).
+ Also, actually, see if expire is basically just a cache spec with initial
+ value, but when cache expires, there's nowhere to restore the value from
+ so it disappears.
+
+* Support for specifying which OS/distro should be installed, having
+ debconf keys that understand it
+
+* Option inside {} to sub search, to specify whether expansion (overlays,
+ appender) should be performed. Massive timesaver for things like ntp-servers
+ query where you know the entry should already be there and does not need to
+ be expanded in any way for the query to operate on it well.
+
+* origdn support for run_appender just like for run_overlays?
+
+* Check if hash key is deleted if it expires and memoize returns 0 on ->exists(). It's not, so this effectively means in worst-case scenario, when using time/uses based expiry, once could have whole set of ldap data in memory
+
+* local mirror with imported signing key
+
 * check if multiple 'if' options to an overlay work properly. (Actually,
  rework 'if' completely).
 
 * streamline common work in overlays (put stuff to functions), 
  uniform debug log printing from them etc.
+
+* multiple networks per client?
+
+* 'store' overlay that saves computed value for real into the entry, i.e.
+  random pw or IP host number
 
 * Instead of splitting and joining whole value for each overlay, split once
  run all overlays, and then join, once.
@@ -102,6 +184,10 @@ in the host entry
 * If overlay fails, hide that attribute from displaying since data in there
  is most probably incomplete (in some cases its hidden, but do it in 100% of
  cases). Or return error info about this thru operational attrs.
+
+* If overlay fails, hide that attribute from displaying since data in there
+ is most probably incomplete (in some cases its hidden, but do it in 100% of
+ cases)
 
 * putting value together after overlay work would break if evaluation result matches
  name of some overlay?
