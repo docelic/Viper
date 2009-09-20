@@ -7,6 +7,8 @@
 
 * s/\s+/\s/g in ovl opts
 
+* Support for literal '$' in values
+
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
 * configure local bind9 so it resolves according to dhcp leases
