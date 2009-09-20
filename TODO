@@ -7,7 +7,10 @@
 
 * s/\s+/\s/g in ovl opts
 
-* Support for literal '$' in values
+* Support for literal '$' in values (by using escape \$). (Note that you can
+already have $ in values as long as ABC in 'ABC $ DEF' does not match name
+of one of the existing overlays (which is almost always). But still, having
+explicit way of escaping $ should exist.
 
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
@@ -41,10 +44,14 @@
 
 * local mirror with imported signing key
 
-* check if multiple 'if' options to an overlay work properly
+* check if multiple 'if' options to an overlay work properly. (Actually,
+ rework 'if' completely).
 
 * streamline common work in overlays (put stuff to functions), 
  uniform debug log printing from them etc.
+
+* Instead of splitting and joining whole value for each overlay, split once
+ run all overlays, and then join, once.
 
 * For every attr that is defined as containing a DN in schema, support
  expansion of dots (".") to components
@@ -55,9 +62,6 @@
  if schema allows but not looking at single/multi value etc. Then, use
 that to apply default dhcpOptions even if one specifies some of them
 in the host entry
-
-* tests/ dir and a suite of test queries diff-ed to expected return values
- based on client c1.com
 
 * Support fileVal to find all $1 or regex matching within the file, return
  them as array, then have joiner as usual
@@ -86,9 +90,6 @@ in the host entry
 
 * origdn support for run_appender just like for run_overlays?
 
-* optimization-- skip component splitting if none of the components
- matches the overlay that would run
-
 * multiple networks per client?
 
 * 'store' overlay that saves computed value for real into the entry, i.e.
@@ -96,13 +97,11 @@ in the host entry
 
 * doc note how to kill dbus on debconf hang if server cl+ced or exits
 
-* specify pw checking, see krb auth
-
-* see if ->check_state is needed on modify? maybe not really
+* see krb auth
 
 * If overlay fails, hide that attribute from displaying since data in there
  is most probably incomplete (in some cases its hidden, but do it in 100% of
- cases)
+ cases). Or return error info about this thru operational attrs.
 
 * putting value together after overlay work would break if evaluation result matches
  name of some overlay?
@@ -140,9 +139,10 @@ so that they can easily spot the mistake
  from fallback, and then someone tries to modify it)
 
 - See if after appending from seeAlsoAttr, that attr should be removed from
- the entry or it can stay in there
+ the entry or it can stay in there. (Currently it stays)
 
-- when debconf key changed, trigger reload of service owning the key?
+- when debconf key changed, trigger reload of service owning the key? Or,
+ general mechanism for thing like "when DN =~ /regex/ then run ....".
 
 * Change searchFallback so that it's similar to searchSubst/entryAppend, i.e.
   should allow to specify conditions, and then rewrite a person wants. Infact,
@@ -162,8 +162,6 @@ so that they can easily spot the mistake
   triggers, for example search in ou=dhcp and some ethernet addr can trigger
   creation of an entry with some IP, and then return that IP as if it was
   there.
-
-* resolve file XXXs
 
 * Make Viper its own package, with slap* version of tools -> vipercat, viperadd etc.
 
