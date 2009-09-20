@@ -32,6 +32,10 @@ objectClass: top
 objectClass: organizationalUnit
 ou: objectClasses
 
+#
+# People & accounts
+#
+
 dn: ou=people,o=c1.com,ou=clients
 objectClass: top
 objectClass: organizationalUnit
@@ -47,10 +51,6 @@ dn: cn=accounts,o=c1.com,ou=clients
 objectClass: top
 objectClass: organizationalRole
 cn: accounts
-
-#
-# People & accounts
-#
 
 dn: employeeNumber=1000,ou=people,o=c1.com,ou=clients
 objectClass: inetOrgPerson
@@ -118,7 +118,7 @@ seeAlso: cn=10.0.1.0, ou=networks, o=c1.com,ou=clients
 #dhcpRange: 10.0.1.80 10.0.1.120
 
 #
-# Templates
+# Debconf templates, per-host
 #
 
 dn: ou=Templates,o=c1.com,ou=clients
@@ -142,7 +142,7 @@ objectClass: device
 cn: h3
 
 #
-# Hosts
+# Debconf values, per-host
 #
 
 dn: ou=Hosts,o=c1.com,ou=clients
