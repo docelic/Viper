@@ -2,11 +2,14 @@
 
 VIPER_ROOT="$PWD"
 
+# Use -sf to symlink instead of copying (default), empty otherwise.
+CP_ARG="-sf"
+
 # Make sure we're running in toplevel dir and not in i.e. scripts/
 if ! test -d "etc"; then
 	echo "The script should be run from Viper root directory (the one"
 	echo "in which you have Viper.pm, README, etc/ and ldifs/)."
-	echo "From there, run as: sh scripts/viper-setup.sh"
+	echo "Run as: sh scripts/viper-setup.sh"
 	exit 1
 fi
 
@@ -31,7 +34,7 @@ chown openldap:openldap /var/lib/ldap/viper
 # FIXME: make original backup
 cd $VIPER_ROOT
 find etc -type d -exec mkdir -p /{} \;
-find etc -type f -exec cp -sf $VIPER_ROOT/{} /{} \;
+find etc -type f -exec cp $CP_ARG $VIPER_ROOT/{} /{} \;
 
 # Restart slapd with new configs and all. You MUST use the LD_PRELOAD
 # environment variable, or you'll receive an error like this:
@@ -75,7 +78,7 @@ invoke-rc.d dhcp3-server restart
 
 # Link preseed CGI script to web server's cgi-bin:
 mkdir -p /usr/lib/cgi-bin
-cp -sf $VIPER_ROOT/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
+cp $CP_ARG $VIPER_ROOT/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
 
 echo "Viper setup successful."
 
