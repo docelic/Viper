@@ -1,5 +1,5 @@
 #
-# DHCP
+# DHCP (ou=dhcp suffix)
 #
 
 dn: ou=dhcp
@@ -11,7 +11,7 @@ dhcpPrimaryDN: cn=viper, ou=dhcp
 dhcpStatements: ddns-update-style none
 dhcpStatements: default-lease-time 600
 dhcpStatements: max-lease-time 7200
-description: This is the DHCP subtree. Note that a simple search in this suffix will not reveal much information. The purpose of this suffix is to display dynamic behavior in response to certain combinations of search parameters. Take a look at slapd.conf, suffix ou=dhcp, for a list of the conditions that trigger this behavior. By default, the suffix in slapd.conf is prepared for accesses from ISC DHCP3 LDAP-enabled server, but the same combinations can be triggered manually (and response observed) with ldapsearch.
+description: This is the DHCP subtree. Note that a simple search in this suffix will not reveal much information. The purpose of this suffix is to display dynamic behavior in response to certain combinations of search parameters. Take a look at slapd.conf, suffix ou=dhcp, for a list of the conditions that trigger this behavior. This suffix is intended to be accessed by ISC DHCP3 LDAP-enabled server, but as long as the queries are the same, they can be sent manually (and response observed) with ldapsearch as well.
 
 # User & password dhcpd will use to connect. Needed only if
 # ldap-username and ldap-password are enabled in dhcpd.conf.
