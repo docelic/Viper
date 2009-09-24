@@ -8,8 +8,8 @@ CP_ARG="-sf"
 # Make sure we're running in toplevel dir and not in i.e. scripts/
 if ! test -d "etc"; then
 	echo "The script should be run from Viper root directory (the one"
-	echo "in which you have Viper.pm, README, etc/ and ldifs/)."
-	echo "Run as: sh scripts/viper-setup.sh"
+	echo "in which you have README and scripts/)."
+	echo "Cd there, then run as: sh scripts/viper-setup.sh"
 	exit 1
 fi
 
@@ -80,5 +80,5 @@ invoke-rc.d dhcp3-server restart
 mkdir -p /usr/lib/cgi-bin
 cp $CP_ARG $VIPER_ROOT/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
 
-echo "Viper setup successful."
+echo "Viper/slapd and DHCP server running, Viper setup successful."
 
