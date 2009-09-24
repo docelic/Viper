@@ -1000,4 +1000,4 @@ cn: ntp/servers
 owners: viper
 flags: puppet
 template: ntp/servers
-value: find $ ... 2 0 0 0 (puppetClass=ntp::server*) 0 ipHostNumber \x0 \x0
+value: find $ ... 2 0 500 3600 (puppetClass=ntp::server*) 0 ipHostNumber \x0 \x0
