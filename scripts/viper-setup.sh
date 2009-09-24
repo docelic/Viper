@@ -24,7 +24,7 @@ if test -z "$HOST"; then
 fi
 
 # Install necessary packages
-apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 puppet
+apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 puppetmaster
 
 # One-time viper subdirectory creation
 mkdir -p /var/lib/ldap/viper
@@ -73,12 +73,15 @@ perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 # LDIF file and run make)
 make
 
-# Restart dhcp
-invoke-rc.d dhcp3-server restart
-
 # Link preseed CGI script to web server's cgi-bin:
 mkdir -p /usr/lib/cgi-bin
 cp $CP_ARG $VIPER_ROOT/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
 
-echo "Viper/slapd and DHCP server running, Viper setup successful."
+# Restart dhcp
+invoke-rc.d dhcp3-server restart
+
+# Restart puppet server
+invoke-rc.d puppetmaster restart
+
+echo "Viper setup successful, services running."
 
