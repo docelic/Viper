@@ -13,7 +13,7 @@ filegen clockstats file clockstats type day enable
 
 # You do need to talk to an NTP server or two (or three).
 
-<% if not classes.grep('ntp::client').empty? %>
+<% if not puppetclass.grep('ntp::client').empty? %>
 <% prefix= '#' %>
 <% ntp_servers.each do |s| -%>
 server <%= s %>

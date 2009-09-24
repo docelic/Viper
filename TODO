@@ -12,6 +12,13 @@ already have $ in values as long as ABC in 'ABC $ DEF' does not match name
 of one of the existing overlays (which is almost always). But still, having
 explicit way of escaping $ should exist.
 
+* Improve capitalizing in puppet.schema
+
+* Mention that viper-setup.sh will do whole bunch of things, override config
+ for slapd, dhcpd, puppet etc. Don't run carelessly.
+
+* Setup local mirror on H15 viper
+
 * Document: when writing find $ specs, make sure not to use 0 for time
  or size limit as it'll blow. Actually, check what's really happening there,
  does the result so far get substituted (as it should) or the whole thing
