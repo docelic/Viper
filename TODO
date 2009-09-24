@@ -12,6 +12,8 @@ already have $ in values as long as ABC in 'ABC $ DEF' does not match name
 of one of the existing overlays (which is almost always). But still, having
 explicit way of escaping $ should exist.
 
+* Document normal slapd restart, no need for manual LD_PRELOAD any more.
+
 * s/\s+/\s/g in ovl opts
 
 * Document setup errors (like, No subnet declaration for eth1 (10.0.0.1))
