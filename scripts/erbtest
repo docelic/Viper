@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Parse ERB template and check for errors
+#
+# Copyright 2009, Davor Ocelic <docelic@spinlocksolutions.com>
+#                 SPINLOCK Solutions, http://www.spinlocksolutions.com/
+#                                     http://techpubs.spinlocksolutions.com/
+#
+# SPINLOCK - Advanced GNU/Linux networks in commercial and education sectors
+#
+#
+# Common use:
+#
+#   erbtest <file.erb>
+#
+
+if test -z "$1"; then
+	echo "Usage: $0 <file.erb>"
+	exit 1
+fi
+
+erb -x -T '-' $1 | ruby -c
