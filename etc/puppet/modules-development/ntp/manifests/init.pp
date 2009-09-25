@@ -15,6 +15,9 @@ class ntp {
 
 		class disabled {
 			file { "ntp.conf":
+				name    => $operatingsystem ? {
+					default => "/etc/ntp.conf",
+				},
 				ensure => absent,
 			}
 		}
@@ -30,6 +33,9 @@ class ntp {
 
 		class disabled {
 			package { "ntp":
+				name    => $operatingsystem ? {
+					default => "ntp",
+				},
 				ensure => purged,
 			}
 		}
