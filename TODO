@@ -37,11 +37,7 @@ explicit way of escaping $ should exist.
 * Rearrange tests/ so that search data is sorted first, OR
 * Use Tie::IxHash on all hashes to preserve insertion order?
 
-* s/\s+/\s/g in ovl opts
-
 * Document setup errors (like, No subnet declaration for eth1 (10.0.0.1))
-
-* Support for literal '$' in values
 
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
@@ -95,8 +91,6 @@ in the host entry
 
 * Support fileVal to find all $1 or regex matching within the file, return
  them as array, then have joiner as usual
-
-* preseed network interface to eth0 always, because interface=auto is crap
 
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
  looping thru subentries. This isn't quite alright as it'll break when base DN

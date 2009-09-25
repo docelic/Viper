@@ -702,8 +702,7 @@ flags: preseed
 owners: d-i
 template: netcfg/choose_interface
 value: auto
-variables: ifchoices=eth0: Realtek Semiconductor Co.\, Ltd. RTL8111/8168B PCI 
- Express Gigabit Ethernet controller, eth1: FireWire ethernet
+variables:
 
 dn: cn=passwd/make-user,ou=hosts,ou=defaults
 objectClass: top
