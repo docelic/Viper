@@ -9,7 +9,7 @@ class ntp {
 				mode    => 0644,
 				owner   => root,
 				group   => root,
-				content => template 'ntp/ntp.conf.erb',
+				content => template('ntp/ntp.conf.erb'),
 				before  => Package['ntp'],
 		}
 
@@ -32,6 +32,14 @@ class ntp {
 			package { "ntp":
 				ensure => purged,
 			}
+		}
+	}
+
+	service { "ntp":
+		name    => $operatingsystem ? {
+			default => "ntp",
+		},
+		subscribe => File["ntp.conf"],
 	}
 
 }
