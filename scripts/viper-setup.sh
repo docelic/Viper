@@ -9,6 +9,7 @@ CP_ARG="-sf"
 if ! test -d "etc"; then
 	echo "The script should be run from Viper root directory (the one"
 	echo "in which you have README and scripts/)."
+	echo
 	echo "Cd there, then run as: sh scripts/viper-setup.sh"
 	exit 1
 fi

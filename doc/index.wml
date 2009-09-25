@@ -41,11 +41,12 @@ get results with. For that purpose, everything has been commented, with
 the availability of complete config files and a Quick Start guide.
 </p>
 <p>
-If you're new to OpenLDAP or LDAP in general, take a look at SPINLOCK Techpubs
+If you're new to OpenLDAP or LDAP in general, first take a look at SPINLOCK
+Techpubs
 Guide "<a href="http://techpubs.spinlocksolutions.com/dklar/ldap.html">Debian
 GNU: Setting up OpenLDAP</a>". You'll be interested in learning about general
 operation, not the specifics of the OpenLDAP installation, because Viper comes
-with a working config file that can be used verbatim.
+with a working config file and data set that can be used verbatim.
 </p>
 
 <div class="fineline"></div>
