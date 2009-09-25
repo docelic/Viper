@@ -45,6 +45,8 @@ ntp on every dhclient run.
 = TODO =
 
 - enable authenticated sync (ntp-keygen et al.); patches welcome.
+- randomize upstreams list on each server, don't use same list on all
+- support fudge 127.127.1.0 stratum <%= ntp_local_stratum %>
 
 ------------
 
