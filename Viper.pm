@@ -74,8 +74,8 @@ use List::MoreUtils     qw/any firstidx/;
 
 use subs                qw/p pd pc pcd/;
 
-# To make use of DEBUG, server must run in foreground mode. Something like:
-# su -c 'LD_PRELOAD=/usr/lib/libperl.so.5.10 /usr/sbin/slapd -d 256'
+# To make use of DEBUG, server should best run in foreground mode. Something like:
+# sudo -u openldap /usr/sbin/slapd -d 256
 use constant DEBUG    => 1; # General debug?
 use constant DEBUG_DTL=> 0; # Detailed debug?
 use constant DEBUG_OVL=> 0; # Overlays debug?

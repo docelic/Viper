@@ -37,23 +37,14 @@ cd $VIPER_ROOT
 find etc -type d -exec mkdir -p /{} \;
 find etc -type f -exec cp $CP_ARG $VIPER_ROOT/{} /{} \;
 
-# Restart slapd with new configs and all. You MUST use the LD_PRELOAD
-# environment variable, or you'll receive an error like this:
-# /usr/sbin/slapd: symbol lookup error:
-#   /usr/lib/perl/5.10/auto/IO/IO.so: undefined symbol: Perl_Istack_sp_ptr
-# This is an error caused by Debian's decision to configure libtool to make
-# dynamic library loading only export symbols to the calling process or
-# whatever, and not to other libraries loaded after it.
-# So an easy solution to a somewhat complicated issue is to manually
-# add the LD_PRELOAD= option as shown, and do it in anything that deals
-# with slapd (including its init script).
-LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
+# Restart slapd with new configs and all.
+invoke-rc.d slapd restart
 
 # Sync Viper schema to server schema
 # Not needed because the set of schemas we deliver and schema.ldif are
 # already in sync.
 #perl /etc/ldap/viper/scripts/schema.pl > /etc/ldap/schema/schema.ldif
-#LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
+invoke-rc.d slapd restart
 
 # Adjust local server name in dhcp.ldif:
 # - Replace "viper" in ldifs/dhcp.ldif with the name of local server

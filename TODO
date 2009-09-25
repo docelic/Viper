@@ -21,15 +21,8 @@ already have $ in values as long as ABC in 'ABC $ DEF' does not match name
 of one of the existing overlays (which is almost always). But still, having
 explicit way of escaping $ should exist.
 
-* Improve capitalizing in puppet.schema
-
 * Note how they can use ipmasq once, then disable it and just save/load fw rules
  via iptables functionality
-
-* Mention that viper-setup.sh will do whole bunch of things, override config
- for slapd, dhcpd, puppet etc. Don't run carelessly.
-
-* Setup local mirror on H15 viper
 
 * Check why host s1 didn't get rewritten to viper
 
@@ -43,8 +36,6 @@ explicit way of escaping $ should exist.
 
 * Rearrange tests/ so that search data is sorted first, OR
 * Use Tie::IxHash on all hashes to preserve insertion order?
-
-* Document normal slapd restart, no need for manual LD_PRELOAD any more.
 
 * s/\s+/\s/g in ovl opts
 

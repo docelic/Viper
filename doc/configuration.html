@@ -588,8 +588,7 @@ Viper must be aware of server's schema, but back-perl does not pass that
 information onto the backend. The way to produce it then is to first run
 the server without it, then use <i>scripts/schema.pl</i> to obtain the
 schema and save it to the expected location, then re-start the
-server with <i>LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd
-restart</i>.
+server with <i>invoke-rc.d slapd restart</i>.
 </p>
 <p>
 Directive "schemaFatal" specifies whether Viper should allow starting
