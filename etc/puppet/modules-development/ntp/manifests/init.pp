@@ -5,12 +5,18 @@ class ntp {
 				name    => $operatingsystem ? {
 					default => "/etc/ntp.conf",
 				},
-				ensure  => present,
+				ensure  => file,
 				mode    => 0644,
 				owner   => root,
 				group   => root,
-				content => template('ntp/ntp.conf.erb'),
+				content => template 'ntp/ntp.conf.erb',
 				before  => Package['ntp'],
+		}
+
+		class disabled {
+			file { "ntp.conf":
+				ensure => absent,
+			}
 		}
 	}
 
@@ -21,6 +27,11 @@ class ntp {
 				},
 				ensure => latest,
 		}
+
+		class disabled {
+			package { "ntp":
+				ensure => purged,
+			}
 	}
 
 }
