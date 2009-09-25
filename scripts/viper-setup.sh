@@ -33,9 +33,9 @@ chown openldap:openldap /var/lib/ldap/viper
 
 # Install all etc files
 # FIXME: make original backup
-cd $VIPER_ROOT
+cd "$VIPER_ROOT"
 find etc -type d -exec mkdir -p /{} \;
-find etc -type f -exec cp $CP_ARG $VIPER_ROOT/{} /{} \;
+find etc -type f -exec cp $CP_ARG "$VIPER_ROOT/{}" "/{}" \;
 
 # Restart slapd with new configs and all.
 invoke-rc.d slapd restart
@@ -44,7 +44,7 @@ invoke-rc.d slapd restart
 # Not needed because the set of schemas we deliver and schema.ldif are
 # already in sync.
 #perl /etc/ldap/viper/scripts/schema.pl > /etc/ldap/schema/schema.ldif
-invoke-rc.d slapd restart
+#invoke-rc.d slapd restart
 
 # Adjust local server name in dhcp.ldif:
 # - Replace "viper" in ldifs/dhcp.ldif with the name of local server
@@ -54,7 +54,7 @@ invoke-rc.d slapd restart
 # shared network has simply been replaced with another, generic string.
 # So this is by default a no-op, but if a person specifies ethX and hostname
 # on the command line, the replacement will be real, not no-op).
-cd $VIPER_ROOT/ldifs
+cd "$VIPER_ROOT/ldifs"
 git checkout 1-dhcp.ldif || true # Load fresh copy of setup script
 perl -pi -e "\$h= '$HOST'; chomp \$h; s/viper/\$h/g" 1-dhcp.ldif
 perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
@@ -67,7 +67,7 @@ make
 
 # Link preseed CGI script to web server's cgi-bin:
 mkdir -p /usr/lib/cgi-bin
-cp $CP_ARG $VIPER_ROOT/scripts/preseed /usr/lib/cgi-bin/preseed.cfg
+cp $CP_ARG "$VIPER_ROOT/scripts/preseed" /usr/lib/cgi-bin/preseed.cfg
 
 # Restart dhcp
 invoke-rc.d dhcp3-server restart
