@@ -1,13 +1,4 @@
-NTP module
-
-Available classes:
-
-  ntp::client
-	ntp::client::stock
-  ntp::server
-	ntp::server::stock
-
-* INTRODUCTION *
+= Introduction =
 
 NTP configuration consists of installing ntp and template ntp.conf.
 
@@ -25,25 +16,25 @@ we advise against mixing locally- and upstream-synced servers in
 the same group. All your clients should sync from local servers,
 and all your local servers should sync from upstream (the Internet).
 
-* SERVER / CLIENT *
+= Server / client =
 
-If a machine is a NTP server, it should be of class ntp::server, and
-nothing else should be done. The template file contains a verbatim
-list of upstream (Internet) servers.
+If a machine is a NTP server, it should be of class ntp::server.
+The template file contains a verbatim list of upstream (Internet) servers.
 
 If a machine is a NTP client, it should be of class ntp::client.
-The list of local servers comes from ntp_servers array parameter.
+The list of local servers comes from parameter ntp_servers.
 When module is used with Viper, this param is generated from
 ntp/servers Debconf key.
 
-* STOCK CLASSES *
+= Stock classes =
 
 Stock classes (ntp::server::stock, ntp::client::stock) do not install
 the template ntp.conf, and use the default that comes with the package.
 
-A stock client can automatically update its list of NTP servers if
-the DHCP server sends it an 'option: ntp-servers one,two,three' value. For
-this to work, client's dhclient needs to request ntp-servers field (currently
+A stock client only makes sense if you plan to send it the list of NTP
+servers via DHCP. The DHCP server should send it an
+'option: ntp-servers one,two,three' value. For this to work, client's
+dhclient needs to request ntp-servers field (currently
 not done by default, but Ubuntu dhcp3-client version 3.1.1-5ubuntu8 and above
 do it -- https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/74164).
 
@@ -51,10 +42,9 @@ When using Viper, using this method of auto-configuring NTP is suboptimal,
 because using DHCP-enabled ntp servers list has a brawback of re-starting
 ntp on every dhclient run.
 
-* TODO *
+= TODO =
 
-What's left to do in the module is enable authenticated sync
-(ntp-keygen et al.); patches welcome.
+- enable authenticated sync (ntp-keygen et al.); patches welcome.
 
 ------------
 
