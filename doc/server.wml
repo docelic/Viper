@@ -74,7 +74,8 @@ To install, you can run the setup script as follows:
 sh scripts/viper-setup.sh
 </pre>
 <p>
-It's worth noting that the script can be ran multiple times without
+It's worth noting that the script is idempotent, that is, can be run
+multiple times with no
 adverse effects. So if any part of the process fails, you can fix the
 problem and run the script again.
 </p>

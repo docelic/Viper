@@ -1,7 +1,6 @@
-# This fact returns the set of configured NTP servers
-# from the managed config files.
-# Source: http://git.black.co.at/?p=module-ntp;a=blob;f=plugins/facter/configured_ntp_servers.rb
-
+# List of NTP servers configured on the host
+#
+# Based on source David Schmitt's source file http://git.black.co.at/?p=module-ntp;a=blob;f=plugins/facter/configured_ntp_servers.rb.
 Facter.add("configured_ntp_servers") do
 	setcode do
 		Dir.glob("/etc/ntp*.conf").collect do |name|
@@ -13,7 +12,7 @@ Facter.add("configured_ntp_servers") do
 					matches[2]
 				end
 			end
-		end.flatten.uniq.compact.sort.join(" ")
+		end.flatten.uniq.compact.sort
 	end
 end
 

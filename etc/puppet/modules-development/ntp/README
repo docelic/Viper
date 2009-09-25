@@ -1,68 +1,101 @@
-= Introduction =
+:title:NTP
 
-NTP configuration consists of installing ntp and template ntp.conf.
+= NTP
 
-A common ntp.conf is used for both servers and clients -- the only
-difference is in the servers list, which is taken care of by ERB
-templating within the file.
+Network Time Protocol module.
 
-Note that, in the default Debian configuration (and inherited by
-our ntp.conf template), every ntp installation is technically both
-a client and a server (it syncs from a set of servers, and allows
-syncing to it).
+== Classes
 
-However, we do want to differentiate servers and clients, because
-we advise against mixing locally- and upstream-synced servers in
-the same group. All your clients should sync from local servers,
-and all your local servers should sync from upstream (the Internet).
+Host classes:
 
-= Server / client =
+ntp::server:: server with standard configuration
+ntp::server::stock:: server with no configuration
+ntp::client:: client with standard configuration
+ntp::client::stock:: client with no configuration
 
-If a machine is a NTP server, it should be of class ntp::server.
-The template file contains a verbatim list of upstream (Internet) servers.
+Internal classes:
 
-If a machine is a NTP client, it should be of class ntp::client.
-The list of local servers comes from parameter ntp_servers.
-When module is used with Viper, this param is generated from
-ntp/servers Debconf key.
+ntp::package:: software
+ntp::config:: configuration
 
-= Stock classes =
+== Parameters
 
-Stock classes (ntp::server::stock, ntp::client::stock) do not install
-the template ntp.conf, and use the default that comes with the package.
+Required parameters:
 
-A stock client only makes sense if you plan to send it the list of NTP
-servers via DHCP. The DHCP server should send it an
-'option: ntp-servers one,two,three' value. For this to work, client's
-dhclient needs to request ntp-servers field (currently
-not done by default, but Ubuntu dhcp3-client version 3.1.1-5ubuntu8 and above
-do it -- https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/74164).
+ntp_servers (for ntp::client):: array of NTP servers
 
-When using Viper, using this method of auto-configuring NTP is suboptimal,
-because using DHCP-enabled ntp servers list has a brawback of re-starting
-ntp on every dhclient run.
+== Notes
 
-= TODO =
+NTP installs +ntp+ software and template ntp.conf.
+
+The obsolete +ntpdate+ is not used -- ntp package is installed to provide both
+server and client functionality.
+
+In the default configuration, every ntp installation is technically both
+a client and a server, because it is configured to sync from a set of servers
+and allows others to sync from it.
+
+However, we differentiate between servers and clients because they need
+different servers list -- all clients should sync from local servers,
+and all local servers should sync from upstream (Internet) servers.
+
+For an NTP server, ntp.conf already includes a verbatim list of upstream
+servers from the pool. (DNS records for the hosts in the pool are periodically
+rotated to resolve to different NTP servers).
+
+For an NTP client, the upstream servers in the template file are commented and
+ntp_servers array parameter expands to local servers list.
+
+=== Stock classes
+
+Stock classes do not install the configuration, and are as useful as the
+default configuration that ships with the package.
+
+A stock client is meaningful if you plan to send the list of NTP servers
+via DHCP. The DHCP server should send the following information:
+
+option: ntp-servers one,two,three...
+
+For this to work, client's dhclient needs to request ntp-servers field from
+DHCP (currently not done by default, but Ubuntu dhcp3-client
+version 3.1.1-5ubuntu8 and above do it -- see
+https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/74164).
+
+Requesting ntp-servers field adds no burden to the DHCP client, but if the
+DHCP server provides the list, it will have a side effect of restarting
+client's ntp on every dhclient run.
+
+== Trivia
+
+NTP is an Internet protocol used to synchronize the clocks of computers to some time
+reference. NTP was originally developed by Professor David L. Mills at the University of
+Delaware and is one of the oldest Internet protocols still in use (since before 1985).
+
+== TODO
 
 - enable authenticated sync (ntp-keygen et al.); patches welcome.
-- randomize upstreams list on each server, don't use same list on all
 - support fudge 127.127.1.0 stratum <%= ntp_local_stratum %>
+- support disabled classes
 
-------------
+== Authors
 
 SPINLOCK - Advanced GNU/Linux networks in commercial and education sectors
 
-Copyright 2008-2009 SPINLOCK d.o.o., http://www.spinlocksolutions.com/
-                    Davor Ocelic, docelic@spinlocksolutions.com
-
-SPINLOCK, http://www.spinlocksolutions.com/
-Viper, http://www.spinlocksolutions.com/viper/
-Techpubs, http://techpubs.spinlocksolutions.com/
+Copyright 2008-2009 SPINLOCK[http://www.spinlocksolutions.com/] d.o.o., Davor Ocelic (docelic@spinlocksolutions.com)
 
 Released under GPL v3 or later.
 
-------
+File plugins/facter/configured_ntp_servers.rb comes from Davit Schmitt's plugin[http://git.black.co.at/?p=module-ntp;a=blob;f=plugins/facter/configured_ntp_servers.rb].
 
-Puppet, http://www.reductivelabs.com/products/puppet/
+=== Links
+
+SPINLOCK, http://www.spinlocksolutions.com/
+
+SPINLOCK Viper, http://www.spinlocksolutions.com/viper/
+
+SPINLOCK Techpubs, http://techpubs.spinlocksolutions.com/
+
 Reductive Labs, http://www.reductivelabs.com/
+
+Reductive Labs Puppet, http://www.reductivelabs.com/products/puppet/
 

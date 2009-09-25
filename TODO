@@ -12,6 +12,8 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Module to use $operatingsystem ? etc for generality
 
+* Rdoc generation of module docs
+
 * Resolve situation with ntp::server[::*] and matching, esp. in 
  erb templates i.e. puppetclass.member? 'ntp::client'...
 
