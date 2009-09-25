@@ -36,7 +36,7 @@ use warnings;
 use Net::LDAP qw//;
 use YAML      qw/Dump/;
 
-my ( %parameters, %classes);
+my ( %parameters, %classes, $environment);
 
 my $name = $ARGV[0];
 $name or die "No FQDN passed as 1st argument\n";
@@ -99,6 +99,10 @@ while( @clocs){
 					%classes= ( %classes, map{ $_ => 1} @vals);
 				}
 
+				if( $a eq 'environment') {
+					$environment= $vals[0]
+				}
+
 				$parameters{$a}= [ @vals];
 			}
 		}
@@ -146,7 +150,10 @@ $m= $l->unbind;
 
 my @classes = keys %classes;
 
+$environment||= 'production';
+
 print Dump( {
   classes     => \@classes,
   parameters  => \%parameters,
+	environment => $environment,
 } );
