@@ -19,7 +19,12 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Fix puppetclass, puppetvar, parentnode capitalizing after patch accepted
 
+* resolve situation with clientName / domainName
+
 * When Tag() is added to certain class, how to use that?
+
+* When operational attrs are requested in result, return dynamic facts about
+ host (from facter and manual ldap keys)
 
 * Support size/time limit 0 to mean unlimited, max= max
 
@@ -30,6 +35,12 @@ explicit way of escaping $ should exist.
 
 * Note how they can use ipmasq once, then disable it and just save/load fw rules
  via iptables functionality
+
+* Impilment that editing entry with seeAlso reference actually modifies an
+ attribute in the seeAlso-ed entry.
+
+* Also, implement slapd-style access control, just ignore part of spec we
+ don't have info to know about (user/ip, crypto type etc.)
 
 * Check why host s1 didn't get rewritten to viper
 
