@@ -2,14 +2,11 @@
 #
 # External lookup script that queries LDAP.
 #
-# Usage possible from command line or Puppet.
+# Usage:
 #
-# Cmdline: ruby lookup.rb CLIENT TYPE KEY           DEFAULT(=KEY if empty)
-# Such as: ruby lookup.rb c1.com file ntp.conf      /etc/ntp.conf
-#      Or: ruby lookup.rb c1.com file /etc/ntp.conf
-#
-#  Puppet: lookup('file', 'ntp.conf', '/etc/ntp.conf')
-#      Or: lookup('file', '/etc/ntp.conf')
+#           TYPE    ITEM        DEFAULT(=ITEM)
+#   lookup('file', 'ntp.conf', '/etc/ntp.conf')
+#   lookup('file', '/etc/ntp.conf')
 #
 # Based on concept of external lookup from
 #   http://www.devco.net/archives/2009/08/31/complex_data_and_puppet.php
