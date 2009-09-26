@@ -77,6 +77,7 @@ Delaware and is one of the oldest Internet protocols still in use (since before 
 - note that local clock needs custom support
 - peer with other local servers? (they do use servers the original one doesn't talk to directly
  due to always-changing dns resolve of hostnames)
+- ntp stats script, grapher (including a-la popcon hack)
 
 == Authors
 
