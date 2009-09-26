@@ -11,6 +11,15 @@
 #  Puppet: lookup('file', 'ntp.conf', '/etc/ntp.conf')
 #      Or: lookup('file', '/etc/ntp.conf')
 #
+# Based on concept of external lookup from
+#   http://www.devco.net/archives/2009/08/31/complex_data_and_puppet.php
+#
+# For easier use, a couple often-used "aliases" are also defined:
+#
+#  f(...) == lookup("file", ...)
+#  p(...) == lookup("package", ...)
+#  s(...) == lookup("service", ...)
+#
 
 require 'ldap'
 
