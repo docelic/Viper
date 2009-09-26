@@ -10,7 +10,7 @@ class bind9 {
 #				group   => root,
 #				content => template('bind/bind.conf.erb'),
 #				before  => Package[$bind],
-		}
+#		}
 
 		class disabled {
 			$bind_dir = f("/etc/bind")
