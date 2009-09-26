@@ -1,7 +1,8 @@
 class ntp {
 
 	class config {
-		$ntp_conf = lookup("file", "/etc/ntp.conf")
+		$ntp_conf = f("/etc/ntp.conf")
+		$ntp = p("ntp")
 
 		file { $ntp_conf:
 				ensure  => file,
@@ -9,11 +10,11 @@ class ntp {
 				owner   => root,
 				group   => root,
 				content => template('ntp/ntp.conf.erb'),
-				before  => Package['ntp'],
+				before  => Package[$ntp],
 		}
 
 		class disabled {
-			$ntp_conf = lookup("file", "/etc/ntp.conf")
+			$ntp_conf = f("/etc/ntp.conf")
 
 			file { $ntp_conf:
 				ensure => absent,
@@ -22,14 +23,14 @@ class ntp {
 	}
 
 	class package {
-		$ntp = lookup("package", "/etc/ntp.conf")
+		$ntp = p("ntp")
 
 		package { $ntp:
 				ensure => latest,
 		}
 
 		class disabled {
-			$ntp = lookup("package", "/etc/ntp.conf")
+			$ntp = p("ntp")
 
 			package { $ntp:
 				ensure => purged,

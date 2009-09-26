@@ -10,13 +10,7 @@
 * Each puppet thing to save some docs, so one can review all docs and
 see everything that Viper/puppet changed differently than default setup.
 
-* Module to use $operatingsystem ? etc for generality
-
 * Rdoc generation of module docs
-
-* get lookup plus f/p/s working by creating regular lookup function, then
- have those 4 parser functions call the regular one (problem with f/p/s
- calling lookup is, parser functions don't see other parser functions)
 
 * mkdir -p /var/lib/puppet/lib/puppet/puppet/parser/functions/ && cp lookup.rb there
 /usr/lib/ruby/1.8/puppet/parser/functions/
