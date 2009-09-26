@@ -1,37 +1,40 @@
-:title:NTP
+:title:BIND9
 
-= NTP
+= BIND9
 
-Network Time Protocol module.
+Domain Name System (DNS) protocol implementation
 
 == Classes
 
 Host classes:
 
-ntp::server:: server with standard configuration
-ntp::server::stock:: server with no configuration
-ntp::client:: client with standard configuration
-ntp::client::stock:: client with no configuration
+bind9::server:: server with standard configuration
+bind9::server::stock:: server with no configuration
 
 Internal classes:
 
-ntp::package:: software
-ntp::config:: configuration
+bind9::package:: software
+bind9::config:: configuration
+
+
+
+
+--
 
 == Parameters
 
 Required parameters:
 
-ntp_servers (for ntp::client):: array of NTP servers
+bind9_servers (for bind9::client):: array of NTP servers
 
 == Notes
 
-NTP installs +ntp+ software and template ntp.conf.
+NTP installs +bind9+ software and template bind9.conf.
 
-The obsolete +ntpdate+ is not used -- ntp package is installed to provide both
+The obsolete +bind9date+ is not used -- bind9 package is installed to provide both
 server and client functionality.
 
-In the default configuration, every ntp installation is technically both
+In the default configuration, every bind9 installation is technically both
 a client and a server, because it is configured to sync from a set of servers
 and allows others to sync from it.
 
@@ -39,12 +42,12 @@ However, we differentiate between servers and clients because they need
 different servers list -- all clients should sync from local servers,
 and all local servers should sync from upstream (Internet) servers.
 
-For an NTP server, ntp.conf already includes a verbatim list of upstream
+For an NTP server, bind9.conf already includes a verbatim list of upstream
 servers from the pool. (DNS records for the hosts in the pool are periodically
 rotated to resolve to different NTP servers).
 
 For an NTP client, the upstream servers in the template file are commented and
-ntp_servers array parameter expands to local servers list.
+bind9_servers array parameter expands to local servers list.
 
 === Stock classes
 
@@ -54,16 +57,16 @@ default configuration that ships with the package.
 A stock client is meaningful if you plan to send the list of NTP servers
 via DHCP. The DHCP server should send the following information:
 
-option: ntp-servers one,two,three...
+option: bind9-servers one,two,three...
 
-For this to work, client's dhclient needs to request ntp-servers field from
+For this to work, client's dhclient needs to request bind9-servers field from
 DHCP (currently not done by default, but Ubuntu dhcp3-client
 version 3.1.1-5ubuntu8 and above do it -- see
 https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/74164).
 
-Requesting ntp-servers field adds no burden to the DHCP client, but if the
+Requesting bind9-servers field adds no burden to the DHCP client, but if the
 DHCP server provides the list, it will have a side effect of restarting
-client's ntp on every dhclient run.
+client's bind9 on every dhclient run.
 
 == Trivia
 
@@ -73,11 +76,10 @@ Delaware and is one of the oldest Internet protocols still in use (since before 
 
 == TODO
 
-- enable authenticated sync (ntp-keygen et al.);
+- enable authenticated sync (bind9-keygen et al.);
 - note that local clock needs custom support
 - peer with other local servers? (they do use servers the original one doesn't talk to directly
  due to always-changing dns resolve of hostnames)
-- ntp stats script, grapher (including a-la popcon hack)
 
 == Authors
 
@@ -87,11 +89,11 @@ Copyright 2008-2009 SPINLOCK[http://www.spinlocksolutions.com/] d.o.o., Davor Oc
 
 Released under GPL v3 or later.
 
-File plugins/facter/configured_ntp_servers.rb comes from Davit Schmitt's plugin[http://git.black.co.at/?p=module-ntp;a=blob;f=plugins/facter/configured_ntp_servers.rb].
+File plugins/facter/configured_bind9_servers.rb comes from Davit Schmitt's plugin[http://git.black.co.at/?p=module-bind9;a=blob;f=plugins/facter/configured_bind9_servers.rb].
 
 === Links
 
-David L. Mills Notes on setting up a NTP subnet, http://www.eecis.udel.edu/~mills/ntp/html/notes.html
+David L. Mills Notes on setting up a NTP subnet, http://www.eecis.udel.edu/~mills/bind9/html/notes.html
 
 SPINLOCK, http://www.spinlocksolutions.com/
 
