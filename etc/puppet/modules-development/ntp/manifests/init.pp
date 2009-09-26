@@ -1,51 +1,41 @@
 class ntp {
 
 	class config {
-		file { "ntp.conf":
-				name    => $operatingsystem ? {
-					default => "/etc/ntp.conf",
-				},
+		$ntp_conf = f("/etc/ntp.conf")
+		$ntp = p("ntp")
+
+		file { $ntp_conf:
 				ensure  => file,
 				mode    => 0644,
 				owner   => root,
 				group   => root,
 				content => template('ntp/ntp.conf.erb'),
-				before  => Package['ntp'],
+				before  => Package[$ntp],
 		}
 
 		class disabled {
-			file { "ntp.conf":
-				name    => $operatingsystem ? {
-					default => "/etc/ntp.conf",
-				},
+			$ntp_conf = f("/etc/ntp.conf")
+
+			file { $ntp_conf:
 				ensure => absent,
 			}
 		}
 	}
 
 	class package {
-		package { "ntp":
-				name    => $operatingsystem ? {
-					default => "ntp",
-				},
+		$ntp = p("ntp")
+
+		package { $ntp:
 				ensure => latest,
 		}
 
 		class disabled {
-			package { "ntp":
-				name    => $operatingsystem ? {
-					default => "ntp",
-				},
+			$ntp = p("ntp")
+
+			package { $ntp:
 				ensure => purged,
 			}
 		}
-	}
-
-	service { "ntp":
-		name    => $operatingsystem ? {
-			default => "ntp",
-		},
-		subscribe => File["ntp.conf"],
 	}
 
 }

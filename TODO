@@ -10,9 +10,10 @@
 * Each puppet thing to save some docs, so one can review all docs and
 see everything that Viper/puppet changed differently than default setup.
 
-* Module to use $operatingsystem ? etc for generality
-
 * Rdoc generation of module docs
+
+* mkdir -p /var/lib/puppet/lib/puppet/puppet/parser/functions/ && cp lookup.rb there
+/usr/lib/ruby/1.8/puppet/parser/functions/
 
 * Resolve situation with ntp::server[::*] and matching, esp. in 
  erb templates i.e. puppetclass.member? 'ntp::client'...
