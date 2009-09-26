@@ -73,9 +73,10 @@ Delaware and is one of the oldest Internet protocols still in use (since before 
 
 == TODO
 
-- enable authenticated sync (ntp-keygen et al.); patches welcome.
-- support fudge 127.127.1.0 stratum <%= ntp_local_stratum %>
-- support disabled classes
+- enable authenticated sync (ntp-keygen et al.);
+- note that local clock needs custom support
+- peer with other local servers? (they do use servers the original one doesn't talk to directly
+ due to always-changing dns resolve of hostnames)
 
 == Authors
 
@@ -88,6 +89,8 @@ Released under GPL v3 or later.
 File plugins/facter/configured_ntp_servers.rb comes from Davit Schmitt's plugin[http://git.black.co.at/?p=module-ntp;a=blob;f=plugins/facter/configured_ntp_servers.rb].
 
 === Links
+
+David L. Mills Notes on setting up a NTP subnet, http://www.eecis.udel.edu/~mills/ntp/html/notes.html
 
 SPINLOCK, http://www.spinlocksolutions.com/
 
