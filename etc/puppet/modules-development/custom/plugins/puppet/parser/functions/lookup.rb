@@ -44,4 +44,5 @@ module Puppet::Parser::Functions
 
 		default
 	end
+
 end
