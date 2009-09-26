@@ -29,6 +29,12 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Support size/time limit 0 to mean unlimited, max= max
 
+* Function that knows how to take out what's needed from an entry. I.e.
+ everything that calls ->get_value to operate on something should call
+ that one function. It takes pointer to entry and specs re. what you
+ want out of it, and it does it for you. That will also effectively reduce
+ the new complexity of find overlay to the previous state.
+
 * Support for literal '$' in values (by using escape \$). (Note that you can
 already have $ in values as long as ABC in 'ABC $ DEF' does not match name
 of one of the existing overlays (which is almost always). But still, having
