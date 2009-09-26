@@ -677,6 +677,12 @@ sub search {
 	# ATTRONLY - attributes only, no values
 	# @ATTRS list of attrs to return, special: */null= all, += operational
 
+	# XXX
+	$req{'size'}= 3600 if not $req{'size'};
+	$req{'size'}= 3600 if $req{'size'} eq 'max';
+	$req{'time'}= 3600 if not $req{'time'};
+	$req{'time'}= 3600 if $req{'time'} eq 'max';
+
 	# Normalize base DN
 	$this->normalize( \$req{base});
 
