@@ -14,6 +14,9 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Rdoc generation of module docs
 
+* mkdir -p /var/lib/puppet/lib/puppet/puppet/parser/functions/ && cp lookup.rb there
+/usr/lib/ruby/1.8/puppet/parser/functions/
+
 * Resolve situation with ntp::server[::*] and matching, esp. in 
  erb templates i.e. puppetclass.member? 'ntp::client'...
 

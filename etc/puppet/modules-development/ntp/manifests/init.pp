@@ -1,10 +1,10 @@
 class ntp {
 
 	class config {
-		file { "ntp.conf":
-				name    => $operatingsystem ? {
-					default => "/etc/ntp.conf",
-				},
+
+		$ntp_conf = lookup("file", "/etc/ntp.conf")
+
+		file { $ntp_conf:
 				ensure  => file,
 				mode    => 0644,
 				owner   => root,
@@ -14,38 +14,25 @@ class ntp {
 		}
 
 		class disabled {
-			file { "ntp.conf":
-				name    => $operatingsystem ? {
-					default => "/etc/ntp.conf",
-				},
+			file { $ntp_conf:
 				ensure => absent,
 			}
 		}
 	}
 
 	class package {
-		package { "ntp":
-				name    => $operatingsystem ? {
-					default => "ntp",
-				},
+
+		$ntp = lookup("package", "ntp")
+
+		package { $ntp:
 				ensure => latest,
 		}
 
 		class disabled {
-			package { "ntp":
-				name    => $operatingsystem ? {
-					default => "ntp",
-				},
+			package { $ntp:
 				ensure => purged,
 			}
 		}
-	}
-
-	service { "ntp":
-		name    => $operatingsystem ? {
-			default => "ntp",
-		},
-		subscribe => File["ntp.conf"],
 	}
 
 }

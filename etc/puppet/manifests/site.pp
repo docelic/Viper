@@ -9,4 +9,3 @@ File { backup => main }
 File { ignore => [ '.svn', '.git', 'CVS' ] }
 
 Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
-
