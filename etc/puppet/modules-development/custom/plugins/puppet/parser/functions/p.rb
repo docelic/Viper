@@ -1,5 +1,3 @@
-require 'ldap'
-
 module Puppet::Parser::Functions
 
 	newfunction(:p, :type => :rvalue) do |args|

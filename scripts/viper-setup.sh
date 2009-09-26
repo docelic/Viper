@@ -65,12 +65,15 @@ perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 # LDIF file and run make)
 make
 
+# Restart dhcp
+invoke-rc.d dhcp3-server restart
+
 # Link preseed CGI script to web server's cgi-bin:
 mkdir -p /usr/lib/cgi-bin
 cp $CP_ARG "$VIPER_ROOT/scripts/preseed" /usr/lib/cgi-bin/preseed.cfg
 
-# Restart dhcp
-invoke-rc.d dhcp3-server restart
+# Copy extra parser functions to Puppet
+cp $CP_ARG "$VIPER_ROOT"/etc/puppet/modules-development/custom/plugins/puppet/parser/functions/*  /usr/lib/ruby/1.8/puppet/parser/functions/
 
 # Restart puppet server
 invoke-rc.d puppetmaster restart
