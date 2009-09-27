@@ -12,6 +12,8 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Rdoc generation of module docs
 
+* Look for '$' in attribute value only if not defined RAW
+
 * mkdir -p /var/lib/puppet/lib/puppet/puppet/parser/functions/ && cp lookup.rb there
 /usr/lib/ruby/1.8/puppet/parser/functions/
 
@@ -26,6 +28,8 @@ see everything that Viper/puppet changed differently than default setup.
 
 * When operational attrs are requested in result, return dynamic facts about
  host (from facter and manual ldap keys)
+
+* Preseed bind9 package
 
 * Support size/time limit 0 to mean unlimited, max= max
 
