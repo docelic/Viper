@@ -74,8 +74,8 @@ use List::MoreUtils     qw/any firstidx/;
 
 use subs                qw/p pd pc pcd/;
 
-# To make use of DEBUG, server must run in foreground mode. Something like:
-# su -c 'LD_PRELOAD=/usr/lib/libperl.so.5.10 /usr/sbin/slapd -d 256'
+# To make use of DEBUG, server should best run in foreground mode. Something like:
+# sudo -u openldap /usr/sbin/slapd -d 256
 use constant DEBUG    => 1; # General debug?
 use constant DEBUG_DTL=> 0; # Detailed debug?
 use constant DEBUG_OVL=> 0; # Overlays debug?
@@ -677,6 +677,12 @@ sub search {
 	# ATTRONLY - attributes only, no values
 	# @ATTRS list of attrs to return, special: */null= all, += operational
 
+	# XXX
+	$req{'size'}= 3600 if not $req{'size'};
+	$req{'size'}= 3600 if $req{'size'} eq 'max';
+	$req{'time'}= 3600 if not $req{'time'};
+	$req{'time'}= 3600 if $req{'time'} eq 'max';
+
 	# Normalize base DN
 	$this->normalize( \$req{base});
 
@@ -1240,7 +1246,7 @@ sub run_overlays {
 											# Done this way because, with specifying \x20, I wasn't
 											# able to get \x20 back to ' ' (no amount of "$joiner" or
 											# sprintf %s, $joiner seemed to convert it back.
-											$val_joiner=~ s/\\x(\d+)/hex $1/ge;
+											$val_joiner=~ s/\\x(\d+)/chr hex $1/ge;
 
 											$valx= undef;
 										}
@@ -1374,7 +1380,7 @@ sub run_overlays {
 											# Done this way because, with specifying \x20, I wasn't
 											# able to get \x20 back to ' ' (no amount of "$joiner" or
 											# sprintf %s, $joiner seemed to convert it back.
-											$val_joiner=~ s/\\x(\d+)/hex $1/ge;
+											$val_joiner=~ s/\\x(\d+)/chr hex $1/ge;
 
 											$valx= undef;
 										}
@@ -1383,7 +1389,7 @@ sub run_overlays {
 										my $gval_joiner;
 										if( $gvalx=~ qr/\D/o) {
 											$gval_joiner= $gvalx;
-											$gval_joiner=~ s/\\x(\d+)/hex $1/ge;
+											$gval_joiner=~ s/\\x(\d+)/chr hex $1/ge;
 											$gvalx= undef;
 										}
 
@@ -1712,7 +1718,7 @@ sub resolve {
 			my $base= $obase;
 			# If substitution from config file is successful
 			if( $base=~ s/$$_[0]/$$_[1]/) {
-				p "RESOLVE FALLBACK TO '$base'";
+				p "RESOLVE: TRY FALLBACK TO '$base'";
 
 				$ret= $this->dn2leaf( $base, $oret, %opts);
 				last if $ret== LDAP_SUCCESS;
@@ -1807,7 +1813,7 @@ sub dn2leaf {
 			my $currfile= $currdir . $this->{extension};
 
 			if( ! -r $currfile) {
-				p "DN2LEAF -r '$currfile': $!\n";
+				p "DN2LEAF: -r '$currfile': $!\n";
 				return LDAP_NO_SUCH_OBJECT
 
 			# We could create dir along with .ldif file on every ADD, but that would
@@ -1860,14 +1866,14 @@ sub dn2leaf {
 
 	if( -e $file) {
 		if( $opts{writeop} and !$opts{overwrite}) {
-			p "DN2LEAF WON'T OVERWRITE: '$dn'\n";
+			p "DN2LEAF: WON'T OVERWRITE: '$dn'\n";
 			return LDAP_ALREADY_EXISTS
 		} else {
-			pd "DN2LEAF FOUND '$dn'"; # in file '$file'";
+			pd "DN2LEAF: FOUND '$dn'"; # in file '$file'";
 		}
 	} else {
 		if( $opts{openfh}) {
-			p "DN2LEAF NOT FOUND '$dn'"; # in file '$file'";
+			p "DN2LEAF: NOT FOUND '$dn'"; # in file '$file'";
 			return LDAP_NO_SUCH_OBJECT
 		}
 	}

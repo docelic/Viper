@@ -48,7 +48,7 @@
 				<div id="content">
 <h1>Viper - Setting up an installation server</h1>
 <p>
-Here's a guide to setting up a completely functional Viper
+Here's the guide to setting up a completely functional Viper
 server, on a system running Debian GNU or Ubuntu.
 </p>
 <p>
@@ -69,63 +69,14 @@ git clone git://github.com/docelic/Viper.git viper
 cd viper
 </pre>
 </p>
-<h2>Main setup (Viper/LDAP + DHCP)</h2>
-<p>
-To set things up after download, you will use script <a
- href="../scripts/viper-setup.sh">scripts/viper-setup.sh</a>.
-<br>
-The purpose of the script is to get Viper up and
-running quickly, with the default config.
-The default config is quite independent and can be ran on probably every
-machine that does not already run a LDAP and DHCP server.
-After the system is running, you will have a clean and known-good base to
-start creating your own configuration.<br>
-<br>
-Before running the script, you should do just one thing, related to the
-DHCP server -- you should create a network interface with IP address 10.0.1.1,
-to fit in the example subnet used by our default config. Then, you can run
-the install script with the name of the physical interface.
-</p>
-<p>
-(If you've set up Viper in the VZ container, chances are you already
-configured eth0 and eth1, so you do not need to run ifconfig or
-modify /etc/network/interfaces as shown here; proceed to "Running the setup
-script").
-</p>
-<p>
-Here's the session transcript that uses device eth1. This is a practical
-scenario on a host with two network interfaces: eth0 that uses DHCP and hooks
-to whatever the host's parent network and gateway to the Internet is, and
-eth1 that is intended for Viper and that hooks into a separate switch or
-client hosts directly.
-</p>
-<pre>
-ifconfig eth1 inet 10.0.1.1 netmask 255.255.255.0
-invoke-rc.d ipmasq restart # (If you have it installed)
-</pre>
-<p>
-To configure eth1 on every boot, add it to <i>/etc/network/interfaces</i>
-with a stanza like this:
-</p>
-<pre>
-allow-hotplug eth1
-iface eth1 inet static
-	address 10.0.1.1
-	netmask 255.255.255.0
-</pre>
-<h2>Running the setup script</h2>
-<p>
-The script should do everything automatically.
-However, for the first time, I suggest you read the script (it contains
-important comments) and execute commands manually.<br>
-</p>
-<pre>
-sh scripts/viper-setup.sh
-</pre>
 <h2>Net::LDAP::FilterMatch fix</h2>
 <p>
-Net::LDAP's FilterMatch module contains a bug that you have to patch manually, at least until it is
-fixed in the official distribution (track bug progress report
+IMPORTANT
+</p>
+<p>
+Net::LDAP's FilterMatch module contains a bug that you have to patch manually
+until it is fixed in the official distribution (track bug progress
+report
 <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938">here</a>).
 </p>
 <p>
@@ -136,121 +87,55 @@ The patch is simple, and included in Viper distribution as file
 patch -p0 &lt; support/FilterMatch.pm.patch
 </pre>
 </p>
-<h2>(Re)starting slapd</h2>
+<h2>Installation</h2>
 <p>
-You are now ready to restart slapd, which will load all new configuration
-that has been installed.
-</p><p>
-When slapd is configured to use anything related to Viper, all binary or
-init script invocations need to be prefixed with LD_PRELOAD environment
-variable:
+To set everything up, you will use script
+<a href="../scripts/viper-setup.sh">scripts/viper-setup.sh</a>, either by
+directly running it or opening it, reading and choosing which steps
+you want to execute.
 </p>
+<p>
+In any case, the purpose of the script is to get Viper up and
+running quickly, with a complete default config.
+</p>
+<p>
+The default config is quite independent and can be ran on probably every
+machine that does not already run LDAP/DHCP/Puppet server. (If you do run
+some of those servers on the host and have important data that cannot be
+deleted or forgotten, maybe you have not chosen a good machine for
+installing Viper the first time).
+</p>
+<p>
+One of the script's tasks is installing all config files from the
+<i>etc/</i> subdirectory onto the real <i>/etc/</i> on the filesystem.
+This is done by creating the <i>/etc/...</i> directories and
+symlinking the needed config files to Viper's <i>etc/</i> subdirectory.
+I find that approach more useful for the moment. If you do not want
+symlinks and want to really copy the files, edit the top of
+<i>scripts/viper-setup.sh</i> and set CP_ARG="".
+</p>
+<p>
+To install, you can run the setup script as follows:
 <pre>
-LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd restart
+sh scripts/viper-setup.sh
 </pre>
 <p>
-This is somewhat unfortunate, but is required due to Debian's policy decision
-that dlopen() will export symbols only to the caller, and not make them
-available to subsequently loaded modules.
+It's worth noting that the script can be ran multiple times without
+adverse effects. So if any part of the process fails, you can fix the
+problem and run the script again.
 </p>
 <p>
-This means that on machine or openvz CT reboot, slapd will not start
-automatically, because it'll be missing the LD_PRELOAD setting. (In turn,
-DHCP server startup will also fail as it won't be able to contact LDAP).
-For the time being, just remember to restart slapd and dhcp manually,
-after you boot the server.
+After the setup script runs and the system gets set up,
+you will have a clean, known-good base on which you can run the
+test suite, and upon which you can start creating your own configuration.
 </p>
-<h2>HTTP setup</h2>
-<p>
-Client hosts which are candidates for installation need to be able to
-retrieve the preseed file over HTTP, so
-the preseed CGI script needs to be linked in the cgi-bin directory.
-<p>
-</p>
-if your cgi-bin dir is in the standard location,
-<i>/usr/lib/cgi-bin/</i>, this was already done by the setup script.
-</p>
-<p>
-The client hosts can then reach the preseed file at location
-url=http://SERVER/cgi-bin/preseed.cfg.
-</p>
-<p>
-You do not need to specify this location explicitly, because DHCP has been
-configured to send "filename" argument to the host, informing it of the
-preseed file URL.
-</p>
-<p>
-This allows you to connect client host to the network, take standard boot media
-and choose <i>Advanced -&gt; Automatic installation</i>, completing the
-installation without any input, be it at the d-i boot prompt or during
-installation.
-</p>
-<h2>Gatewaying</h2>
-<p>
-Note: you can skip this section if you do not intend to perform any actual
-installations yet, or if the packages reside in a Debian mirror locally
-on the viper host, and the client hosts do not need to reach the Internet.
-</p>
-<p>
-Client hosts need to have access to the Internet to download
-the packages etc.
-</p>
-<p>
-In the default configuration, clients use Viper's host for
-NAT/IP forwarding (i.e. attribute 'router' in <i>ldifs/c1.com.ldif</i>).
-</p>
-<p>
-To make that work, you need to <b>apt-get install ipmasq</b> on the Viper
-physical host.
-</p>
-<p>
-As said, for test client c1.com, DHCP will configure client hosts to use
-router 10.0.1.1, which is the IP of the Viper install server for that
-subnet. This will work right away if you're running Viper outside of OpenVZ,
-where the physical host will have the address 10.0.1.1.
-</p>
-<p>
-If you're running Viper as a container under OpenVZ, then the container will
-have that address, and you will not be able to use it as router, because the
-container can't do forwarding (the 'nat' table only exists on the physical
-host).
-The physical host (in case of OpenVZ) is configured to have eth1 at
-address 10.0.1.254, so
-you need to edit <i>ldifs/c1.com.ldif</i>, search for "router: "
-and change the value from 10.0.1.1 to 10.0.1.254, telling the hosts
-to use Viper's physical host for forwarding.
-Remember to run 'make' in the ldifs/ directory to apply the change (by
-reloading all data to LDAP).
-</p>
-<p>
-NOTE: when using Viper in the OpenVZ container, starting ipmasq on the physical
-host will, as explained, do the right thing for the client hosts, but will
-prevent the viper container from accessing the Internet. This is acceptable
-in the short term, because the container doesn't have to go online to
-operate normally, but it's surely a suboptimal solution.<br>
-The issue is in ipmasq detection code that doesn't handle our bridge
-configuration properly. Until I find a proper solution, here's a quick
-fix which you have to run every time after restarting ipmasq:
-</p>
-<pre>
-# Print out how many forward rules there are, then you should
-# subtract 2 from that number to get last rule ID. (i.e. 8 - 2 = 6).
-
-iptables -L FORWARD -v | wc -lr
-
-# Delete last rule (DROP) from forward chain and
-# change policy to accept
-
-iptables -D FORWARD 6
-iptables -P FORWARD ACCEPT
-</pre>
 <h2>Testing</h2>
 <p>
-After installation, you should now have a working setup populated with default
+After installation, you should have a working setup populated with default
 data. This includes a client with name "c1.com", and three hosts, h1,
 h2 and h3.<br>
 <br>
-Based on the default data, there are tests you can run:
+Based on that default data, there are tests you can run:
 <h3>Testing with ldapsearch</h3>
 <pre>
 ldapsearch -x -b ou=dhcp
@@ -268,8 +153,8 @@ ldapsearch -x -b cn=ntp/servers,cn=h2,ou=hosts,o=c1.com,ou=clients
 Ldapsearch query for <i>cn=h2,ou=hosts,o=c1.com,ou=clients</i> is a pretty good
 way of determining if everything is working alright. Here's how the output
 from the command should look like (the exact attributes are not important,
-it's just important that there are no unprocessed values in the output. i.e.
-nothing with '$', and nothing with only half-populated information).
+it's just important that there are no unprocessed values in the output. That
+is, nothing with '$' and nothing with only half-populated information).
 <pre>
 $ ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients
 
@@ -330,7 +215,137 @@ QUERY_STRING=ip=10.0.1.8 perl scripts/preseed<br>
 <p>
 wget http://10.0.1.1/cgi-bin/preseed.cfg?ip=10.0.1.8 -O /tmp/preseed.cfg<br>
 </p>
+<h2>Post-setup</h2>
+<p>
+After Viper has been installed and tested, there are a couple final things
+that need to be done, that will allow real clients to connect and perform
+installation and configuration. Here's the list:
+</p>
+<h3>HTTP setup</h3>
+<p>
+Client hosts which are candidates for installation need to be able to
+retrieve the preseed file over HTTP, so
+the preseed CGI script needs to be linked in the cgi-bin directory.
+<p>
+</p>
+If your cgi-bin dir is in the standard location,
+<i>/usr/lib/cgi-bin/</i>, this was already done by the setup script.
+</p>
+<p>
+The client hosts will then reach the preseed file at location
+url=http://SERVER/cgi-bin/preseed.cfg.
+</p>
+<p>
+You do not need to specify this location explicitly, because DHCP has been
+configured to send "filename" argument to the client host, informing it of the
+preseed file URL.
+</p>
+<p>
+This allows you to connect client host to the network, take standard Debian
+boot media, choose <i>Advanced -&gt; Automatic installation</i> and complete
+the installation without any input, be it at the d-i boot prompt or during
+installation.
+</p>
+<p>
+Note that if for some reason you decide not to use Viper's DHCP and/or do not
+specify the "filename" option, the d-i installer will try to load the preseed
+file from the default location. That location is
+http://SERVER/d-i/DISTNAME/preseed.cfg, and you will have to configure
+the web server accordingly.
+</p>
+<h2>EthX interface config</h2>
+<p>
+By default, Viper expects that each configured client site is on
+some subnet, and that the Viper server is accessible at address .1
+in that subnet (for example, client "c1.com" that gets installed as part
+of test data is on subnet 10.0.1.0/24 and expects Viper server at 10.0.1.1).
+</p>
+<p>
+Changing this isn't impossible (or even hard), but is out of scope of this
+document.
+</p>
+<p>
+So, while you were able to run the tests without caring about this, you will
+however have to make Viper available on 10.0.1.1 to allow real clients to
+connect.
+</p>
+<p>
+Here's how to do it for 10.0.1.1 (the procedure should be repeated for all
+other configured subnets). The example scenario here shows Viper host with two
+network interfaces: eth0 that uses DHCP and hooks to whatever the host's parent
+network and gateway to the Internet is, and eth1 that is intended for Viper and
+client subnets.
+</p>
+<pre>
+ifconfig eth1 inet 10.0.1.1 netmask 255.255.255.0
+invoke-rc.d ipmasq restart # (If you have it installed)
+</pre>
+<p>
+To configure eth1 on every boot, add it to <i>/etc/network/interfaces</i>
+with a stanza like this:
+</p>
+<pre>
+allow-hotplug eth1
+iface eth1 inet static
+	address 10.0.1.1
+	netmask 255.255.255.0
+</pre>
+<p>
+Note: to support further client subnets on the same eth1 interface, you would
+use eth1 aliases, such as eth1:1, eth1:2, etc. (Or, in case you installed
+Viper in the OpenVZ container, you would create additional ethX devices in
+the container and add them all to the bridge vzbr1).
+</p>
+<h2>Gatewaying</h2>
+<p>
+Client hosts will most probably need some access to the Internet, even if
+you create a local mirror of the Debian packages.
+</p>
+<p>
+In the default configuration, clients are configured to access the net through
+Viper server via NAT/IP forwarding.
+</p>
+<p>
+To make that work, you will need to <b>apt-get install ipmasq</b> on the Viper
+server. (In case of Viper running in an OpenVZ container, install ipmasq
+on the physical host, not the container.)
+</p>
+<p>
+Ipmasq will install and start automatically, properly configuring everything,
+but you will have to do a small change in the iptables rules as follows:
+</p>
+<pre>
+# Print out how many forward rules there are. (Then you should
+# subtract 2 from that number to get last rule ID. (i.e. 8 - 2 = 6)).
+
+iptables -L FORWARD -v | wc -lr
+
+# Delete last, DROP rule from forward chain and
+# change policy to accept
+
+iptables -D FORWARD 6
+iptables -P FORWARD ACCEPT
+</pre>
+</p>
+<p>
+Also, when you're running Viper as a container under OpenVZ, then the
+container itself
+will have the .1 addresses (i.e. 10.0.1.1), but you will not be able to use it
+as router, because the container can't do forwarding (the 'nat' table only
+exists on the physical host).
+The physical host in that case will be configured to have eth1
+at address 10.0.1.254, so you will need to edit <i>ldifs/c1.com.ldif</i>,
+search for "router: " and change the value from 10.0.1.1 to 10.0.1.254 (and
+likewise for other subnets), instructing client hosts to use Viper's physical
+host for forwarding.
+Don't forget to run 'make' in the <i>ldifs/</i> subdirectory to apply the
+change.
+</p>
 <h2>Changing the configuration / adding new clients</h2>
+<p>
+After Viper installation, testing and preparing for clients to connect,
+you can move onto adding new clients and hosts.
+</p>
 <p>
 See <a href="client.html">Adding clients and hosts</a>.
 </p>

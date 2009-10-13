@@ -3,10 +3,13 @@ html, body, h1, h2, h3, h4 {
 	padding: 0px;
 	list-style: none;
 }
+h2, h3, h4 {
+	color: black;
+	font-weight: bold;
+}
 h2{
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 17px;
-	color: #544e38;
 }
 img {
 	border: 0px;
@@ -130,7 +133,7 @@ td {
 	width: 518px;
 	padding-right: 34px;
 	padding-top: 23px;
-	color: #686454;
+	color: #2e2e2e;
 }
 #content .left {
 	margin-right: 10px;

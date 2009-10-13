@@ -187,5 +187,7 @@ ipHostNumber: 10.0.1.9
 #macAddress: 00:11:6b:34:ae:8f
 #macAddress: 00:0b:6a:8e:31:ff
 macAddress: 00:18:51:e7:56:57
+environment: development
 puppetClass: ntp::server
+puppetClass: bind9::server
 

@@ -14,7 +14,7 @@ to solve deficiencies in LDAP when it comes to configuration management.
 <p>
 Generally speaking, the backend can be used
 in regular LDAP scenarios, in places where you 
-want quick results, on a platform that already has extra features
+want quick results on a platform that already has extra features
 and also lends itself to further customization.
 </p><p>
 However, its main role is serving as the backend for automatic system
@@ -34,7 +34,7 @@ and MODIFY handling, and server-side Debconf prompting.
 The implemented features allow LDAP to act as a powerful
 central data store, without any data duplication or need for batch
 scripts that would periodically re-generate config files -- all data
-needs to be specified in only one place, all components contact LDAP
+needs to be specified only once, all components contact LDAP
 on the fly, and all data served by LDAP is current.
 </p><p>
 Having a custom backend also brings one other crucial benefit to the
@@ -150,7 +150,7 @@ process).&nbsp; See 'modifysmarts'
 
 <h4>Searching</h4>
 <p>
-When a search is made, it is possible to regex match combination of the
+When a search is made, it is possible to regex match a combination of the
 input params (base, scope, deref, size, time, filter, attrOnly), and if
 all of them match a specification, then the params can be arbitrarily
 rewritten, i.e. you could replace search base with another base if
@@ -186,10 +186,10 @@ When an entry is read, it is possible to cause Perl evaluation of
 contents within attributes. ** WARNING ** DANGEROUS ** DISABLED BY DEFAULT **.
 See 'perl'
 </p><p>
-When entries are returned to the host, each entry will contain a DN
-of&nbsp; its actual location on the disk (if the entry is coming from a
+When search results are returned to the client, each entry will contain a DN
+of its actual location on the disk (if the entry is coming from a
 fallback, its DN may be something completely different from what was
-requested).&nbsp; That's more useful (and easier) than changing the DN
+requested). That's more useful (and easier) than changing the DN
 to its would-be value. Experience also shows that the calling programs
 do not care about the DN and are not confused by this, so there are
 only beneficial aspects to it.
@@ -221,13 +221,13 @@ on-disk stack files.
 OpenLDAP locking is such that only one Viper function may be executing
 at a time (even if you have multiple Perl suffixes configured, only one
 is executing at a time), so no custom locking is necessary. But we
-still do manual flocks where necessary to keep things under control and
-cover scenarios with multiple LDAP servers in the same tree.
+still do proper locking where necessary ourselves to keep things under
+control and cover scenarios with multiple LDAP servers in the same tree.
 </p><p>
 Viper backend is called from OpenLDAP's back_perl handler, which is
 severely limited when it comes to user and access control. If you need
-any bind control beyond bind DN and password, or any further access
-control, chances are you'll have to extend back_perl.c.
+any bind control beyond bind DN and password, or any access control based
+on bind DN, chances are you'll have to extend back_perl.c.
 </p><p>
 Using scripts/viper.pl (or anything else that resembles the approach
 shown there) allows Viper to run standalone, directly under the Perl
@@ -251,5 +251,5 @@ improvement (multiple times).&nbsp; See 'overlayconfig'
 Similar to the above, it's also possible to cache LDAP entry reads from
 disk. Cache specifications and explanation are the same as we just
 discussed, except that the performance gains are modest compared to the
-overlay cache (just in the &lt;= 20% range). See 'cacheread'
+overlay cache (in the &lt;= 20% range). See 'cacheread'
 </p>

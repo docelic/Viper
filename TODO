@@ -7,14 +7,74 @@
 
 * s/\s+/\s/g in ovl opts
 
+* Each puppet thing to save some docs, so one can review all docs and
+see everything that Viper/puppet changed differently than default setup.
+
+* Rdoc generation of module docs
+
+* Look for '$' in attribute value only if not defined RAW
+
+* Move debconfs to ou=debconf tree
+
+* support for changing dfl passwords
+
+* searchFallback improvements
+
+* PXE
+
+* mkdir -p /var/lib/puppet/lib/puppet/puppet/parser/functions/ && cp lookup.rb there
+/usr/lib/ruby/1.8/puppet/parser/functions/
+
+* Resolve situation with ntp::server[::*] and matching, esp. in 
+ erb templates i.e. puppetclass.member? 'ntp::client'...
+
+* Fix puppetclass, puppetvar, parentnode capitalizing after patch accepted
+
+* resolve situation with clientName / domainName
+
+* When Tag() is added to certain class, how to use that?
+
+* When operational attrs are requested in result, return dynamic facts about
+ host (from facter and manual ldap keys)
+
+* Preseed bind9 package
+
+* Support size/time limit 0 to mean unlimited, max= max
+
+* Function that knows how to take out what's needed from an entry. I.e.
+ everything that calls ->get_value to operate on something should call
+ that one function. It takes pointer to entry and specs re. what you
+ want out of it, and it does it for you. That will also effectively reduce
+ the new complexity of find overlay to the previous state.
+
 * Support for literal '$' in values (by using escape \$). (Note that you can
 already have $ in values as long as ABC in 'ABC $ DEF' does not match name
 of one of the existing overlays (which is almost always). But still, having
 explicit way of escaping $ should exist.
 
-* s/\s+/\s/g in ovl opts
+* Note how they can use ipmasq once, then disable it and just save/load fw rules
+ via iptables functionality
 
-* Support for literal '$' in values
+* Impilment that editing entry with seeAlso reference actually modifies an
+ attribute in the seeAlso-ed entry.
+
+* Also, implement slapd-style access control, just ignore part of spec we
+ don't have info to know about (user/ip, crypto type etc.)
+
+* Check why host s1 didn't get rewritten to viper
+
+* Document: when writing find $ specs, make sure not to use 0 for time
+ or size limit as it'll blow. Actually, check what's really happening there,
+ does the result so far get substituted (as it should) or the whole thing
+ fails and unprocessed value comes out
+
+* Re-check that cache spec 1o is working well damnit, and support all values
+ in all cache types by yamling them
+
+* Rearrange tests/ so that search data is sorted first, OR
+* Use Tie::IxHash on all hashes to preserve insertion order?
+
+* Document setup errors (like, No subnet declaration for eth1 (10.0.0.1))
 
 * Make viper server also a recursive dns, so can use it as dns instead
  of 192.168.1.254
@@ -68,8 +128,6 @@ in the host entry
 
 * Support fileVal to find all $1 or regex matching within the file, return
  them as array, then have joiner as usual
-
-* preseed network interface to eth0 always, because interface=auto is crap
 
 * we use orig DN in ... expansion when targetting base entry, and entry DNs when
  looping thru subentries. This isn't quite alright as it'll break when base DN

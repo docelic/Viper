@@ -154,27 +154,28 @@ direct LDAP interface may be inconvenient.
 </p>
 <h2>Starting / re-starting Viper/LDAP</h2>
 <p>
-In general, you should be able to start, stop or restart the server just
+You should be able to start, stop or restart the server just
 as a regular slapd server,
 <b>invoke-rc.d slapd &lt;start|stop|restart...&gt;</b>.
 </p>
 <p>
-However, the Perl/Viper backend uses the Perl library. The library is loaded
-by slapd, but is not exported to other loaded libraries (slapd's back-perl
-in our case) due to a policy decision made by Debian regarding libtool
-and the symbols export flag.
+This works because <i>/etc/default/slapd</i> exports LD_PRELOAD=/usr/lib/libperl.so.5.10
+which is needed by slapd to run when using Perl-based backend.
 </p>
 <p>
-Anyway, long story short, use the following variant of the above command
-to work around the issue:
+In case you do not preload libperl, you get an error similar to:
+</p>
+<pre>
+/usr/sbin/slapd: symbol lookup error:
+  /usr/lib/perl/5.10/auto/IO/IO.so: undefined symbol: Perl_Istack_sp_ptr
+</pre>
+<p>
+So you should be using that line in /etc/default/slapd. If not, you can specify it manually
+when managing slapd:
 </p>
 <pre>
 LD_PRELOAD=/usr/lib/libperl.so.5.10 invoke-rc.d slapd &lt;start|stop|restart...&gt;
 </pre>
-<p>
-So, you can use any command you want, as long as you prefix it with the
-LD_PRELOAD environment variable setting as shown.
-</p>
 				  <div class="clear-flat"></div>
 				</div>
 				<div class="clear"></div>

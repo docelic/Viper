@@ -43,3 +43,7 @@ SLAPD_SENTINEL_FILE=/etc/ldap/noslapd
 
 # Additional options to pass to slapd
 SLAPD_OPTIONS=""
+
+# Which library to LD_PRELOAD on all slapd invocations. None needed
+# when running standard slapd, libperl.so needed for Perl backend.
+export LD_PRELOAD=/usr/lib/libperl.so.5.10

@@ -702,8 +702,7 @@ flags: preseed
 owners: d-i
 template: netcfg/choose_interface
 value: auto
-variables: ifchoices=eth0: Realtek Semiconductor Co.\, Ltd. RTL8111/8168B PCI 
- Express Gigabit Ethernet controller, eth1: FireWire ethernet
+variables:
 
 dn: cn=passwd/make-user,ou=hosts,ou=defaults
 objectClass: top
@@ -1000,4 +999,4 @@ cn: ntp/servers
 owners: viper
 flags: puppet
 template: ntp/servers
-value: find $ ... 2 0 0 0 (puppetClass=ntp::server*) 0 ipHostNumber \x0 \x0
+value: find $ ... 2 0 500 3600 (puppetClass=ntp::server*) 0 ipHostNumber \x0 \x0
