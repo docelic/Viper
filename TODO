@@ -1,9 +1,9 @@
 * IDEAS FOR COMPLETING THE THING:
 
-* Test if server side prompter works after changes
-
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
+
+* Test if server side prompter works after changes
 
 * s/\s+/\s/g in ovl opts
 
@@ -11,10 +11,6 @@
 see everything that Viper/puppet changed differently than default setup.
 
 * Rdoc generation of module docs
-
-* Look for '$' in attribute value only if not defined RAW
-
-* Move debconfs to ou=debconf tree
 
 * support for changing dfl passwords
 
