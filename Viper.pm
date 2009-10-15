@@ -236,8 +236,8 @@ sub new {
 		standard_parse => undef,   # Text::CSV_XS obj. for parsing various input
 		level          => 0,       # Loop/depth count. Usually 1
 		cache          => {},      # Cache for dn2leaf file reads & ldif parsing
-		op_cache_valid => {},      # Num-ops cache validity (overlays)
-		cacheread      => '',      # Num-ops cache validity (reads)
+		op_cache_valid => {},      # Num-ops cache validity (per-overlay)
+		cacheread      => '',      # Num-ops cache validity (dn2leaf disk reads)
 
 		'start'        => [],      # Time of search start (array ID= search level)
 	};
@@ -677,10 +677,8 @@ sub search {
 	# @ATTRS list of attrs to return, special: */null= all, += operational
 
 	# XXX
-	$req{'size'}= 3600 if not $req{'size'};
-	$req{'size'}= 3600 if $req{'size'} eq 'max';
-	$req{'time'}= 3600 if not $req{'time'};
-	$req{'time'}= 3600 if $req{'time'} eq 'max';
+	$req{'size'}= 6600 if not $req{'size'} or $req{'size'} eq 'max';
+	$req{'time'}= 6600 if not $req{'time'} or $req{'time'} eq 'max';
 
 	# Normalize base DN
 	$this->normalize( \$req{base});
@@ -737,7 +735,7 @@ sub search {
 		);
 	}
 
-	# Now, continue as normal as if nothing ever happened
+	# Now, continue search as normal as if nothing ever happened
 
 	p "SEARCH ($this->{level}) @req{qw/base scope deref size time filter attrOnly/} ".
 		"@attrs";
@@ -1251,7 +1249,7 @@ sub run_overlays {
 										$dn||= q{};
 										$this->normalize( \$dn);
 
-										my $key= join( '|', $dn, $attr, $valx|| '');
+										my $key;
 
 										# Allow constructing the new DN from relative part
 										# and ending of the current entry's DN.
@@ -1260,6 +1258,8 @@ sub run_overlays {
 												$dn.= ( length $dn ? ',' : '').
 													join ',', (split(',', $odn))[-$count..-1];
 											}
+											
+											$key= join( '|', $dn, $attr, $valx|| '');
 
 											if( $opts{cacheref} and exists $opts{cacheref}{$key}) {
 												pc "Using cache value for EXP '$key'";
@@ -1284,7 +1284,7 @@ sub run_overlays {
 										}
 
 										# If cacheref exists, time to save in cache
-										if( $opts{cacheref}) {
+										if( $opts{cacheref} and $key) {
 											pc "Rebuilding cache value for EXP '$key'";
 											$opts{cacheref}{$key}= $comp
 										}
@@ -1340,6 +1340,7 @@ sub run_overlays {
 										}
 
 										my $key= join( '|', @f);
+
 										if( $opts{cacheref} and exists $opts{cacheref}{$key}) {
 											pc "Using cache value for FIND '$key'";
 											$comp= $opts{cacheref}{$key};
@@ -1428,6 +1429,7 @@ sub run_overlays {
 									} elsif( $ovl eq 'perl') {
 
 										my $key= $comp;
+
 										if( $opts{cacheref} and exists $opts{cacheref}{$key}) {
 											pc "Using cache value for PERL '$key'";
 											$comp= $opts{cacheref}{$key};
@@ -2698,6 +2700,8 @@ sub ovl_options {
 		# named, and that it exists (create if not).
 		if( CACHE and $opt eq 'cache') {
 			my $spec= shift @opts;
+			
+			$this->parse_cache_opt( $ovl, $spec);
 
 			# Onto @newopts, add cacheref which is a direct pointer to the queue
 			# in question that the caller can query to see if the cached value
@@ -2742,15 +2746,15 @@ sub ovl_options {
 sub parse_cache_opt {
 	my( $this, $ovl, $n)= @_;
 
-	next if not defined $n; # XXX no errmsg report here
-	next if $n== 0; # Skip if person cancelled cache
+	return if not defined $n; # XXX no errmsg report here
+	return if $n== 0; # Skip if person cancelled cache
 
 	# XXX stupid msg after only one type of cache now exists
 	pcd "Parsed cache validity '$n' for ovl $ovl";
 
 	# Create queue if it doesn't exist yet.
 	if( not defined $this->{cache}{$ovl}{$n}) {
-		%{ $this->{cache}{$ovl}{$n}}= ();
+		$this->{cache}{$ovl}{$n}= {};
 		$this->{'op_cache_valid'}{$ovl}{$n}= $n;
 		pc "Created cache queue $ovl-$n ($n operations)";
 	}
@@ -2786,9 +2790,10 @@ sub setup_state {
 			each %{ $this->{op_cache_valid}}) {
 
 			for my $n( keys %{ $ovlref}) {
+				warn "FOR $ovl, STATS $n\n";
 				if( --$ovlref->{$n}< 1) {
 					pc "Clearing $ovl op cache ($n ops)";
-					$this->{cache}{$ovl}{$n}= undef;
+					$this->{cache}{$ovl}{$n}= {};
 					$ovlref->{$n}= $n;
 				}
 			}

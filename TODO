@@ -1,4 +1,4 @@
-* IDEAS FOR COMPLETING THE THING:
+* ideas for completing the thing:
 
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
@@ -11,6 +11,8 @@
 see everything that Viper/puppet changed differently than default setup.
 
 * Rdoc generation of module docs
+
+* Improve error reporting when overlay values expand to nothing!!
 
 * support for changing dfl passwords
 
