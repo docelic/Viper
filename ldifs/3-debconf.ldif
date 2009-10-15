@@ -1,0 +1,9 @@
+#
+# Base
+#
+
+dn: ou=debconf
+objectClass: top
+objectClass: organizationalUnit
+ou: debconf
+description: This is the Debconf subtree, intended for use by Debconf clients.
