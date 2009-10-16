@@ -12,7 +12,7 @@
 # NOTES:
 #
 # - FQDN must be in style HOST.DOM.AIN, which can be transformed into
-# LDAP DN of cn=HOST,o=DOM.AIN,ou=clients.
+# LDAP DN of cn=HOST,o=DOM.AIN,ou=puppet.
 #
 # - Scripts basically does the same pattern of access to LDAP as
 # another script, scripts/preseed, so look there for detailed explanation
@@ -45,7 +45,7 @@ my( $host, $domain)= ( $name=~ /^(.+?)\.(.+)/);
 
 my %query;
 @query{ qw/server flag host domain debug/}=
-	( qw/localhost puppet/, $host, "o=$domain,ou=clients", 0);
+	( qw/localhost puppet/, $host, "o=$domain,ou=puppet", 0);
 
 
 my $l= Net::LDAP->new( $query{server}) or die "$@\n";
@@ -129,8 +129,8 @@ while( @clocs){
 			next;
 		# If not, and it's one of the default/fallback trees, do not
 		# process it but just register cn= of the entry to retrieve it
-		# in next pass through the ou=clients tree, not ou=defaults or similar.
-		# (Done that way so that ou=clients or o=CLI,ou=clients LDAP options
+		# in next pass through the ou=puppet tree, not ou=defaults or similar.
+		# (Done that way so that ou=puppet or o=CLI,ou=puppet LDAP options
 		# would apply).
 		} elsif( $locnr> 0 and $locnr< $loclast) {
 			unshift @clocs, "cn=$cn,$locfirst";
