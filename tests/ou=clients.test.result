@@ -148,11 +148,11 @@ objectClass: top
 objectClass: device
 cn: h1
 
-# h3, templates, c1.com, clients
-dn: cn=h3,ou=templates,o=c1.com,ou=clients
+# client, templates, c1.com, clients
+dn: cn=client,ou=templates,o=c1.com,ou=clients
 objectClass: top
 objectClass: device
-cn: h3
+cn: client
 
 # h2, hosts, c1.com, clients
 dn: cn=h2,ou=hosts,o=c1.com,ou=clients
@@ -222,13 +222,10 @@ objectClass: ipHost
 objectClass: ieee802Device
 objectClass: x-puppetClient
 cn: h3
-ipHostNumber: 10.0.1.10
-macAddress: 00:0b:6a:8e:31:ff
+ipHostNumber: 10.0.1.9
+macAddress: 00:18:51:e7:56:57
 puppetclass: ntp::server
-description: 10.0.1.10
-description: 10.0.1.9
-description: 10.0.1.8
-dhcpHWAddress: ethernet 00:0b:6a:8e:31:ff
+dhcpHWAddress: ethernet 00:18:51:e7:56:57
 dhcpOption: host-name "h3"
 dhcpOption: routers 10.0.1.1
 dhcpOption: domain-name-servers 192.168.1.254
@@ -236,7 +233,7 @@ dhcpOption: nis-domain "c1.com"
 dhcpOption: domain-name "c1.com"
 dhcpOption: subnet-mask 255.255.255.0
 dhcpOption: broadcast-address 10.0.1.255
-dhcpStatements: fixed-address 10.0.1.10
+dhcpStatements: fixed-address 10.0.1.9
 dhcpStatements: filename "http://10.0.1.1/cgi-bin/preseed.cfg"
 hostName: h3
 ipNetmaskNumber: 255.255.255.0

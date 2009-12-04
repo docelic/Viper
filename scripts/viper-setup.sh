@@ -25,7 +25,7 @@ if test -z "$HOST"; then
 fi
 
 # Install necessary packages
-apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 puppet puppetmaster libdifflcs-ruby libopenssl-ruby libshadow-ruby1.8 librrd-ruby libaugeas-ruby 
+apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl dhcp3-server-ldap make sudo libyaml-perl apache2 puppet puppetmaster libdifflcs-ruby libopenssl-ruby libshadow-ruby1.8 librrd-ruby libaugeas-ruby
 
 # One-time viper subdirectory creation
 mkdir -p /var/lib/ldap/viper

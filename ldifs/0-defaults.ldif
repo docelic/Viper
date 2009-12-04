@@ -652,7 +652,7 @@ cn: partman-auto/disk
 flags: preseed
 owners: partman-auto
 template: partman-auto/disk
-value: /dev/hda
+value: /dev/sda
 
 dn: cn=partman/choose_partition,ou=hosts,ou=defaults
 objectClass: top

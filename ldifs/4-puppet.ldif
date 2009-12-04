@@ -1,0 +1,9 @@
+#
+# Base
+#
+
+dn: ou=puppet
+objectClass: top
+objectClass: organizationalUnit
+ou: puppet
+description: This is the Puppet subtree, intended for use by Puppet or Viper's node_data script.

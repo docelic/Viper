@@ -203,7 +203,6 @@ sub new {
 		'find'         => [],      # Match/No-Match regex list for findval
 
 		overlayconfig  => {},      # default overlay opts ('OVLNAME|default SPEC')
-		cacheread      => '',      # cache spec for dn2leaf's results
 
 		schemaldif     => [],      # Schema in LDIF format (to be aware of schema).
 		                           # To produce schema file, start server, then use
@@ -236,9 +235,9 @@ sub new {
 
 		standard_parse => undef,   # Text::CSV_XS obj. for parsing various input
 		level          => 0,       # Loop/depth count. Usually 1
-		cache          => {},      # $this->{cache}{type}{ovl}{spec}{key}= val
-		op_cache_valid => {},      # Num-ops cache validity (overlays)
-		dnl_cacheref   => {},      # Ptr to cacheread store
+		cache          => {},      # Cache for dn2leaf file reads & ldif parsing
+		op_cache_valid => {},      # Num-ops cache validity (per-overlay)
+		cacheread      => '',      # Num-ops cache validity (dn2leaf disk reads)
 
 		'start'        => [],      # Time of search start (array ID= search level)
 	};
@@ -452,7 +451,7 @@ sub config {
 			}
 
 		} elsif( $key eq 'cacheread') {             # DISKREAD CACHE
-			$this->parse_cache_opt( 'read', $val[0]);
+			$this->parse_cache_opt( 'read', $val[0])
 
 		} elsif( $key eq 'reset' and CFG_STACK) {   # RESET STACK
 			$this->{stack}= undef
@@ -678,10 +677,8 @@ sub search {
 	# @ATTRS list of attrs to return, special: */null= all, += operational
 
 	# XXX
-	$req{'size'}= 3600 if not $req{'size'};
-	$req{'size'}= 3600 if $req{'size'} eq 'max';
-	$req{'time'}= 3600 if not $req{'time'};
-	$req{'time'}= 3600 if $req{'time'} eq 'max';
+	$req{'size'}= 6600 if not $req{'size'} or $req{'size'} eq 'max';
+	$req{'time'}= 6600 if not $req{'time'} or $req{'time'} eq 'max';
 
 	# Normalize base DN
 	$this->normalize( \$req{base});
@@ -738,7 +735,7 @@ sub search {
 		);
 	}
 
-	# Now, continue as normal as if nothing ever happened
+	# Now, continue search as normal as if nothing ever happened
 
 	p "SEARCH ($this->{level}) @req{qw/base scope deref size time filter attrOnly/} ".
 		"@attrs";
@@ -1091,13 +1088,13 @@ sub run_overlays {
 	# attribute value's DN spec with components from the original entry.
 	$odn||= $e->dn;
 
-	# Find attributes with at least one value that's a candidate
-	# for overlays run.
+	# Find attributes that are not RAW and have at least one value that's
+	# a candidate for overlays run.
 	my @candidates=
-		grep{ any{ index( $_, '$')> -1} $e->get_value( $_)} $e->attributes;
+	 grep{ $_!~ qr/$RAW/o and any{ index( $_, '$')> -1}
+	  $e->get_value( $_)} $e->attributes;
 
 	for my $a( @candidates) {
-		next if $a=~ qr/$RAW/o; # Skip attribute if raw/binary
 
 		for my $ovl( @OVERLAYS) {
 
@@ -1174,16 +1171,14 @@ sub run_overlays {
 										# if we could do it directly at the beginning of overlay
 										# but we can't because DN can be specified as say, '...',
 										# which expands to different values for different clients.
-										# NOTE: We do it only when another DN should be looked up-
-										#  for cases where lookup is in the entry itself, we just
-										#  do it, don't take that from cache.
+										# NOTE: We do it only when another DN should be looked up.
+										#  For cases where lookup is in the entry itself, we just
+										#  do it, we don't take that from cache.
 										my $cacheref= $opts{cacheref};
-										if( $cacheref) {
-											if( exists $cacheref->{$key}) {
-												pc "Using cache value for FILE '$key'";
-												$comp= $cacheref->{$key};
-												goto FILE_DONE
-											}
+										if( $cacheref and exists $cacheref->{$key}) {
+											pc "Using cache value for FILE '$key'";
+											$comp= $cacheref->{$key};
+											goto FILE_DONE
 										}
 
 										p 'FILE: will read dir='.  $this->{directory}.
@@ -1206,7 +1201,7 @@ sub run_overlays {
 
 										# If cacheref exists and $key is there, time for
 										# us to save key to cache.
-										if( $cacheref and $key) {
+										if( $cacheref) {
 											pc "Rebuilding cache value for FILE '$key'";
 											$cacheref->{$key}= $comp
 										}
@@ -1254,7 +1249,7 @@ sub run_overlays {
 										$dn||= q{};
 										$this->normalize( \$dn);
 
-										my $key; # Will be initialized to cache key name (if DN!='')
+										my $key;
 
 										# Allow constructing the new DN from relative part
 										# and ending of the current entry's DN.
@@ -1263,15 +1258,13 @@ sub run_overlays {
 												$dn.= ( length $dn ? ',' : '').
 													join ',', (split(',', $odn))[-$count..-1];
 											}
+											
+											$key= join( '|', $dn, $attr, $valx|| '');
 
-											if( $opts{cacheref}) {
-												$key= join( '|', $dn, $attr, $valx|| '');
-
-												if( exists $opts{cacheref}{$key}) {
-													pc "Using cache value for EXP '$key'";
-													$comp= $opts{cacheref}{$key};
-													goto EXP_DONE
-												}
+											if( $opts{cacheref} and exists $opts{cacheref}{$key}) {
+												pc "Using cache value for EXP '$key'";
+												$comp= $opts{cacheref}{$key};
+												goto EXP_DONE
 											}
 										}
 
@@ -1290,8 +1283,7 @@ sub run_overlays {
 											$comp= join $val_joiner, @vals;
 										}
 
-										# If cacheref exists and $key is there, time for
-										# us to save key to cache.
+										# If cacheref exists, time to save in cache
 										if( $opts{cacheref} and $key) {
 											pc "Rebuilding cache value for EXP '$key'";
 											$opts{cacheref}{$key}= $comp
@@ -1347,15 +1339,12 @@ sub run_overlays {
 												join ',', (split(',', $odn))[-$count..-1];
 										}
 
-										my $key;
-										if( $opts{cacheref}) {
-											$key= join( '|', @f);
+										my $key= join( '|', @f);
 
-											if( exists $opts{cacheref}{$key}) {
-												pc "Using cache value for FIND '$key'";
-												$comp= $opts{cacheref}{$key};
-												goto FIND_DONE
-											}
+										if( $opts{cacheref} and exists $opts{cacheref}{$key}) {
+											pc "Using cache value for FIND '$key'";
+											$comp= $opts{cacheref}{$key};
+											goto FIND_DONE
 										}
 
 										# Strip valx and gvalx which are last two fields.
@@ -1429,9 +1418,7 @@ sub run_overlays {
 
 										FIND_DO_CACHE:
 
-										# If cacheref exists and $key is there, time for
-										# us to save key to cache.
-										if( $opts{cacheref} and $key) {
+										if( $opts{cacheref}) {
 											pc "Rebuilding cache value for FIND '$key'";
 											$opts{cacheref}{$key}= $comp
 										}
@@ -1441,15 +1428,12 @@ sub run_overlays {
 									# OVERLAY PERLEVAL
 									} elsif( $ovl eq 'perl') {
 
-										my $key;
-										if( $opts{cacheref}) {
-											$key= $comp;
+										my $key= $comp;
 
-											if( exists $opts{cacheref}{$key}) {
-												pc "Using cache value for PERL '$key'";
-												$comp= $opts{cacheref}{$key};
-												goto PERL_DONE
-											}
+										if( $opts{cacheref} and exists $opts{cacheref}{$key}) {
+											pc "Using cache value for PERL '$key'";
+											$comp= $opts{cacheref}{$key};
+											goto PERL_DONE
 										}
 
 										# XXX Eval error handling, sandbox
@@ -1457,7 +1441,7 @@ sub run_overlays {
 
 										# If cacheref exists and $key is there, time for
 										# us to save key to cache.
-										if( $opts{cacheref} and $key) {
+										if( $opts{cacheref}) {
 											pc "Rebuilding cache value for PERL '$key'";
 											$opts{cacheref}{$key}= $comp
 										}
@@ -1762,13 +1746,12 @@ sub dn2leaf {
 	my $key= join( '|', $dn, %opts);
 
 	# Check if we're in cache. Excellent how we can cut right in here.
-	if( exists $this->{dnl_cacheref}{$key}) {
+	if( exists $this->{cache}{'read'}{$this->{cacheread}}{$key}) {
 		pc "Using cache value for DN2LEAF '$key'";
 
-		#( $file, $directory, $entry)= @{ $this->{cache}{read}{$key}};
-		$file= $this->{dnl_cacheref}{$key}[0];
-		$directory= $this->{dnl_cacheref}{$key}[1];
-		$entry= $this->{dnl_cacheref}{$key}[2]->clone;
+		$file= $this->{cache}{'read'}{$this->{cacheread}}{$key}[0];
+		$directory= $this->{cache}{'read'}{$this->{cacheread}}{$key}[1];
+		$entry= $this->{cache}{'read'}{$this->{cacheread}}{$key}[2]->clone;
 
 		goto DN2LEAF_DONE
 	}
@@ -1940,7 +1923,8 @@ sub dn2leaf {
 
 		pc "Rebuilding cache value for DN2LEAF '$key'";
 
-		$this->{dnl_cacheref}{$key}= [ $file, $directory, $entry->clone];
+		$this->{cache}{'read'}{$this->{cacheread}}{$key}=
+		 [ $file, $directory, $entry->clone];
 	}
 
 	DN2LEAF_DONE:
@@ -2716,7 +2700,8 @@ sub ovl_options {
 		# named, and that it exists (create if not).
 		if( CACHE and $opt eq 'cache') {
 			my $spec= shift @opts;
-			my( $qprefix, $n)= $this->parse_cache_opt( $ovl, $spec);
+			
+			$this->parse_cache_opt( $ovl, $spec);
 
 			# Onto @newopts, add cacheref which is a direct pointer to the queue
 			# in question that the caller can query to see if the cached value
@@ -2725,7 +2710,7 @@ sub ovl_options {
 			# would override our values dereived here. The override will elegantly
 			# happen when @newopts is turned to a hash on the receiver end,
 			# i.e. %opts= $this->ovl_options( $optspec).
-			unshift @newopts, 'cacheref', $this->{cache}{$qprefix}{$ovl}{$n};
+			unshift @newopts, 'cacheref', $this->{cache}{$ovl}{$spec};
 
 			# Push could be done outside of per-option block, but the way we do it
 			# here, we can achieve the option to be ignored if the top if() doesn't
@@ -2759,67 +2744,22 @@ sub ovl_options {
 }
 
 sub parse_cache_opt {
-	my( $this, $ovl, $spec)= @_;
+	my( $this, $ovl, $n)= @_;
 
-	my( $n, $dur)= ( $spec=~ m/^(\d+)(\w+)?$/);
+	return if not defined $n; # XXX no errmsg report here
+	return if $n== 0; # Skip if person cancelled cache
 
-	next if not defined $n; # XXX no errmsg report here
-	next if $n== 0; # Skip if person cancelled cache
-
-	my( $qprefix, $nparm)= ( 'time', 'LIFETIME');
-
-	goto SPEC_DONE unless $dur;
-	my $unit= substr $dur, 0, 1;
-
-	if( $unit eq 'm') {
-		$n *= 60;
-	} elsif( $unit eq 'h') {
-		$n *= 60 * 60;
-	} elsif( $unit eq 'd') {
-		$n *= 24 * 60 * 60;
-	} elsif( $unit eq 'w') {
-		$n *= 7 * 24 * 60 * 60;
-	} elsif( $unit eq 'u') {
-		$qprefix= 'use';
-		$nparm= 'NUM_USES';
-	} elsif( $unit eq 'o') {
-		$qprefix= 'op';
-		$nparm= 'NUM_OPS (non-Tie)';
-	}
-
-	SPEC_DONE:
-	# Now that cache spec has been parsed, based on it we need to determine
-	# the queue that will cache the object (need to do it because
-	# Memoize::Expire cache rules are per hash, not per key, so we need
-	# separate hash for each cache option).
-	# Note also that queues are per-overlay and per-spec, not just per-spec,
-	# so it's not possible that overlays confuse their cached values.
-
-	pcd "Parsed cache spec '$spec' to '$nparm $n' ".
-		"(queue $qprefix, ovl $ovl)";
+	# XXX stupid msg after only one type of cache now exists
+	pcd "Parsed cache validity '$n' for ovl $ovl";
 
 	# Create queue if it doesn't exist yet.
-	if( not defined $this->{cache}{$qprefix}{$ovl}{$n}) {
-		if( $qprefix ne 'op') {
-			# Time and use queues are tied, operation count queue is not
-			tie %{ $this->{cache}{$qprefix}{$ovl}{$n}} =>
-				'Memoize::Expire', $nparm => $n;
-		} else {
-			# This is op-qeueue, realized without Tie.
-			%{ $this->{cache}{$qprefix}{$ovl}{$n}}= ();
-
-			# Register initial and current validity period.
-			$this->{'op_cache_valid'}{$ovl}{$n}= $n;
-		}
-
-		pc "Created cache queue $qprefix-$ovl-$n ($nparm $n)";
+	if( not defined $this->{cache}{$ovl}{$n}) {
+		$this->{cache}{$ovl}{$n}= {};
+		$this->{'op_cache_valid'}{$ovl}{$n}= $n;
+		pc "Created cache queue $ovl-$n ($n operations)";
 	}
 
-	if( $ovl eq 'read') {
-		$this->{dnl_cacheref}= $this->{cache}{$qprefix}{$ovl}{$n};
-	}
-
-	( $qprefix, $n)
+	$n
 }
 
 # This function became necessary when it became possible for direct-entry
@@ -2841,13 +2781,19 @@ sub setup_state {
 	} else {
 		$this->{level}= 0;
 
-		# Trim ovl cache when needed
+		# Trim cache when needed
+		# XXX this being a hash means you cant guarantee order of
+		# cache expiry if a line uses two caches. Btw, is it possible
+		# that a line uses two caches in the first place, and does the
+		# order matter?
 		while( my( $ovl, $ovlref)=
 			each %{ $this->{op_cache_valid}}) {
 
 			for my $n( keys %{ $ovlref}) {
+				warn "FOR $ovl, STATS $n\n";
 				if( --$ovlref->{$n}< 1) {
-					$this->{cache}{op}{$ovl}{$n}= undef;
+					pc "Clearing $ovl op cache ($n ops)";
+					$this->{cache}{$ovl}{$n}= {};
 					$ovlref->{$n}= $n;
 				}
 			}

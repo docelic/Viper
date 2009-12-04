@@ -1,9 +1,9 @@
-* IDEAS FOR COMPLETING THE THING:
-
-* Test if server side prompter works after changes
+* ideas for completing the thing:
 
 * Let exp search a DN if it's not the current DN (prevent loops). Or
  better yet, ignore the DN spec and pull as if it was current entry
+
+* Test if server side prompter works after changes
 
 * s/\s+/\s/g in ovl opts
 
@@ -19,6 +19,8 @@ see everything that Viper/puppet changed differently than default setup.
 * Look for '$' in attribute value only if not defined RAW
 
 * Move debconfs to ou=debconf tree
+
+* Improve error reporting when overlay values expand to nothing!!
 
 * support for changing dfl passwords
 
@@ -43,8 +45,6 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Preseed bind9 package
 
-* Support size/time limit 0 to mean unlimited, max= max
-
 * Function that knows how to take out what's needed from an entry. I.e.
  everything that calls ->get_value to operate on something should call
  that one function. It takes pointer to entry and specs re. what you
@@ -65,15 +65,10 @@ explicit way of escaping $ should exist.
 * Also, implement slapd-style access control, just ignore part of spec we
  don't have info to know about (user/ip, crypto type etc.)
 
-* Check why host s1 didn't get rewritten to viper
-
 * Document: when writing find $ specs, make sure not to use 0 for time
  or size limit as it'll blow. Actually, check what's really happening there,
  does the result so far get substituted (as it should) or the whole thing
  fails and unprocessed value comes out
-
-* Re-check that cache spec 1o is working well damnit, and support all values
- in all cache types by yamling them
 
 * Rearrange tests/ so that search data is sorted first, OR
 * Use Tie::IxHash on all hashes to preserve insertion order?
