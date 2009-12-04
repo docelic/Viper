@@ -59,7 +59,7 @@ debootstrap --arch i386 lenny /var/lib/vz/private/110 \\
 
 cd /etc/vz/conf
 
-wget 'http://git.openvz.org/?p=vzctl;a=blob_plain;f=etc/conf/ve-unlimited.conf-sample' \\
+wget 'http://git.openvz.org/?p=vzctl;a=blob_plain;f=etc/conf/ve-unlimited.conf-sample.x86' \\
   -O ve-unlimited.conf-sample
 
 vzctl set 110 --applyconfig unlimited --save
@@ -221,7 +221,7 @@ Update packages list and install the minimum of tools:
 <pre>
 apt-get update
 
-apt-get install openssh-{client,server} vim less locales
+apt-get install openssh-{client,server} vim less locales sudo
 
 dpkg-reconfigure locales tzdata
 </pre>

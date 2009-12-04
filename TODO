@@ -12,6 +12,10 @@ see everything that Viper/puppet changed differently than default setup.
 
 * Rdoc generation of module docs
 
+* All dynamic values put in dyn- or so, which are then evaluated and
+ returned under the original name, without dyn-. That way there will be
+ no errors re. syntax, i.e. not being able to input $ in DN field.
+
 * Look for '$' in attribute value only if not defined RAW
 
 * Move debconfs to ou=debconf tree

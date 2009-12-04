@@ -103,7 +103,7 @@ debootstrap --arch i386 lenny /var/lib/vz/private/110 \
 
 cd /etc/vz/conf
 
-wget 'http://git.openvz.org/?p=vzctl;a=blob_plain;f=etc/conf/ve-unlimited.conf-sample' \
+wget 'http://git.openvz.org/?p=vzctl;a=blob_plain;f=etc/conf/ve-unlimited.conf-sample.x86' \
   -O ve-unlimited.conf-sample
 
 vzctl set 110 --applyconfig unlimited --save
