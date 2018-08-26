@@ -755,7 +755,7 @@ sub search {
 
 	DEBUG && do {
 		my $rewrtn = qq|REWRTN: ldapsearch -x -b '$req{base}' -s $SCOPE2NAME{$req{scope}} -a $DEREF2NAME{$req{scope}} -z $req{size} -l $req{time} '$req{filter}' @attrs|;
-		p $rewrtn unless $search eq $rewrtn;
+		p $rewrtn if $search ne $rewrtn;
 	};
 
 	# Save original requested base. (Need to have it, unmodified, for proper
