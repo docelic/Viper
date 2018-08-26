@@ -1,7 +1,7 @@
-#!/bin/sh -e
+#!/bin/bash
 
 # Make sure we're running as root
-if ! test `whoami` == "root"; then
+if ! test "`whoami`" == "root"; then
 	echo "Please run the script as root or disable this check at the top of file '$0'. Exiting."
 	exit 1
 fi
@@ -30,8 +30,16 @@ if test -z "$HOST"; then
 	HOST=viper
 fi
 
+echo "\nWill install required system packages with 'apt-get'.
+Press ENTER to continue or Ctrl+C to exit."
+read
+
 # Install necessary packages
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2
+
+echo "\nWill symlink all files from Viper's directory etc/ into system's /etc/.
+Press ENTER to continue or Ctrl+C to exit."
+read
 
 # One-time viper subdirectory creation
 mkdir -p /var/lib/ldap/viper
@@ -43,14 +51,23 @@ cd "$VIPER_ROOT"
 find etc -type d -exec mkdir -p /{} \;
 find etc -type f -exec cp $CP_ARG "$VIPER_ROOT/{}" "/{}" \;
 
+echo "\nWill do a small maintenance and restart slapd twice.
+Press ENTER to continue or Ctrl+C to exit."
+read
+
 # Restart slapd with new configs and all.
 invoke-rc.d slapd restart
 
 # Sync Viper schema to server schema
-# Not needed because the set of schemas we deliver and schema.ldif are
-# already in sync.
-#perl /etc/ldap/viper/scripts/schema.pl > /etc/ldap/schema/schema.ldif
-#invoke-rc.d slapd restart
+# (Possibly not needed because the set of schemas we deliver and schema.ldif
+# are already in sync, but we do it just in case.)
+perl /etc/ldap/viper/scripts/schema.pl > /etc/ldap/schema/schema.ldif
+
+invoke-rc.d slapd restart
+
+echo "\nWill load LDIFs from directory ldifs/ into LDAP.
+Press ENTER to continue or Ctrl+C to exit."
+read
 
 # Adjust local server name in dhcp.ldif:
 # - Replace "viper" in ldifs/dhcp.ldif with the name of local server
@@ -71,18 +88,26 @@ perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 # LDIF file and run make)
 make
 
+echo "\nWill restart DHCP server.
+Press ENTER to continue or Ctrl+C to exit."
+read
+
 # Restart dhcp
 invoke-rc.d dhcp3-server restart
 
+echo "\nWill install scripts/preseed as /usr/lib/cgi-bin/preseed.cgi.
+Press ENTER to continue or Ctrl+C to exit."
+read
+
 # Link preseed CGI script to web server's cgi-bin:
 mkdir -p /usr/lib/cgi-bin
-cp $CP_ARG "$VIPER_ROOT/scripts/preseed" /usr/lib/cgi-bin/preseed.cfg
+cp $CP_ARG "$VIPER_ROOT/scripts/preseed" /usr/lib/cgi-bin/preseed.cgi
 
 # Copy extra parser functions to Puppet
-cp $CP_ARG "$VIPER_ROOT"/etc/puppet/modules-development/custom/plugins/puppet/parser/functions/*  /usr/lib/ruby/1.8/puppet/parser/functions/
+#cp $CP_ARG "$VIPER_ROOT"/etc/puppet/modules-development/custom/plugins/puppet/parser/functions/*  /usr/lib/ruby/1.8/puppet/parser/functions/
 
 # Restart puppet server
-invoke-rc.d puppetmaster restart
+#invoke-rc.d puppetmaster restart
 
 echo "Viper setup successful, services running."
 
