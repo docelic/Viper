@@ -106,7 +106,7 @@ Press ENTER to continue or Ctrl+C to exit."
 read
 
 # Restart dhcp
-invoke-rc.d dhcp3-server restart
+invoke-rc.d isc-dhcp-server restart
 
 echo "
 Will install scripts/preseed as /usr/lib/cgi-bin/preseed.cgi.
