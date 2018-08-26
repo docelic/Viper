@@ -1,6 +1,6 @@
 #!/bin/sh
 
 for p in ${1:-*.ldif}; do
-	ldapadd  -x -D cn=admin,ou=clients \
+	ldapadd -c -x -D cn=admin,ou=clients \
 		-w nevairbe -f $p || exit 1
 done
