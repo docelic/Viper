@@ -752,7 +752,7 @@ sub search {
 
 	# Now, continue search as normal as if nothing ever happened
 
-	#p "REWRITTEN SEARCH ($this->{level}) @req{qw/base scope deref size time filter attrOnly/} @attrs";
+	p qq|REWRTN: ldapsearch -x -b "$req{base}" -s "$SCOPE2NAME{$req{scope}}" -a "$DEREF2NAME{$req{scope}}" -z $req{size} -l $req{time} '$req{filter}' @attrs|;
 
 	# Save original requested base. (Need to have it, unmodified, for proper
 	# expansion of "." (dots) in DN specifications). Note that this is the
