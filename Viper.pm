@@ -77,7 +77,7 @@ use subs                qw/p pd pc pcd po pod/;
 # To make use of DEBUG, server should best run in foreground mode. Something like:
 # sudo -u openldap /usr/sbin/slapd -d 256
 use constant DEBUG    => 1; # General debug?
-use constant DEBUG_DTL=> 0; # Detailed debug?
+use constant DEBUG_DTL=> 1; # Detailed debug?
 use constant DEBUG_OVL=> 1; # Overlays debug?
 use constant DEBUG_CCH=> 0; # Cache debug?
 
