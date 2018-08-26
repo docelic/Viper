@@ -33,8 +33,8 @@ dhcpServiceDN: ou=dhcp
 # the physical ethX interface on which DHCP is listening, but it's not
 # mandatory. We need just one subentry under ou=dhcp so that the search
 # gets triggered.
-dn: cn=sharedNetwork, ou=dhcp
-cn: sharedNetwork
+dn: ou=sharedNetwork, ou=dhcp
+ou: sharedNetwork
 objectClass: top
 objectClass: dhcpSharedNetwork
 
