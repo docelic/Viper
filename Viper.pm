@@ -1124,7 +1124,7 @@ sub run_overlays {
 					# Ok, we know overlay is configured with at least one line in
 					# slapd.conf and that line matches our attribute name.
 
-					po "OVERLAY $ovl on '$a' due to rule @$cond";
+					pod "OVERLAY $ovl on '$a' due to rule @$cond";
 
 					my @v2;
 
