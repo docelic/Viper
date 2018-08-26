@@ -24,7 +24,7 @@ Viper is released under GNU GPL v3 or later.
 
 Here follows a summarized list of Viper's key features, especially those that may differ from traditional config management or LDAP principles. (The explanations on how or why Viper does what it does can be found in other sections below; this section focuses only the high-level summary of user functionality.)
 
-Viper relies on Debconf, OpenLDAP, ISC DHCP, and a software configuration management tool (such as Puppet) for full operation.
+Viper uses on Debconf, OpenLDAP, ISC DHCP, and a software configuration management tool (such as Puppet) for the complete setup.
 
 One Viper server instance can store and serve data for multiple separate customers, with multiple separate machines each.
 
@@ -48,11 +48,11 @@ Viper ships with the mentioned custom backend for OpenLDAP and it must be instal
 
 Please note that Viper's OpenLDAP backend is implemented in Perl and it depends on OpenLDAP's `slapd-perl`, which is subject to a couple important notes:
 
-1. OpenLDAP's `slapd-perl` never had a particularly robust implementation, and it must be enabled with a config option during OpenLDAP build
+1. OpenLDAP's `slapd-perl` never had a particularly full-featured implementation, and it must be enabled with a config option during OpenLDAP build
 1. While Viper's backend is a full-fledged piece of software, it is bound by limitations of `slapd-perl`
 1. The two primary limitations of `slapd-perl` are 1) very modest access controls, and 2) incomplete API which makes most of slapd's data not directly accessible to Perl (thus requiring some duplication of configuration)
 
-Given's Viper very specific and contextualized purpose, for maximum convenience the default Viper config files reinstate the old and simple `slapd.conf` style of configuration instead of the new (and much more complex) `cn=config` style.
+Given's Viper very specific and contextualized purpose, for maximum convenience the default Viper config files also reinstate the old and simple `slapd.conf` style of configuration instead of the new (and much more complex) `cn=config` style.
 
 And finally, necessary to mention here is that, by default, the install clients will ask for preseed data over unencrypted HTTP connections.
 
@@ -83,7 +83,7 @@ There is a simple shell script [scripts/viper-setup.sh](https://github.com/docel
 In summary, to perform the installation, you will:
 
 1. Find a suitable Devuan GNU+Linux, Debian GNU, or Ubuntu machine to use as Viper install server
-1. Decide on the machine's hostname
+1. Note the machine's hostname
 1. Find name of the network interface on which Viper's DHCP server will be listening
 1. Install required packages: `apt install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2`
 1. Verify and run script `scripts/viper-setup.sh [ETH_INTERFACE_NAME] [HOST_NAME]`, or manually execute lines from it
@@ -107,15 +107,15 @@ The packages needed to run Viper have been listed above.
 
 The HTTP server is included in the list because Viper uses a simple CGI script to provide preseed data via HTTP for client machines during installation (queried automatically from debian-installer). Our example uses Apache, even though any web server that can execute CGI will do well.
 
-When installing OpenLDAP, feel free to answer "Yes" to the debconf question "Omit OpenLDAP server configuration?", because the complete config file will come supplied from Viper, and you can further tune it from there if desired.
+When installing OpenLDAP, answer "Yes" to the debconf question "Omit OpenLDAP server configuration?", because the complete config file will come supplied from Viper, and you can further tune it from there if desired.
 
-It is known and expected that OpenLDAP and DHCP servers will not start cleanly during the `apt install` step, due to incomplete configuration. You will install the appropriate config files for both services later, from Viper's templates.
+It is known and expected that OpenLDAP and DHCP servers will not start cleanly during the `apt install` step, due to incomplete configuration. The appropriate config files for both services will be installed later from Viper's templates.
 
 ### Viper's Etc Config Files
 
 Viper does not intend to unconditionally or inflexibly replace your services' config files with its own. You can just as easily manually modify any of your existing services' config files to insert parts of configurations needed by Viper.
 
-However, it is generally assumed that you will dedicate a physical or virtual machine to the Viper server, and in that context, Viper's default config files can easily replace the services' ones and provide you with a known-good setup on which you can run the test suite and to which you can add your own configuration. 
+However, it is generally assumed that you will dedicate a physical or virtual machine to the Viper server, and in that context, Viper's default config files can easily replace the services' ones. That will provide you with a known-good setup on which you can run the test suite and to which you can add your own configuration. 
 
 `viper-setup.sh` will copy all the required files from `$VIPER_ROOT/etc/` (which is usually `/etc/ldap/viper/etc`) into the system's `/etc/` and overwrite any existing files.
 Currently, this includes config files for OpenLDAP, ISC DHCP, and Puppet.
