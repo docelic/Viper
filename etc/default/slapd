@@ -1,8 +1,7 @@
-# Default location of the slapd.conf file. If empty, use the compiled-in
-# default (/etc/ldap/slapd.conf). If using the cn=config backend to store
-# configuration in LDIF, set this variable to the directory containing the
-# cn=config data.
-SLAPD_CONF=/etc/ldap/slapd.conf
+# Default location of the slapd.conf file or slapd.d cn=config directory. If
+# empty, use the compiled-in default (/etc/ldap/slapd.d with a fallback to
+# /etc/ldap/slapd.conf).
+SLAPD_CONF=
 
 # System account to run the slapd server under. If empty the server
 # will run as root.
@@ -22,6 +21,7 @@ SLAPD_PIDFILE=
 # sockets.
 # Example usage:
 # SLAPD_SERVICES="ldap://127.0.0.1:389/ ldaps:/// ldapi:///"
+SLAPD_SERVICES="ldap:/// ldapi:///"
 
 # If SLAPD_NO_START is set, the init script will not start or restart
 # slapd (but stop will still work).  Uncomment this if you are
@@ -46,4 +46,4 @@ SLAPD_OPTIONS=""
 
 # Which library to LD_PRELOAD on all slapd invocations. None needed
 # when running standard slapd, libperl.so needed for Perl backend.
-export LD_PRELOAD=/usr/lib/libperl.so.5.10
+#export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libperl.so.5.24

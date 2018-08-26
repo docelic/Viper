@@ -31,7 +31,7 @@ if test -z "$HOST"; then
 fi
 
 # Install necessary packages
-apt install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2
+apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2
 
 # One-time viper subdirectory creation
 mkdir -p /var/lib/ldap/viper

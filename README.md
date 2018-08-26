@@ -78,6 +78,8 @@ If you happen to be using one of those older versions, please upgrade or manuall
 
 There is a simple shell script [scripts/viper-setup.sh](https://github.com/docelic/Viper/blob/master/scripts/viper-setup.sh) delivered with Viper which contains the list of steps to be performed on a server machine to install Viper. After a mandatory manual review you could run this script to perform the installation. The script is idempotent; running it multiple times will result in no adverse effects, so in case anything fails, you can resolve the conditions and then run the script again.
 
+*Please note that the script will, by default, overwrite your existing slapd, dhcpd, and puppet config files.*
+
 In summary, to perform the installation, you will:
 
 1. Find a suitable Devuan GNU+Linux, Debian GNU, or Ubuntu machine to use as Viper install server
