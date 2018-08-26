@@ -86,7 +86,8 @@ In summary, to perform the installation, you will:
 1. Note the machine's hostname
 1. Find name of the network interface on which Viper's DHCP server will be listening
 1. Install required packages: `apt install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2`
-1. Verify and run script `scripts/viper-setup.sh [ETH_INTERFACE_NAME] [HOST_NAME]`, or manually execute lines from it
+1. Configure a network interface or an alias to listen on IP 10.0.1.1/24 for one client. This must be done to load test data and have DHCP server start properly: `ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0`
+1. Verify and run script `scripts/viper-setup.sh`, or manually execute lines from it
 1. Make final adjustments to config files if necessary
 1. Restart OpenLDAP
 1. Review and/or modify LDIF data and load it into the server
@@ -235,7 +236,7 @@ sudo /usr/sbin/slapd -h 'ldap:/// ldapi:///' -g openldap -u openldap -f /etc/lda
 1. In addition, tail essential log files:
 
 ```
-sudo tail -f /var/log/syslog /var/log/auth.log /var/log/dhcp-ldap-startup.log /var/log/daemon.log
+sudo tail -f /var/log/syslog /var/log/dhcp-ldap-startup.log
 ```
 
 ### Troubleshooting DHCP Server
@@ -245,5 +246,11 @@ DHCP server will issue the equivalent of the following LDAP searches upon startu
 ```
 ldapsearch -a never -b ou=dhcp -s sub -x "(&(objectClass=dhcpServer)(cn=HOSTNAME))"
 ```
+
+There are many DHCP-related problems that can come up, preventing the server from starting.
+
+A good rule of thumb is to make sure that there is at least some network interface configured with the IP 10.0.1.1/24. This is one of test subnets loaded along with test data, and it should allow the DHCP server to start.
+
+Also, when adding new clients, it is mandatory to create the network interface or alias and set it to an IP from the desired subnet before adding the new client and DHCP block to LDAP and restarting DHCP.
 
 
