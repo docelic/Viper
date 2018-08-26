@@ -30,14 +30,14 @@ if test -z "$HOST"; then
 	HOST=viper
 fi
 
-echo "\nWill install required system packages with 'apt-get'.
+echo "Will install required system packages with 'apt-get'.
 Press ENTER to continue or Ctrl+C to exit."
 read
 
 # Install necessary packages
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2
 
-echo "\nWill symlink all files from Viper's directory etc/ into system's /etc/.
+echo "Will symlink all files from Viper's directory etc/ into system's /etc/.
 Press ENTER to continue or Ctrl+C to exit."
 read
 
@@ -51,7 +51,7 @@ cd "$VIPER_ROOT"
 find etc -type d -exec mkdir -p /{} \;
 find etc -type f -exec cp $CP_ARG "$VIPER_ROOT/{}" "/{}" \;
 
-echo "\nWill do a small maintenance and restart slapd twice.
+echo "Will do a small maintenance and restart slapd twice.
 Press ENTER to continue or Ctrl+C to exit."
 read
 
@@ -65,7 +65,7 @@ perl /etc/ldap/viper/scripts/schema.pl > /etc/ldap/schema/schema.ldif
 
 invoke-rc.d slapd restart
 
-echo "\nWill load LDIFs from directory ldifs/ into LDAP.
+echo "Will load LDIFs from directory ldifs/ into LDAP.
 Press ENTER to continue or Ctrl+C to exit."
 read
 
@@ -88,14 +88,14 @@ perl -pi -e "s/sharedNetwork/$ETH_IF/g" 1-dhcp.ldif
 # LDIF file and run make)
 make
 
-echo "\nWill restart DHCP server.
+echo "Will restart DHCP server.
 Press ENTER to continue or Ctrl+C to exit."
 read
 
 # Restart dhcp
 invoke-rc.d dhcp3-server restart
 
-echo "\nWill install scripts/preseed as /usr/lib/cgi-bin/preseed.cgi.
+echo "Will install scripts/preseed as /usr/lib/cgi-bin/preseed.cgi.
 Press ENTER to continue or Ctrl+C to exit."
 read
 
