@@ -4,9 +4,10 @@
 
 # DHCP Service
 dn: ou=dhcp
-cn: dhcp
+ou: dhcp
 objectClass: top
 objectClass: dhcpService
+objectClass: dhcpOptions
 dhcpPrimaryDN: cn=viper, ou=dhcp
 dhcpStatements: default-lease-time 600
 dhcpStatements: max-lease-time 7200
@@ -29,12 +30,7 @@ dhcpServiceDN: ou=dhcp
 #objectClass: simpleSecurityObject
 #userPassword: nevairbe
 
-# Shared network. This can really be anything, usually it's the name of
-# the physical ethX interface on which DHCP is listening, but it's not
-# mandatory. We need just one subentry under ou=dhcp so that the search
-# gets triggered.
-dn: ou=sharedNetwork, ou=dhcp
-ou: sharedNetwork
+dn: cn=sharedNetwork, ou=dhcp
+cn: sharedNetwork
 objectClass: top
 objectClass: dhcpSharedNetwork
-
