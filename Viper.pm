@@ -100,12 +100,24 @@ use constant BASE     => 0;
 use constant ONE      => 1;
 use constant SUB      => 2;
 use constant CHILDREN => 3;
+our %SCOPE2NAME = (
+	0 => "base",
+	1 => "one",
+	2 => "sub",
+	3 => "children",
+);
 
 # Referral chasing
 use constant NEVER    => 0;
 use constant ALWAYS   => 1;
 use constant SEARCH   => 2;
 use constant FIND     => 3;
+our %DEREF2NAME = (
+	0 => "never",
+	1 => "always",
+	2 => "search",
+	3 => "find",
+);
 
 BEGIN {
 	# No need to initialize the whole Debconf block if prompter is off.
@@ -680,6 +692,9 @@ sub search {
 	$req{'size'}= 6600 if not $req{'size'} or $req{'size'} eq 'max';
 	$req{'time'}= 6600 if not $req{'time'} or $req{'time'} eq 'max';
 
+	p '-' x 78;
+	p qq|SEARCH: ldapsearch -x -b "$req{base}" -s "$SCOPE2NAME{$req{scope}}" -a "$DEREF2NAME{$req{scope}}" -z $req{size} -l $req{time} '$req{filter}' @attrs|;
+
 	# Normalize base DN
 	$this->normalize( \$req{base});
 
@@ -737,8 +752,7 @@ sub search {
 
 	# Now, continue search as normal as if nothing ever happened
 
-	p "SEARCH ($this->{level}) @req{qw/base scope deref size time filter attrOnly/} ".
-		"@attrs";
+	#p "REWRITTEN SEARCH ($this->{level}) @req{qw/base scope deref size time filter attrOnly/} @attrs";
 
 	# Save original requested base. (Need to have it, unmodified, for proper
 	# expansion of "." (dots) in DN specifications). Note that this is the
