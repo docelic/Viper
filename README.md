@@ -72,11 +72,11 @@ cd viper
 ## Net::LDAP::FilterMatch.pm Fix
 
 In Perl module Net::LDAP prior to version 0.4001 (2010 and earlier) there was a [bug in FilterMatch escaping](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938).
-If you happen to be using one of those older versions, please upgrade or manually apply patch [support/FilterMatch.pm.patch](https://github.com/docelic/Viper/blob/master/support/FilterMatch.pm.patch).
+If you happen to be using one of those older versions, please upgrade or manually apply patch [support/FilterMatch.pm.patch](https://github.com/crystallabs/Viper/blob/master/support/FilterMatch.pm.patch).
 
 ## Installation Procedure
 
-There is a simple shell script [scripts/viper-setup.sh](https://github.com/docelic/Viper/blob/master/scripts/viper-setup.sh) delivered with Viper which contains the list of steps to be performed on a server machine to install Viper. After a mandatory manual review you could run this script to perform the installation. The script is idempotent; running it multiple times will result in no adverse effects, so in case anything fails, you can resolve the conditions and then run the script again.
+There is a simple shell script [scripts/viper-setup.sh](https://github.com/crystallabs/Viper/blob/master/scripts/viper-setup.sh) delivered with Viper which contains the list of steps to be performed on a server machine to install Viper. After a mandatory manual review you could run this script to perform the installation. The script is idempotent; running it multiple times will result in no adverse effects, so in case anything fails, you can resolve the conditions and then run the script again.
 
 *Please note that the script will, by default, overwrite your existing slapd, dhcpd, and puppet config files.*
 
