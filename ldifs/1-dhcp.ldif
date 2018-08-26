@@ -7,21 +7,11 @@ dn: ou=dhcp
 cn: dhcp
 objectClass: top
 objectClass: dhcpService
-objectClass: dhcpSharedNetwork
 dhcpPrimaryDN: cn=viper, ou=dhcp
-dhcpStatements: ddns-update-style none
 dhcpStatements: default-lease-time 600
 dhcpStatements: max-lease-time 7200
+dhcpStatements: ddns-update-style none
 description: This is the DHCP subtree. Note that a simple search in this suffix will not reveal much information. The purpose of this suffix is to display dynamic behavior in response to certain combinations of search parameters. Take a look at slapd.conf, suffix ou=dhcp, for a list of the conditions that trigger this behavior. This suffix is intended to be accessed by ISC DHCP3 LDAP-enabled server, but as long as the queries are the same, they can be sent manually (and response observed) with ldapsearch as well.
-
-# User & password dhcpd will use to connect. Needed only if
-# ldap-username and ldap-password are enabled in dhcpd.conf.
-# (By default they're not, so dhcpd performs anonymous bind).
-dn: cn=dhcpd, ou=dhcp
-objectClass: top
-objectClass: simpleSecurityObject
-cn: dhcpd
-userPassword: nevairbe
 
 # DHCPD server host entry. DHCPD server will search for its FQDN or hostname
 # to try to locate the entry, and will then read dhcpServiceDN from it
@@ -36,12 +26,15 @@ objectClass: top
 objectClass: dhcpServer
 cn: viper
 dhcpServiceDN: ou=dhcp
+#objectClass: simpleSecurityObject
+#userPassword: nevairbe
 
 # Shared network. This can really be anything, usually it's the name of
 # the physical ethX interface on which DHCP is listening, but it's not
 # mandatory. We need just one subentry under ou=dhcp so that the search
 # gets triggered.
-dn: ou=sharedNetwork, ou=dhcp
-ou: sharedNetwork
+dn: cn=sharedNetwork, ou=dhcp
+cn: sharedNetwork
 objectClass: top
+objectClass: dhcpSharedNetwork
 
