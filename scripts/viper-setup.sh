@@ -15,7 +15,7 @@ fi
 VIPER_ROOT="$PWD"
 
 # Use -sf to symlink instead of copying (default), empty otherwise.
-CP_ARG="-sf"
+CP_ARG=""
 
 # Make sure we're running in toplevel dir and not in i.e. scripts/
 if ! test -d "etc"; then
@@ -50,6 +50,11 @@ echo "
 Will symlink all files from Viper's directory etc/ into system's /etc/.
 Press ENTER to continue or Ctrl+C to exit."
 read
+
+# This directory must be removed, or slapd will prefer it over slapd.conf
+if test -e "/etc/ldap/ldapd.d"; then
+	mv /etc/ldap/ldapd.d /etc/ldap/ldapd.d.bak
+fi
 
 # One-time viper subdirectory creation
 mkdir -p /var/lib/ldap/viper
