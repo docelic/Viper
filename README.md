@@ -222,13 +222,17 @@ wget http://10.0.1.1/cgi-bin/preseed.cfg?ip=10.0.1.8 -O /tmp/preseed.cfg
 
 The following two things should be done as a pre-requirement for any quick troubleshooting:
 
-1. Run `slapd` in foreground and watch its logs:
+1. Tune the desired internal debug options in Viper. This is done in `/etc/ldap/viper/Viper.pm` (search for "DEBUG")
+
+1. Run `slapd` in foreground and watch its logs. We run with slapd debug
+level 0 because most of the time we are interested in seeing Viper's internal
+logs and we don't want the output to include slapd's own logs.
 
 ```
-sudo /usr/sbin/slapd -h 'ldap:/// ldapi:///' -g openldap -u openldap -f /etc/ldap/slapd.conf -d 256
+sudo /usr/sbin/slapd -h 'ldap:/// ldapi:///' -g openldap -u openldap -f /etc/ldap/slapd.conf -d 0
 ```
 
-1. Tail essential log files:
+1. In addition, tail essential log files:
 
 ```
 sudo tail -f /var/log/syslog /var/log/auth.log /var/log/dhcp-ldap-startup.log /var/log/daemon.log

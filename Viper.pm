@@ -75,9 +75,9 @@ use List::MoreUtils     qw/any firstidx/;
 use subs                qw/p pd pc pcd po pod/;
 
 # To make use of DEBUG, server should best run in foreground mode. Something like:
-# sudo -u openldap /usr/sbin/slapd -d 256
+# sudo -u openldap /usr/sbin/slapd -d 0
 use constant DEBUG    => 1; # General debug?
-use constant DEBUG_DTL=> 1; # Detailed debug?
+use constant DEBUG_DTL=> 0; # Detailed debug?
 use constant DEBUG_OVL=> 1; # Overlays debug?
 use constant DEBUG_CCH=> 0; # Cache debug?
 
@@ -2809,7 +2809,6 @@ sub setup_state {
 			each %{ $this->{op_cache_valid}}) {
 
 			for my $n( keys %{ $ovlref}) {
-				warn "FOR $ovl, STATS $n\n";
 				if( --$ovlref->{$n}< 1) {
 					pc "Clearing $ovl op cache ($n ops)";
 					$this->{cache}{$ovl}{$n}= {};
