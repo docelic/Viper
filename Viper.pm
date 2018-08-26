@@ -72,13 +72,13 @@ use Text::CSV_XS        qw//;
 use Memoize::Expire     qw//;
 use List::MoreUtils     qw/any firstidx/;
 
-use subs                qw/p pd pc pcd/;
+use subs                qw/p pd pc pcd po pod/;
 
 # To make use of DEBUG, server should best run in foreground mode. Something like:
 # sudo -u openldap /usr/sbin/slapd -d 256
 use constant DEBUG    => 1; # General debug?
 use constant DEBUG_DTL=> 0; # Detailed debug?
-use constant DEBUG_OVL=> 0; # Overlays debug?
+use constant DEBUG_OVL=> 1; # Overlays debug?
 use constant DEBUG_CCH=> 0; # Cache debug?
 
 use constant CFG_STACK=> 1; # Allow save/reset/load config file routines
@@ -89,7 +89,7 @@ use constant APPENDER => 1; # Enable appending with other entries' attributes.
 use constant FILEVAL  => 1; # Enable value expansion by reading files.
 use constant EXPANDVAL=> 1; # Enable value expansion by loading DN attrs.
 use constant FINDVAL  => 1; # Enable re-searching and returning certain attr.
-use constant PERLEVAL => 0; # Enable Perl evaluation of values. *DANGEROUS*
+use constant PERLEVAL => 1; # Enable Perl evaluation of values.
 
 use constant RELOCATOR=> 0; # Enable relocation of Debconf keys from client.
 use constant PROMPTER => 0; # Enable relocation of Debconf keys from server.
@@ -1097,6 +1097,7 @@ sub run_overlays {
 	for my $a( @candidates) {
 
 		for my $ovl( @OVERLAYS) {
+			pod "Running OVERLAY $ovl on '$a'";
 
 			my @v= $e->get_value( $a);
 
@@ -1105,7 +1106,7 @@ sub run_overlays {
 					# Ok, we know overlay is configured with at least one line in
 					# slapd.conf and that line matches our attribute name.
 
-					DEBUG_OVL and p "OVERLAY $ovl on '$a' due to rule @$cond";
+					po "OVERLAY $ovl on '$a' due to rule @$cond";
 
 					my @v2;
 
@@ -1181,7 +1182,7 @@ sub run_overlays {
 											goto FILE_DONE
 										}
 
-										p 'FILE: will read dir='.  $this->{directory}.
+										po 'FILE: will read dir='.  $this->{directory}.
 											', file='. $file.
 											', spec='. ( $spec|| '');
 
@@ -1937,6 +1938,10 @@ sub dn2leaf {
 # Quick debug print. p(...)
 sub p{  if( DEBUG) { print {*STDERR} '### ', join( ' ', @_), "\n"}}
 sub pd{ if( DEBUG_DTL) { print {*STDERR} '### ', join(' ', @_), "\n"}}
+
+sub po{ if( DEBUG_OVL) { print {*STDERR} 'OOO ', join(' ', @_), "\n"}}
+sub pod{if( DEBUG_DTL and DEBUG_OVL){ print {*STDERR} 'OOO ', join(' ', @_), "\n"}}
+
 sub pc{ if( DEBUG_CCH) { print {*STDERR} '+++ ', join(' ', @_), "\n"}}
 sub pcd{if( DEBUG_DTL and DEBUG_CCH){print {*STDERR} '+++ ',join(' ',@_),"\n"}}
 
