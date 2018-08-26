@@ -47,7 +47,7 @@ apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext
 echo "
 (Message about a missing configurations above is fine, please ignore it.)
 
-Will symlink all files from Viper's directory etc/ into system's /etc/.
+Will copy all files from Viper's directory etc/ to system's /etc/, overwriting any existing files.
 Press ENTER to continue or Ctrl+C to exit."
 read
 

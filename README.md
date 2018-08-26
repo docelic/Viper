@@ -83,10 +83,8 @@ There is a simple shell script [scripts/viper-setup.sh](https://github.com/cryst
 In summary, to perform the installation, you will:
 
 1. Find a suitable Devuan GNU+Linux, Debian GNU, or Ubuntu machine to use as Viper install server
-1. Note the machine's hostname
-1. Find name of the network interface on which Viper's DHCP server will be listening
-1. Install required packages: `apt install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2`
-1. Configure a network interface or an alias to listen on IP 10.0.1.1/24 for one client. This must be done to load test data and have DHCP server start properly: `ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0`
+1. Configure one network interface (can be an alias) to listen on 10.0.1.1/24: `ifconfig eth0:1 inet 10.0.1.1 netmask 255.255.255.0`. This must be done to load test data and have DHCP server start properly with default config
+1. Install required packages: `slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2`
 1. Verify and run script `scripts/viper-setup.sh`, or manually execute lines from it
 1. Make final adjustments to config files if necessary
 1. Restart OpenLDAP
@@ -96,15 +94,13 @@ In summary, to perform the installation, you will:
 
 More detailed descriptions of some of these steps follow:
 
-### Machine and Ethernet Interface Name
-
-If you don't specify ethernet interface name, the default will be `sharedNetwork`.
-
-If you don't specify server host name, the default will be `viper`.
-
 ### Required Package Installations
 
-The packages needed to run Viper have been listed above.
+The packages needed to run Viper have been listed above, repeated here for completeness.
+
+```
+slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2
+```
 
 The HTTP server is included in the list because Viper uses a simple CGI script to provide preseed data via HTTP for client machines during installation (queried automatically from debian-installer). Our example uses Apache, even though any web server that can execute CGI will do well.
 
@@ -124,8 +120,6 @@ Currently, this includes config files for OpenLDAP, ISC DHCP, and Puppet.
 ### Viper LDIFs
 
 `viper-setup.sh` will also load the necessary bootstrap LDIFs into LDAP as part of the installation procedure. It will do that by invoking `make` in the directory `ldifs/`.
-
-The only LDIF file that should be modified in case you will be loading the LDIFs manually is `ldifs/1-dhcp.ldif`, containing the server machine's hostname and network interface to listen on. If you have ran the script with the corresponding eth name and hostname parameters, the script has done the replacements for you.
 
 The LDIF contents are supposed to load into the custom Viper backend for OpenLDAP, which comes pre-configured in Viper's OpenLDAP config files.
 Therefore, be sure to restart OpenLDAP with the new configuration before loading the LDIFs.
@@ -168,7 +162,7 @@ $ ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients
 # extended LDIF
 #
 # LDAPv3
-# base  with scope subtree
+# base <cn=h2,ou=hosts,o=c1.com,ou=clients> with scope subtree
 # filter: (objectclass=*)
 # requesting: ALL
 #
@@ -180,18 +174,12 @@ objectClass: device
 objectClass: dhcpHost
 objectClass: ipHost
 objectClass: ieee802Device
-objectClass: puppetClient
+objectClass: x-puppetClient
 cn: h2
 ipHostNumber: 10.0.1.8
-macAddress: 00:11:6b:34:ae:89
+macAddress: 00:11:6b:34:ae:8d
 puppetclass: test
 puppetclass: ntp::server
-hostName: h2
-ipNetmaskNumber: 255.255.255.0
-clientName: c1.com
-ipNetworkNumber: 10.0.1.0
-ipBroadcastNumber: 10.0.1.255
-domainName: c1.com
 
 # search result
 search: 2
