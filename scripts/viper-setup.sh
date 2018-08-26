@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo "
+Viper Setup Script
+
+On every dialog, please press ENTER to continue or Ctrl+C to exit.
+"
+
 # Make sure we're running as root
 if ! test "`whoami`" == "root"; then
 	echo "Please run the script as root or disable this check at the top of file '$0'. Exiting."
