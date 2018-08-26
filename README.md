@@ -151,9 +151,11 @@ Some default data is included with the installation. That includes a "customer" 
 
 Altogether, you can run the following additional ldapsearches for more testing:
 
+```
 ldapsearch -x -b ou=dhcp
 ldapsearch -x -b ou=defaults
 ldapsearch -x -b ou=clients
+```
 
 ### Testing with ldapsearch
 
@@ -234,7 +236,7 @@ sudo tail -f /var/log/syslog /var/log/auth.log /var/log/dhcp-ldap-startup.log /v
 
 ### Troubleshooting DHCP Server
 
-DHCP server will issue the equivalent of the following LDAP search upon startup:
+DHCP server will issue the equivalent of the following LDAP searches upon startup:
 
 ```
 ldapsearch -a never -b ou=dhcp -s sub -x "(&(objectClass=dhcpServer)(cn=HOSTNAME))"

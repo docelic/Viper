@@ -45,7 +45,7 @@ read
 apt-get install slapd ldap-utils libfile-find-rule-perl libnet-ldap-perl libtext-csv-xs-perl liblist-moreutils-perl isc-dhcp-server-ldap make sudo libyaml-perl apache2
 
 echo "
-(Message about a missing configuration for slapd.conf above is fine, please ignore it.)
+(Message about a missing configurations above is fine, please ignore it.)
 
 Will symlink all files from Viper's directory etc/ into system's /etc/.
 Press ENTER to continue or Ctrl+C to exit."
