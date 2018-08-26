@@ -1,5 +1,11 @@
 #!/bin/sh -e
 
+# Make sure we're running as root
+if ! test `whoami` == "root"; then
+	echo "Please run the script as root or disable this check at the top of file '$0'. Exiting."
+	exit 1
+fi
+
 VIPER_ROOT="$PWD"
 
 # Use -sf to symlink instead of copying (default), empty otherwise.
