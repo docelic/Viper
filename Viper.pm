@@ -693,8 +693,8 @@ sub search {
 	$req{'time'}= 6600 if not $req{'time'} or $req{'time'} eq 'max';
 
 	p '-' x 78;
-	my $search = qq|SEARCH: ldapsearch -x -b '$req{base}' -s $SCOPE2NAME{$req{scope}} -a $DEREF2NAME{$req{scope}} -z $req{size} -l $req{time} '$req{filter}' @attrs|;
-	p $search;
+	my $search = qq|ldapsearch -x -b '$req{base}' -s $SCOPE2NAME{$req{scope}} -a $DEREF2NAME{$req{scope}} -z $req{size} -l $req{time} '$req{filter}' @attrs|;
+	p "SEARCH: $search";
 
 	# Normalize base DN
 	$this->normalize( \$req{base});
@@ -754,8 +754,8 @@ sub search {
 	# Now, continue search as normal as if nothing ever happened
 
 	DEBUG && do {
-		my $rewrtn = qq|REWRTN: ldapsearch -x -b '$req{base}' -s $SCOPE2NAME{$req{scope}} -a $DEREF2NAME{$req{scope}} -z $req{size} -l $req{time} '$req{filter}' @attrs|;
-		p $rewrtn if $search ne $rewrtn;
+		my $rewrtn = qq|ldapsearch -x -b '$req{base}' -s $SCOPE2NAME{$req{scope}} -a $DEREF2NAME{$req{scope}} -z $req{size} -l $req{time} '$req{filter}' @attrs|;
+		p "REWRTN: $rewrtn" if $search ne $rewrtn;
 	};
 
 	# Save original requested base. (Need to have it, unmodified, for proper
