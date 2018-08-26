@@ -58,7 +58,7 @@ And finally, necessary to mention here is that, by default, the install clients 
 
 Therefore, all things considered, we advise to only run Viper servers on dedicated machines and inside local/trusted networks, unless you first read this guide in entirety and possibly send us patches to make Viper "thougher" and suitable for other environments.
 
-### First Steps
+## First Steps
 
 The easiest way to start with Viper is to clone the files from Git and place them in `/etc/ldap/viper/`:
 
@@ -69,12 +69,12 @@ git clone git://github.com/crystallabs/Viper.git viper
 cd viper
 ```
 
-### Net::LDAP::FilterMatch.pm Fix
+## Net::LDAP::FilterMatch.pm Fix
 
 In Perl module Net::LDAP prior to version 0.4001 (2010 and earlier) there was a [bug in FilterMatch escaping](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=540938).
 If you happen to be using one of those older versions, please upgrade or manually apply patch [support/FilterMatch.pm.patch](https://github.com/docelic/Viper/blob/master/support/FilterMatch.pm.patch).
 
-### Installation Procedure
+## Installation Procedure
 
 There is a simple shell script [scripts/viper-setup.sh](https://github.com/docelic/Viper/blob/master/scripts/viper-setup.sh) delivered with Viper which contains the list of steps to be performed on a server machine to install Viper. After a mandatory manual review you could run this script to perform the installation. The script is idempotent; running it multiple times will result in no adverse effects, so in case anything fails, you can resolve the conditions and then run the script again.
 
@@ -95,13 +95,13 @@ In summary, to perform the installation, you will:
 
 More detailed descriptions of some of these steps follow:
 
-#### Machine and Ethernet Interface Name
+### Machine and Ethernet Interface Name
 
 If you don't specify ethernet interface name, the default will be `sharedNetwork`.
 
 If you don't specify server host name, the default will be `viper`.
 
-#### Required Package Installations
+### Required Package Installations
 
 The packages needed to run Viper have been listed above.
 
@@ -111,7 +111,7 @@ When installing OpenLDAP, feel free to answer "Yes" to the debconf question "Omi
 
 It is known and expected that OpenLDAP and DHCP servers will not start cleanly during the `apt install` step, due to incomplete configuration. You will install the appropriate config files for both services later, from Viper's templates.
 
-#### Viper's Etc Config Files
+### Viper's Etc Config Files
 
 Viper does not intend to unconditionally or inflexibly replace your services' config files with its own. You can just as easily manually modify any of your existing services' config files to insert parts of configurations needed by Viper.
 
@@ -120,7 +120,7 @@ However, it is generally assumed that you will dedicate a physical or virtual ma
 `viper-setup.sh` will copy all the required files from `$VIPER_ROOT/etc/` (which is usually `/etc/ldap/viper/etc`) into the system's `/etc/` and overwrite any existing files.
 Currently, this includes config files for OpenLDAP, ISC DHCP, and Puppet.
 
-#### Viper LDIFs
+### Viper LDIFs
 
 `viper-setup.sh` will also load the necessary bootstrap LDIFs into LDAP as part of the installation procedure. It will do that by invoking `make` in the directory `ldifs/`.
 
@@ -133,11 +133,17 @@ LDIFs are loaded by simply running `make` in the directory `ldifs/`. The Makefil
 
 Once LDIFs are loaded, please restart the ISC DHCP server.
 
-#### Preseed CGI Script
+### Preseed CGI Script
 
 Viper ships with `scripts/preseed`, a CGI script used for providing preseed data to Debian-based clients. The preseed format is natively supported by Debian installer, requiring no modifications on the client. On incoming requests, the script runs and uses the client's IP address to search for matching `dhcpHWAddress` and `ipHostNumber` in the LDAP directory. Then it compiles the preseed file contents and delivers them back to the client.
 
 For maximum convenience and manual testing, the preseed data for a client can also be obtained by accessing the CGI script with query parameter `host=HOSTNAME`, and additionally with `client=DOM.AIN` if the LDAP search for hostname alone would find more than one result.
 
 During our testing, it was determined that preseeding the clients during installation with all existing Debconf answers (instead of only those required by the installation) leads to unusual problems. Therefore, the preseed CGI script only returns the Debconf entries marked for inclusion in preseeds, but all keys can be requested with a query parameter `flag=` or alternatively `debug=1`.
+
+## Testing the Installation
+
+The installation procedure hopefully finished without giving any errors, and the LDIFs were loaded.
+
+At this point, to just do a quick and immediate test, run `ldapsearch -x`. If this prints various LDAP entries to screen and reports about 60 entries at the end of output, you have a working server installation.
 
