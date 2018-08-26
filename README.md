@@ -145,5 +145,99 @@ During our testing, it was determined that preseeding the clients during install
 
 The installation procedure hopefully finished without giving any errors, and the LDIFs were loaded.
 
-At this point, to just do a quick and immediate test, run `ldapsearch -x`. If this prints various LDAP entries to screen and reports about 60 entries at the end of output, you have a working server installation.
+At this point, to just do a quick and immediate test, run `ldapsearch -x`. If this prints various LDAP entries to screen, you have a working server installation.
+
+Some default data is included with the installation. That includes a "customer" with name "c1.com", and three hosts, h1, h2 and h3.
+
+Altogether, you can run the following additional ldapsearches for more testing:
+
+ldapsearch -x -b ou=dhcp
+ldapsearch -x -b ou=defaults
+ldapsearch -x -b ou=clients
+
+### Testing with ldapsearch
+
+Ldapsearch query for `cn=h2,ou=hosts,o=c1.com,ou=clients` is a pretty good way of determining if everything is working alright. Here's how the output from the command should look like. The exact attribute values are not important, it is just important that there are no unprocessed values in the output. That is, nothing with '$' and nothing with only half-populated information.
+
+```
+$ ldapsearch -x -b cn=h2,ou=hosts,o=c1.com,ou=clients
+
+# extended LDIF
+#
+# LDAPv3
+# base  with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# h2, hosts, c1.com, clients
+dn: cn=h2,ou=hosts,o=c1.com,ou=clients
+objectClass: top
+objectClass: device
+objectClass: dhcpHost
+objectClass: ipHost
+objectClass: ieee802Device
+objectClass: puppetClient
+cn: h2
+ipHostNumber: 10.0.1.8
+macAddress: 00:11:6b:34:ae:89
+puppetclass: test
+puppetclass: ntp::server
+hostName: h2
+ipNetmaskNumber: 255.255.255.0
+clientName: c1.com
+ipNetworkNumber: 10.0.1.0
+ipBroadcastNumber: 10.0.1.255
+domainName: c1.com
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 2
+# numEntries: 1
+```
+
+### Testing with scripts/node_data
+
+```
+perl scripts/node_data h2.c1.com
+```
+
+### Testing with scripts/preseed
+
+```
+QUERY_STRING=ip=10.0.1.8 perl scripts/preseed
+```
+
+### Testing with HTTP client
+
+```
+wget http://10.0.1.1/cgi-bin/preseed.cfg?ip=10.0.1.8 -O /tmp/preseed.cfg
+```
+
+## Troubleshooting
+
+The following two things should be done as a pre-requirement for any quick troubleshooting:
+
+1. Run `slapd` in foreground and watch its logs:
+
+```
+sudo /usr/sbin/slapd -h 'ldap:/// ldapi:///' -g openldap -u openldap -f /etc/ldap/slapd.conf -d 256
+```
+
+1. Tail essential log files:
+
+```
+sudo tail -f /var/log/syslog /var/log/auth.log /var/log/dhcp-ldap-startup.log /var/log/daemon.log
+```
+
+### Troubleshooting DHCP Server
+
+DHCP server will issue the equivalent of the following LDAP search upon startup:
+
+```
+ldapsearch -a never -b ou=dhcp -s sub -x "(&(objectClass=dhcpServer)(cn=HOSTNAME))"
+```
+
 
